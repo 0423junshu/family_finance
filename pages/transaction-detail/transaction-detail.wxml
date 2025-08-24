@@ -1,0 +1,81 @@
+<!-- pages/transaction-detail/transaction-detail.wxml -->
+<navigation-bar title="交易详情" showBack="{{true}}" />
+
+<view class="page-container">
+  <!-- 加载中状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 交易详情 -->
+  <view wx:else class="transaction-detail">
+    <!-- 金额展示 -->
+    <view class="amount-section {{transaction.type === 'income' ? 'income' : 'expense'}}">
+      <text class="amount-prefix">{{transaction.type === 'income' ? '+' : '-'}}</text>
+      <text class="amount-value">{{formattedAmount}}</text>
+    </view>
+
+    <!-- 详情信息 -->
+    <view class="detail-section">
+      <view class="detail-item">
+        <text class="detail-label">分类</text>
+        <text class="detail-value">{{transaction.category}}</text>
+      </view>
+      
+      <view class="detail-item">
+        <text class="detail-label">账户</text>
+        <text class="detail-value">{{transaction.account}}</text>
+      </view>
+      
+      <view class="detail-item">
+        <text class="detail-label">日期</text>
+        <text class="detail-value">{{formattedDate}}</text>
+      </view>
+      
+      <view wx:if="{{transaction.description}}" class="detail-item">
+        <text class="detail-label">备注</text>
+        <text class="detail-value">{{transaction.description}}</text>
+      </view>
+      
+      <view wx:if="{{transaction.tags && transaction.tags.length > 0}}" class="detail-item">
+        <text class="detail-label">标签</text>
+        <view class="tags-container">
+          <text wx:for="{{transaction.tags}}" wx:key="*this" class="tag-item">{{item}}</text>
+        </view>
+      </view>
+      
+      <view class="detail-item">
+        <text class="detail-label">创建时间</text>
+        <text class="detail-value">{{formatDate(transaction.createTime)}}</text>
+      </view>
+      
+      <view wx:if="{{transaction.updateTime !== transaction.createTime}}" class="detail-item">
+        <text class="detail-label">更新时间</text>
+        <text class="detail-value">{{formatDate(transaction.updateTime)}}</text>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-section">
+      <button class="btn btn-edit" bindtap="onEditTap">编辑</button>
+      <button class="btn btn-delete" bindtap="onDeleteTap">删除</button>
+    </view>
+  </view>
+
+  <!-- 删除确认对话框 -->
+  <view wx:if="{{showDeleteConfirm}}" class="dialog-overlay">
+    <view class="dialog">
+      <view class="dialog-header">
+        <text class="dialog-title">确认删除</text>
+      </view>
+      <view class="dialog-content">
+        <text>确定要删除这条记录吗？此操作不可恢复。</text>
+      </view>
+      <view class="dialog-footer">
+        <button class="btn btn-cancel" bindtap="onCancelDelete">取消</button>
+        <button class="btn btn-confirm" bindtap="onConfirmDelete">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

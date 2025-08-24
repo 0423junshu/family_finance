@@ -1,0 +1,56 @@
+<!-- pages/template-manage/template-manage.wxml -->
+<navigation-bar title="记账模板" show-back="{{true}}" />
+
+<view class="page-container">
+  <!-- 模板列表 -->
+  <view class="template-list">
+    <view 
+      wx:for="{{templates}}" 
+      wx:key="id"
+      class="template-item"
+    >
+      <view class="template-icon">{{item.icon}}</view>
+      <view class="template-info">
+        <text class="template-name">{{item.name}}</text>
+        <text class="template-detail">
+          {{item.categoryName}} · {{item.accountName}}
+        </text>
+      </view>
+      <view class="template-amount">
+        <text class="amount {{item.type === 'income' ? 'income' : 'expense'}}">
+          <block wx:if="{{item.type === 'income'}}">+</block>
+          <block wx:else>-</block>{{item.amountDisplay}}
+        </text>
+      </view>
+      <view class="template-actions">
+        <view 
+          class="action-btn use"
+          data-id="{{item.id}}"
+          bindtap="onUseTemplate"
+        >
+          使用
+        </view>
+        <view 
+          class="action-btn edit"
+          data-id="{{item.id}}"
+          bindtap="onEditTemplate"
+        >
+          编辑
+        </view>
+        <view 
+          class="action-btn delete"
+          data-id="{{item.id}}"
+          bindtap="onDeleteTemplate"
+        >
+          删除
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="add-template-btn" bindtap="onAddTemplate">
+    <text class="add-icon">+</text>
+    <text class="add-text">添加模板</text>
+  </view>
+</view>

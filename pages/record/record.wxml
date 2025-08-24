@@ -1,0 +1,391 @@
+<!-- pages/record/record.wxml -->
+<navigation-bar 
+  title="{{mode === 'create' ? '记一笔' : '编辑记录'}}" 
+  show-back="{{true}}" 
+  show-hide-amount="{{true}}"
+/>
+
+<view class="page-container">
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+  
+  <view wx:else class="content">
+    <!-- 交易类型切换 -->
+    <view class="type-tabs">
+      <view 
+        class="type-tab {{formData.type === 'expense' ? 'active' : ''}}"
+        data-type="expense"
+        bindtap="onTypeChange"
+      >
+        <text class="type-icon">💸</text>
+        <text>支出</text>
+      </view>
+      <view 
+        class="type-tab {{formData.type === 'income' ? 'active' : ''}}"
+        data-type="income"
+        bindtap="onTypeChange"
+      >
+        <text class="type-icon">💰</text>
+        <text>收入</text>
+      </view>
+      <view 
+        class="type-tab {{formData.type === 'transfer' ? 'active' : ''}}"
+        data-type="transfer"
+        bindtap="onTypeChange"
+      >
+        <text class="type-icon">🔄</text>
+        <text>转账</text>
+      </view>
+    </view>
+
+    <!-- 表单内容 -->
+    <view class="form-container">
+      <!-- 金额输入 -->
+      <view class="form-section amount-section">
+        <view class="amount-input-container">
+          <text class="currency-symbol">¥</text>
+          <input 
+            class="amount-input {{errors.amount ? 'error' : ''}}"
+            type="digit"
+            placeholder="0.00"
+            value="{{hideAmount ? '***' : formData.amount}}"
+            bindinput="onAmountInput"
+            bindfocus="onAmountFocus"
+            bindblur="onAmountBlur"
+            confirm-type="done"
+            cursor-spacing="50"
+          />
+        </view>
+        <view wx:if="{{errors.amount}}" class="error-text">{{errors.amount}}</view>
+      </view>
+
+      <!-- 分类选择 -->
+      <view class="form-item" bindtap="onCategoryTap">
+        <view class="form-label">
+          <text class="form-icon">📂</text>
+          <text>分类</text>
+        </view>
+        <view class="form-value">
+          <view wx:if="{{selectedCategory}}" class="selected-category">
+            <text class="category-icon">{{selectedCategory.icon}}</text>
+            <text class="selected-text">{{selectedCategory.name}}</text>
+          </view>
+          <text wx:else class="placeholder-text">请选择分类</text>
+          <text class="arrow-icon">›</text>
+        </view>
+      </view>
+      <view wx:if="{{errors.categoryId}}" class="error-text">{{errors.categoryId}}</view>
+
+      <!-- 账户选择 -->
+      <view class="form-item" bindtap="onAccountTap">
+        <view class="form-label">
+          <text class="form-icon">💳</text>
+          <text wx:if="{{formData.type === 'transfer'}}">转出账户</text>
+          <text wx:else>账户</text>
+        </view>
+        <view class="form-value">
+          <view wx:if="{{selectedAccount}}" class="selected-account">
+            <text class="account-icon">{{selectedAccount.icon}}</text>
+            <text class="selected-text">{{selectedAccount.name}}</text>
+          </view>
+          <text wx:else class="placeholder-text">请选择账户</text>
+          <text class="arrow-icon">›</text>
+        </view>
+      </view>
+      <view wx:if="{{errors.accountId}}" class="error-text">{{errors.accountId}}</view>
+
+      <!-- 转账目标账户 -->
+      <view wx:if="{{formData.type === 'transfer'}}" class="form-item" bindtap="onTargetAccountTap">
+        <view class="form-label">
+          <text class="form-icon">💳</text>
+          <text>转入账户</text>
+        </view>
+        <view class="form-value">
+          <view wx:if="{{selectedTargetAccount}}" class="selected-account">
+            <text class="account-icon">{{selectedTargetAccount.icon}}</text>
+            <text class="selected-text">{{selectedTargetAccount.name}}</text>
+          </view>
+          <text wx:else class="placeholder-text">请选择账户</text>
+          <text class="arrow-icon">›</text>
+        </view>
+      </view>
+      <view wx:if="{{errors.targetAccountId}}" class="error-text">{{errors.targetAccountId}}</view>
+
+      <!-- 日期选择 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="form-icon">📅</text>
+          <text>日期</text>
+        </view>
+        <view class="form-value">
+          <picker mode="date" value="{{formData.date}}" bindchange="onDateChange">
+            <text class="selected-text">{{formData.date}}</text>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 备注输入 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="form-icon">📝</text>
+          <text>备注</text>
+        </view>
+        <view class="form-value">
+          <input 
+            class="note-input"
+            placeholder="添加备注"
+            value="{{formData.description}}"
+            bindinput="onDescriptionInput"
+            maxlength="100"
+          />
+        </view>
+      </view>
+
+      <!-- 标签选择 -->
+      <view class="form-item" bindtap="onTagTap">
+        <view class="form-label">
+          <text class="form-icon">🏷️</text>
+          <text>标签</text>
+        </view>
+        <view class="form-value">
+          <view wx:if="{{selectedTags.length > 0}}" class="tags-container">
+            <text 
+              wx:for="{{selectedTags}}" 
+              wx:key="_id" 
+              class="tag tag-primary"
+            >
+              {{item.name}}
+            </text>
+          </view>
+          <text wx:else class="placeholder-text">添加标签</text>
+          <text class="arrow-icon">›</text>
+        </view>
+      </view>
+
+      <!-- 图片上传 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="form-icon">📷</text>
+          <text>图片</text>
+        </view>
+        <view class="form-value">
+          <view class="images-container">
+            <view 
+              wx:for="{{formData.images}}" 
+              wx:key="*this" 
+              class="image-item"
+            >
+              <image class="uploaded-image" src="{{item}}" mode="aspectFill" />
+              <view class="image-delete" data-index="{{index}}" bindtap="onImageDelete">
+                <text class="delete-icon">×</text>
+              </view>
+            </view>
+            
+            <view wx:if="{{formData.images.length < 3}}" class="add-image-btns">
+              <view class="add-btn" bindtap="onImageTap">
+                <text class="add-icon">📁</text>
+                <text class="add-text">相册</text>
+              </view>
+              <view class="add-btn" bindtap="onCameraTap">
+                <text class="camera-icon">📷</text>
+                <text class="add-text">拍照</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 位置信息 -->
+      <view class="form-item" bindtap="onLocationTap">
+        <view class="form-label">
+          <text class="form-icon">📍</text>
+          <text>位置</text>
+        </view>
+        <view class="form-value">
+          <text wx:if="{{formData.location}}" class="selected-text">已获取位置</text>
+          <text wx:else class="placeholder-text">获取当前位置</text>
+          <text class="arrow-icon">›</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-container">
+      <button 
+        class="btn btn-primary btn-large {{submitting ? 'btn-disabled' : ''}}"
+        bindtap="onSubmit"
+        disabled="{{submitting}}"
+      >
+        <text wx:if="{{submitting}}">保存中...</text>
+        <text wx:elif="{{mode === 'create'}}">保存</text>
+        <text wx:else>更新</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 分类选择器 -->
+  <view wx:if="{{showCategoryPicker}}" class="picker-overlay" bindtap="onPickerClose">
+    <view class="picker-container" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">选择分类</text>
+        <view class="picker-actions">
+          <view class="add-category-btn" bindtap="onAddCategoryTap">
+            <text class="add-icon">+</text>
+            <text>新增</text>
+          </view>
+          <view class="picker-close" bindtap="onPickerClose">
+            <text class="close-icon">×</text>
+          </view>
+        </view>
+      </view>
+      <view class="picker-content">
+        <scroll-view class="categories-scroll" scroll-y="true">
+          <view class="categories-grid">
+            <view 
+              wx:for="{{categories}}" 
+              wx:key="_id"
+              wx:if="{{item.type === formData.type || formData.type === 'transfer'}}"
+              class="category-item {{item._id === formData.categoryId ? 'selected' : ''}}"
+              data-id="{{item._id}}"
+              bindtap="onCategorySelect"
+            >
+              <text class="category-icon" style="color: {{item.color}}">{{item.icon}}</text>
+              <text class="category-name">{{item.name}}</text>
+              <view wx:if="{{item._id === formData.categoryId}}" class="check-mark">
+                <text class="check-icon">✓</text>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 新增分类对话框 -->
+  <view wx:if="{{showAddCategoryDialog}}" class="dialog-overlay" bindtap="cancelAddCategory">
+    <view class="dialog-container" catchtap="">
+      <view class="dialog-header">
+        <text class="dialog-title">新增分类</text>
+        <view class="dialog-close" bindtap="cancelAddCategory">
+          <text class="close-icon">×</text>
+        </view>
+      </view>
+      <view class="dialog-content">
+        <!-- 分类名称输入 -->
+        <view class="dialog-item">
+          <text class="dialog-label">分类名称</text>
+          <input 
+            class="dialog-input"
+            placeholder="请输入分类名称"
+            value="{{newCategory.name}}"
+            bindinput="onNewCategoryNameInput"
+            maxlength="10"
+          />
+        </view>
+        
+        <!-- 图标选择 -->
+        <view class="dialog-item">
+          <text class="dialog-label">选择图标</text>
+          <view class="icon-grid">
+            <view 
+              wx:for="{{['💰', '🍽️', '🚗', '🛒', '🎬', '🏥', '📚', '🏠', '📱', '⚡', '🎁', '💼', '🧧', '↩️', '📈', '💎', '🎯', '🎨']}}"
+              wx:key="*this"
+              class="icon-item {{newCategory.icon === item ? 'selected' : ''}}"
+              data-icon="{{item}}"
+              bindtap="onCategoryIconSelect"
+            >
+              <text class="icon-text">{{item}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 颜色选择 -->
+        <view class="dialog-item">
+          <text class="dialog-label">选择颜色</text>
+          <view class="color-grid">
+            <view 
+              wx:for="{{['#007AFF', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#FFB6C1', '#87CEEB', '#32CD32', '#FFD700', '#00CED1', '#9370DB', '#FF69B4', '#20B2AA', '#808080']}}"
+              wx:key="*this"
+              class="color-item {{newCategory.color === item ? 'selected' : ''}}"
+              style="background-color: {{item}}"
+              data-color="{{item}}"
+              bindtap="onCategoryColorSelect"
+            >
+              <view wx:if="{{newCategory.color === item}}" class="color-check">
+                <text class="check-icon">✓</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="dialog-actions">
+        <button class="btn btn-secondary" bindtap="cancelAddCategory">取消</button>
+        <button class="btn btn-primary" bindtap="saveNewCategory">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 账户选择器 -->
+  <view wx:if="{{showAccountPicker}}" class="picker-overlay" bindtap="onPickerClose">
+    <view class="picker-container" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">选择账户</text>
+        <view class="picker-close" bindtap="onPickerClose">
+          <text class="close-icon">×</text>
+        </view>
+      </view>
+      <view class="picker-content">
+        <view 
+          wx:for="{{accounts}}" 
+          wx:key="_id"
+          class="account-picker-item {{(item._id === formData.accountId && currentPickerType !== 'targetAccount') || (item._id === formData.targetAccountId && currentPickerType === 'targetAccount') ? 'selected' : ''}}"
+          data-id="{{item._id}}"
+          bindtap="onAccountSelect"
+        >
+          <view class="account-info">
+            <view class="account-main">
+              <text class="account-icon">{{item.icon}}</text>
+              <text class="account-name">{{item.name}}</text>
+            </view>
+            <view class="account-balance">
+              <text wx:if="{{hideAmount}}">余额: ***</text>
+              <text wx:else>余额: ¥{{item.balanceDisplay}}</text>
+            </view>
+          </view>
+          <view wx:if="{{(item._id === formData.accountId && currentPickerType !== 'targetAccount') || (item._id === formData.targetAccountId && currentPickerType === 'targetAccount')}}" class="check-mark">
+            <text class="check-icon">✓</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 标签选择器 -->
+  <view wx:if="{{showTagPicker}}" class="picker-overlay" bindtap="onPickerClose">
+    <view class="picker-container" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">选择标签</text>
+        <view class="picker-close" bindtap="onPickerClose">
+          <text class="close-icon">×</text>
+        </view>
+      </view>
+      <view class="picker-content">
+        <view class="tags-grid">
+          <view 
+            wx:for="{{tags}}" 
+            wx:key="_id"
+            class="tag-item {{formData.tags.includes(item._id) ? 'selected' : ''}}"
+            data-id="{{item._id}}"
+            bindtap="onTagSelect"
+          >
+            <text>{{item.name}}</text>
+            <view wx:if="{{formData.tags.includes(item._id)}}" class="tag-check">
+              <text class="check-icon">✓</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

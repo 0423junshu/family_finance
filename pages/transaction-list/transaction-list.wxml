@@ -1,0 +1,204 @@
+<!-- pages/transaction-list/transaction-list.wxml -->
+<navigation-bar title="交易记录" showBack="{{true}}" />
+
+<view class="page-container">
+  <!-- 统计概览 -->
+  <view class="stats-overview">
+    <view class="stats-item">
+      <text class="stats-label">收入</text>
+      <text class="stats-value income">¥{{totalIncome}}</text>
+    </view>
+    <view class="stats-item">
+      <text class="stats-label">支出</text>
+      <text class="stats-value expense">¥{{totalExpense}}</text>
+    </view>
+    <view class="stats-item">
+      <text class="stats-label">结余</text>
+      <text class="stats-value {{netAmount >= 0 ? 'income' : 'expense'}}">¥{{netAmount}}</text>
+    </view>
+  </view>
+
+  <!-- 筛选工具栏 -->
+  <view class="filter-toolbar">
+    <view class="filter-item" bindtap="showFilterPanel">
+      <image class="filter-icon" src="/images/icons/filter.png" />
+      <text>筛选</text>
+    </view>
+    <view class="filter-item" bindtap="exportData">
+      <image class="filter-icon" src="/images/icons/export.png" />
+      <text>导出</text>
+    </view>
+  </view>
+
+  <!-- 交易列表 -->
+  <view class="content">
+    <!-- 加载中状态 -->
+    <view wx:if="{{loading}}" class="loading-container">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:elif="{{filteredTransactions.length === 0}}" class="empty-container">
+      <image class="empty-icon" src="/images/empty-transaction.png" />
+      <text class="empty-text">暂无交易记录</text>
+      <button class="btn btn-primary" bindtap="resetFilters">重置筛选</button>
+    </view>
+
+    <!-- 交易列表 -->
+    <view wx:else class="transaction-list">
+      <view 
+        wx:for="{{filteredTransactions}}" 
+        wx:key="id"
+        class="transaction-item"
+        bindtap="viewTransactionDetail"
+        data-id="{{item.id}}"
+      >
+        <view class="transaction-icon">
+          <image 
+            class="category-icon" 
+            src="/images/categories/{{item.category}}.png" 
+            mode="aspectFit"
+          />
+        </view>
+        <view class="transaction-info">
+          <view class="transaction-title">{{item.category}}</view>
+          <view class="transaction-meta">
+            <text class="transaction-date">{{item.formattedDate}}</text>
+            <text wx:if="{{item.account}}" class="transaction-account">{{item.account}}</text>
+          </view>
+          <view wx:if="{{item.description}}" class="transaction-description">{{item.description}}</view>
+        </view>
+        <view class="transaction-amount {{item.type === 'income' ? 'income' : 'expense'}}">
+          {{item.type === 'income' ? '+' : '-'}}{{item.formattedAmount}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选面板 -->
+  <view wx:if="{{showFilterPanel}}" class="filter-overlay" bindtap="hideFilterPanel">
+    <view class="filter-panel" catchtap="">
+      <view class="filter-header">
+        <text class="filter-title">筛选条件</text>
+        <view class="filter-actions">
+          <text class="filter-reset" bindtap="resetFilters">重置</text>
+          <text class="filter-close" bindtap="hideFilterPanel">完成</text>
+        </view>
+      </view>
+
+      <scroll-view class="filter-content" scroll-y>
+        <!-- 类型筛选 -->
+        <view class="filter-section">
+          <text class="filter-section-title">交易类型</text>
+          <view class="filter-options">
+            <view 
+              class="filter-option {{filters.type === 'all' ? 'active' : ''}}"
+              data-type="all"
+              bindtap="onTypeFilter"
+            >
+              <text>全部</text>
+            </view>
+            <view 
+              class="filter-option {{filters.type === 'income' ? 'active' : ''}}"
+              data-type="income"
+              bindtap="onTypeFilter"
+            >
+              <text>收入</text>
+            </view>
+            <view 
+              class="filter-option {{filters.type === 'expense' ? 'active' : ''}}"
+              data-type="expense"
+              bindtap="onTypeFilter"
+            >
+              <text>支出</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 日期范围筛选 -->
+        <view class="filter-section">
+          <text class="filter-section-title">时间范围</text>
+          <view class="filter-options">
+            <view 
+              class="filter-option {{filters.dateRange === 'week' ? 'active' : ''}}"
+              data-range="week"
+              bindtap="onDateRangeFilter"
+            >
+              <text>本周</text>
+            </view>
+            <view 
+              class="filter-option {{filters.dateRange === 'month' ? 'active' : ''}}"
+              data-range="month"
+              bindtap="onDateRangeFilter"
+            >
+              <text>本月</text>
+            </view>
+            <view 
+              class="filter-option {{filters.dateRange === 'quarter' ? 'active' : ''}}"
+              data-range="quarter"
+              bindtap="onDateRangeFilter"
+            >
+              <text>本季度</text>
+            </view>
+            <view 
+              class="filter-option {{filters.dateRange === 'year' ? 'active' : ''}}"
+              data-range="year"
+              bindtap="onDateRangeFilter"
+            >
+              <text>本年</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 自定义日期 -->
+        <view wx:if="{{filters.dateRange === 'custom'}}" class="filter-section">
+          <text class="filter-section-title">自定义日期</text>
+          <view class="date-range-picker">
+            <view class="date-picker-item" data-type="start" bindtap="onCustomDateTap">
+              <text class="date-label">开始日期</text>
+              <text class="date-value">{{filters.startDate}}</text>
+            </view>
+            <view class="date-picker-item" data-type="end" bindtap="onCustomDateTap">
+              <text class="date-label">结束日期</text>
+              <text class="date-value">{{filters.endDate}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 分类筛选 -->
+        <view class="filter-section">
+          <text class="filter-section-title">交易分类</text>
+          <view class="category-filter">
+            <view 
+              class="category-option {{filters.category === 'all' ? 'active' : ''}}"
+              data-category="all"
+              bindtap="onCategoryFilter"
+            >
+              <text>全部分类</text>
+            </view>
+            <view 
+              wx:for="{{categories}}" 
+              wx:key="id"
+              class="category-option {{filters.category === item.name ? 'active' : ''}}"
+              data-category="{{item.name}}"
+              bindtap="onCategoryFilter"
+            >
+              <text>{{item.name}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 日期选择器 -->
+  <picker 
+    wx:if="{{showDatePicker}}"
+    mode="date"
+    value="{{datePickerType === 'start' ? filters.startDate : filters.endDate}}"
+    bindchange="onDateChange"
+    bindcancel="onDatePickerCancel"
+  >
+  </picker>
+</view>

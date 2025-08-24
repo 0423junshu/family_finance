@@ -1,0 +1,249 @@
+<!-- pages/custom-cycle/custom-cycle.wxml -->
+<view class="page-container">
+  <!-- 自定义导航栏 -->
+  <navigation-bar title="记账周期" showBack="{{true}}"></navigation-bar>
+  
+  <!-- 当前周期显示 -->
+  <view class="current-cycle-card">
+    <view class="card-header">
+      <text class="card-title">当前周期</text>
+      <view class="reset-btn" bindtap="resetToDefault">
+        <text>重置</text>
+      </view>
+    </view>
+    <view class="cycle-info">
+      <text class="cycle-name">{{currentCycle.name}}</text>
+      <text class="cycle-description">{{currentCycle.description}}</text>
+    </view>
+    <view class="preview-section">
+      <text class="preview-label">预览：</text>
+      <text class="preview-text">{{previewText}}</text>
+    </view>
+  </view>
+  
+  <!-- 周期类型选择 -->
+  <view class="cycle-types">
+    <view class="section-title">选择周期类型</view>
+    
+    <view class="type-options">
+      <view 
+        class="type-option {{cycleType === 'natural' ? 'active' : ''}}"
+        bindtap="onCycleTypeChange"
+        data-type="natural"
+      >
+        <view class="option-icon">📅</view>
+        <view class="option-info">
+          <text class="option-name">自然月</text>
+          <text class="option-desc">每月1日-月末</text>
+        </view>
+        <view class="option-check">
+          <text wx:if="{{cycleType === 'natural'}}" class="check-icon">✓</text>
+        </view>
+      </view>
+      
+      <view 
+        class="type-option {{cycleType === 'salary' ? 'active' : ''}}"
+        bindtap="onCycleTypeChange"
+        data-type="salary"
+      >
+        <view class="option-icon">💰</view>
+        <view class="option-info">
+          <text class="option-name">工资周期</text>
+          <text class="option-desc">按发薪日计算周期</text>
+        </view>
+        <view class="option-check">
+          <text wx:if="{{cycleType === 'salary'}}" class="check-icon">✓</text>
+        </view>
+      </view>
+      
+      <view 
+        class="type-option {{cycleType === 'custom' ? 'active' : ''}}"
+        bindtap="onCycleTypeChange"
+        data-type="custom"
+      >
+        <view class="option-icon">⚙️</view>
+        <view class="option-info">
+          <text class="option-name">自定义</text>
+          <text class="option-desc">自由设置起止时间</text>
+        </view>
+        <view class="option-check">
+          <text wx:if="{{cycleType === 'custom'}}" class="check-icon">✓</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 快速模板 -->
+  <view class="templates-section">
+    <view class="section-title">快速模板</view>
+    
+    <view class="template-list">
+      <view 
+        wx:for="{{templates}}" 
+        wx:key="id"
+        class="template-item"
+        bindtap="onTemplateSelect"
+        data-template="{{item}}"
+      >
+        <view class="template-info">
+          <text class="template-name">{{item.name}}</text>
+          <text class="template-desc">{{item.description}}</text>
+        </view>
+        <view class="template-arrow">→</view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 周期设置区域 -->
+  <view wx:if="{{cycleType === 'salary'}}" class="settings-section">
+    <view class="section-title">工资周期设置</view>
+    <view class="setting-card">
+      <view class="setting-item">
+        <text class="setting-label">发薪日</text>
+        <view class="setting-control" bindtap="showSalaryDialog">
+          <text class="setting-value">每月{{salarySettings.payDay}}日</text>
+          <text class="setting-arrow">></text>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <view wx:if="{{cycleType === 'custom'}}" class="settings-section">
+    <view class="section-title">自定义周期设置</view>
+    <view class="setting-card">
+      <view class="setting-item">
+        <text class="setting-label">周期范围</text>
+        <view class="setting-control" bindtap="showCustomDialog">
+          <text class="setting-value">
+            {{customSettings.startMonth}}月{{customSettings.startDay}}日 - {{customSettings.endMonth}}月{{customSettings.endDay}}日
+          </text>
+          <text class="setting-arrow">></text>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 应用按钮 -->
+  <view class="apply-section">
+    <button class="apply-btn" bindtap="applyCycle">应用设置</button>
+  </view>
+  
+  <!-- 工资周期设置对话框 -->
+  <view wx:if="{{showSalaryDialog}}" class="dialog-overlay" bindtap="closeDialog">
+    <view class="dialog" catchtap="true">
+      <view class="dialog-header">
+        <text class="dialog-title">工资周期设置</text>
+        <view class="close-btn" bindtap="closeDialog">×</view>
+      </view>
+      
+      <view class="dialog-content">
+        <view class="form-group">
+          <view class="label">发薪日</view>
+          <picker 
+            mode="selector" 
+            range="{{[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]}}"
+            value="{{salarySettings.payDay - 1}}"
+            bindchange="onPayDayChange"
+          >
+            <view class="picker">每月{{salarySettings.payDay}}日</view>
+          </picker>
+          <view wx:if="{{errors.payDay}}" class="error-text">{{errors.payDay}}</view>
+        </view>
+        
+        <view class="form-group">
+          <view class="label">周期长度</view>
+          <input 
+            class="input"
+            type="number"
+            placeholder="周期天数"
+            value="{{salarySettings.cycleLength}}"
+            bindinput="onCycleLengthInput"
+          />
+          <view class="input-hint">建议设置为30天</view>
+          <view wx:if="{{errors.cycleLength}}" class="error-text">{{errors.cycleLength}}</view>
+        </view>
+        
+        <view class="preview-info">
+          <text class="preview-label">预览：</text>
+          <text class="preview-text">{{previewText}}</text>
+        </view>
+      </view>
+      
+      <view class="dialog-footer">
+        <button class="btn cancel" bindtap="closeDialog">取消</button>
+        <button class="btn confirm" bindtap="applyCycle">确定</button>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 自定义周期设置对话框 -->
+  <view wx:if="{{showCustomDialog}}" class="dialog-overlay" bindtap="closeDialog">
+    <view class="dialog" catchtap="true">
+      <view class="dialog-header">
+        <text class="dialog-title">自定义周期设置</text>
+        <view class="close-btn" bindtap="closeDialog">×</view>
+      </view>
+      
+      <view class="dialog-content">
+        <view class="date-range-section">
+          <view class="date-group">
+            <view class="date-label">开始时间</view>
+            <view class="date-pickers">
+              <picker 
+                mode="selector" 
+                range="{{[1,2,3,4,5,6,7,8,9,10,11,12]}}"
+                range-key=""
+                value="{{customSettings.startMonth - 1}}"
+                bindchange="onStartMonthChange"
+              >
+                <view class="date-picker">{{customSettings.startMonth}}月</view>
+              </picker>
+              <picker 
+                mode="selector" 
+                range="{{[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]}}"
+                value="{{customSettings.startDay - 1}}"
+                bindchange="onStartDayChange"
+              >
+                <view class="date-picker">{{customSettings.startDay}}日</view>
+              </picker>
+            </view>
+          </view>
+          
+          <view class="date-group">
+            <view class="date-label">结束时间</view>
+            <view class="date-pickers">
+              <picker 
+                mode="selector" 
+                range="{{[1,2,3,4,5,6,7,8,9,10,11,12]}}"
+                value="{{customSettings.endMonth - 1}}"
+                bindchange="onEndMonthChange"
+              >
+                <view class="date-picker">{{customSettings.endMonth}}月</view>
+              </picker>
+              <picker 
+                mode="selector" 
+                range="{{[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]}}"
+                value="{{customSettings.endDay - 1}}"
+                bindchange="onEndDayChange"
+              >
+                <view class="date-picker">{{customSettings.endDay}}日</view>
+              </picker>
+            </view>
+          </view>
+        </view>
+        
+        <view wx:if="{{errors.general}}" class="error-text">{{errors.general}}</view>
+        
+        <view class="preview-info">
+          <text class="preview-label">预览：</text>
+          <text class="preview-text">{{previewText}}</text>
+        </view>
+      </view>
+      
+      <view class="dialog-footer">
+        <button class="btn cancel" bindtap="closeDialog">取消</button>
+        <button class="btn confirm" bindtap="applyCycle">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,447 @@
+/* pages/assets/assets.wxss */
+.container {
+  padding: 20rpx;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* 总资产展示 */
+.total-assets {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 40rpx 30rpx;
+  border-radius: 20rpx;
+  position: relative;
+  margin-bottom: 30rpx;
+  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.2);
+}
+
+.label {
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+.amount {
+  font-size: 48rpx;
+  font-weight: 600;
+  margin-top: 10rpx;
+}
+
+/* 数据一致性检查按钮 */
+.consistency-check {
+  position: absolute;
+  right: 30rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 10rpx 20rpx;
+  border-radius: 30rpx;
+}
+
+.icon-check {
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+
+.check-text {
+  font-size: 24rpx;
+}
+
+/* 数据一致性问题样式 */
+.section-title.warning {
+  color: #ff3b30;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 16rpx;
+}
+
+.fix-btn {
+  background-color: #ff3b30;
+  color: #fff;
+  padding: 6rpx 20rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+}
+
+.detail-btn {
+  background-color: #007aff;
+  color: #fff;
+  padding: 6rpx 20rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+}
+
+.consistency-issues {
+  background-color: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.issue-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.issue-item:last-child {
+  border-bottom: none;
+}
+
+.issue-icon {
+  font-size: 36rpx;
+  margin-right: 20rpx;
+  margin-top: 4rpx;
+}
+
+.issue-info {
+  flex: 1;
+}
+
+.issue-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.issue-detail {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 6rpx;
+  display: block;
+}
+
+.issue-details {
+  margin-top: 10rpx;
+}
+
+.account-issue {
+  display: flex;
+  justify-content: space-between;
+  padding: 8rpx 0;
+  font-size: 24rpx;
+  color: #666;
+  border-bottom: 1rpx dashed #eee;
+}
+
+.account-issue:last-child {
+  border-bottom: none;
+}
+
+.account-name {
+  font-weight: 500;
+}
+
+.account-diff {
+  font-weight: 500;
+}
+
+.account-diff.positive {
+  color: #4caf50;
+}
+
+.account-diff.negative {
+  color: #ff3b30;
+}
+
+/* 区块样式 */
+.section {
+  margin-bottom: 40rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding: 0 8rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.add-btn {
+  width: 60rpx;
+  height: 60rpx;
+  background-color: #4caf50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(76, 175, 80, 0.3);
+}
+
+.add-icon {
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 300;
+}
+
+/* 账户列表 */
+.account-list {
+  background-color: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.account-item {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.account-item:last-child {
+  border-bottom: none;
+}
+
+.account-item:active {
+  background-color: #f8f9fa;
+}
+
+.account-icon {
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  margin-right: 24rpx;
+}
+
+.account-info {
+  flex: 1;
+}
+
+.account-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.account-type {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.account-balance {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8rpx;
+}
+
+.balance-amount {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.edit-btn {
+  background-color: #e3f2fd;
+  color: #2196f3;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  font-size: 22rpx;
+}
+
+/* 投资列表 */
+.investment-list {
+  background-color: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.investment-item {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.investment-item:last-child {
+  border-bottom: none;
+}
+
+.investment-item:active {
+  background-color: #f8f9fa;
+}
+
+.investment-icon {
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  margin-right: 24rpx;
+}
+
+.investment-info {
+  flex: 1;
+}
+
+.investment-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.investment-type {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.investment-data {
+  text-align: right;
+}
+
+.investment-amount {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.investment-profit {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.investment-profit.positive {
+  color: #4caf50;
+}
+
+.investment-profit.negative {
+  color: #f44336;
+}
+
+/* 编辑对话框样式 */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background-color: #fff;
+  border-radius: 24rpx;
+  width: 90%;
+  max-width: 600rpx;
+  overflow: hidden;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40rpx 40rpx 20rpx;
+  border-bottom: 1rpx solid #e9ecef;
+}
+
+.dialog-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.close-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #999;
+}
+
+.dialog-content {
+  padding: 40rpx;
+}
+
+.account-info-display {
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.account-info-display .account-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-group {
+  margin-bottom: 30rpx;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.amount-input {
+  width: 100%;
+  padding: 24rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+  text-align: center;
+  background-color: #fff;
+}
+
+.dialog-footer {
+  display: flex;
+  padding: 20rpx 40rpx 40rpx;
+  gap: 20rpx;
+}
+
+.btn {
+  flex: 1;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  text-align: center;
+  border: none;
+}
+
+.btn.cancel {
+  background-color: #f8f9fa;
+  color: #666;
+}
+
+.btn.confirm {
+  background-color: #4caf50;
+  color: #fff;
+}

@@ -1,0 +1,155 @@
+<!-- pages/index/index.wxml -->
+<navigation-bar 
+  title="家庭财务管理" 
+  show-back="{{false}}" 
+  show-hide-amount="{{true}}"
+  bind:toggle-amount="onToggleAmount"
+/>
+
+<view class="page-container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 主要内容 -->
+  <view wx:else class="content">
+    <!-- 月度统计卡片 -->
+    <view class="stats-card">
+      <view class="stats-header">
+        <view class="month-selector" bindtap="onMonthTitleTap">
+          <text class="stats-title">{{currentMonth}}概览</text>
+          <text class="month-arrow">▼</text>
+        </view>
+        <view class="sync-status">
+          <text class="sync-text {{syncStatus}}" wx:if="{{syncStatus === 'syncing'}}">同步中...</text>
+          <text class="sync-text {{syncStatus}}" wx:elif="{{syncStatus === 'success'}}">已同步</text>
+          <text class="sync-text {{syncStatus}}" wx:elif="{{syncStatus === 'error'}}">同步失败</text>
+        </view>
+      </view>
+      
+      <view class="stats-content">
+        <view class="stat-item income">
+          <text class="stat-label">收入</text>
+          <text class="stat-value" wx:if="{{hideAmount}}">***</text>
+          <text class="stat-value" wx:else>+{{incomeDisplay}}</text>
+        </view>
+        <view class="stat-item expense">
+          <text class="stat-label">支出</text>
+          <text class="stat-value" wx:if="{{hideAmount}}">***</text>
+          <text class="stat-value" wx:else>-{{expenseDisplay}}</text>
+        </view>
+        <view class="stat-item balance">
+          <text class="stat-label">结余</text>
+          <text class="stat-value {{monthlyStats.balance >= 0 ? 'positive' : 'negative'}}" wx:if="{{hideAmount}}">***</text>
+          <text class="stat-value {{monthlyStats.balance >= 0 ? 'positive' : 'negative'}}" wx:else>{{balanceDisplay}}</text>
+        </view>
+      </view>
+      
+      <view class="sync-actions">
+        <button 
+          class="btn btn-outline btn-small"
+          bindtap="onSyncTap"
+          disabled="{{syncStatus === 'syncing'}}"
+        >
+          <text wx:if="{{syncStatus === 'syncing'}}">同步中...</text>
+          <text wx:else>一键同步</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 快捷操作 -->
+    <view class="quick-actions">
+      <view class="action-item" bindtap="onQuickExpense">
+        <view class="action-icon expense">💸</view>
+        <text class="action-text">快速支出</text>
+      </view>
+      <view class="action-item" bindtap="onQuickIncome">
+        <view class="action-icon income">💰</view>
+        <text class="action-text">快速收入</text>
+      </view>
+      <view class="action-item" bindtap="onQuickTransfer">
+        <view class="action-icon transfer">🔄</view>
+        <text class="action-text">账户转账</text>
+      </view>
+    </view>
+
+    <!-- 交易记录列表 -->
+    <view class="transactions-section">
+      <view class="section-header">
+        <text class="section-title">最近记录</text>
+        <text class="section-more" bindtap="onViewAllTap">查看全部</text>
+      </view>
+      
+      <!-- 空状态 -->
+      <view wx:if="{{transactions.length === 0}}" class="empty-state">
+        <view class="empty-icon">📝</view>
+        <text class="empty-text">暂无记录</text>
+        <text class="empty-desc">点击下方按钮开始记账</text>
+      </view>
+      
+      <!-- 交易列表 -->
+      <view wx:else class="transactions-list">
+        <view 
+          wx:for="{{transactions}}" 
+          wx:key="id"
+          class="transaction-item"
+          data-item="{{item}}"
+          bindtap="onTransactionTap"
+          bindlongpress="onTransactionLongPress"
+        >
+          <view class="transaction-icon">
+            <text class="category-emoji">{{item.categoryIcon}}</text>
+          </view>
+          <view class="transaction-info">
+            <text class="transaction-desc">{{item.description || item.categoryName}}</text>
+            <view class="transaction-meta">
+              <text class="transaction-date">{{item.dateDisplay}}</text>
+            </view>
+          </view>
+          <view class="transaction-amount">
+            <text class="amount {{item.type}}" wx:if="{{hideAmount}}">***</text>
+            <text class="amount {{item.type}}" wx:elif="{{item.type === 'income'}}">+{{item.amountDisplay}}</text>
+            <text class="amount {{item.type}}" wx:else>-{{item.amountDisplay}}</text>
+            <text class="account-name">{{item.accountName}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 记账浮动按钮 -->
+  <view class="fab" bindtap="onRecordTap">
+    <text class="fab-icon">+</text>
+  </view>
+
+  <!-- 新账单提示 -->
+  <view wx:if="{{newTransactionCount > 0}}" class="new-transaction-tip" bindtap="onNewTransactionTap">
+    <text class="tip-text">新增 {{newTransactionCount}} 条记录</text>
+    <text class="tip-close" bindtap="onCloseTip">×</text>
+  </view>
+
+  <!-- 月份选择器 -->
+  <view wx:if="{{showMonthPicker}}" class="month-picker-overlay" bindtap="onMonthPickerCancel">
+    <view class="month-picker-container" catchtap="">
+      <view class="month-picker-header">
+        <text class="picker-title">选择月份</text>
+        <text class="picker-cancel" bindtap="onMonthPickerCancel">取消</text>
+      </view>
+      <picker-view 
+        class="month-picker-view"
+        indicator-style="height: 50px;"
+        value="{{monthPickerIndex}}"
+        bindchange="onMonthPickerChange"
+      >
+        <picker-view-column>
+          <view wx:for="{{monthPickerData[0]}}" wx:key="*this" class="picker-item">{{item}}</view>
+        </picker-view-column>
+        <picker-view-column>
+          <view wx:for="{{monthPickerData[1]}}" wx:key="*this" class="picker-item">{{item}}</view>
+        </picker-view-column>
+      </picker-view>
+    </view>
+  </view>
+</view>

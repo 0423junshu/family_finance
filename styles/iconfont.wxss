@@ -1,0 +1,41 @@
+/* 图标字体样式 */
+.iconfont {
+  font-family: "iconfont";
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 使用文本替代图标 */
+.icon-add::before {
+  content: "+";
+}
+
+.icon-left::before {
+  content: "‹";
+}
+
+.icon-right::before {
+  content: "›";
+}
+
+.icon-income::before {
+  content: "↑";
+}
+
+.icon-expense::before {
+  content: "↓";
+}
+
+.icon-search::before {
+  content: "🔍";
+}
+
+.icon-filter::before {
+  content: "⚙️";
+}
+
+.icon-close::before {
+  content: "×";
+}

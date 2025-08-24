@@ -1,0 +1,215 @@
+/* pages/transaction-detail/transaction-detail.wxss */
+@import "../../styles/common.wxss";
+
+.page-container {
+  padding: 20rpx;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400rpx;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid #f3f3f3;
+  border-top: 6rpx solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 交易详情 */
+.transaction-detail {
+  background-color: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 金额部分 */
+.amount-section {
+  padding: 40rpx 30rpx;
+  text-align: center;
+  background-color: #f8f8f8;
+}
+
+.amount-section.income {
+  background-color: rgba(52, 199, 89, 0.1);
+}
+
+.amount-section.expense {
+  background-color: rgba(255, 59, 48, 0.1);
+}
+
+.amount-prefix {
+  font-size: 36rpx;
+  font-weight: bold;
+}
+
+.amount-value {
+  font-size: 60rpx;
+  font-weight: bold;
+}
+
+.income .amount-prefix,
+.income .amount-value {
+  color: #34c759;
+}
+
+.expense .amount-prefix,
+.expense .amount-value {
+  color: #ff3b30;
+}
+
+/* 详情信息 */
+.detail-section {
+  padding: 30rpx;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  color: #666;
+  font-size: 28rpx;
+}
+
+.detail-value {
+  color: #333;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* 标签 */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.tag-item {
+  background-color: #f0f0f0;
+  color: #666;
+  font-size: 24rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  margin-left: 10rpx;
+  margin-bottom: 10rpx;
+}
+
+/* 操作按钮 */
+.action-section {
+  display: flex;
+  padding: 30rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.btn {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  margin: 0 10rpx;
+}
+
+.btn-edit {
+  background-color: #007aff;
+  color: #fff;
+}
+
+.btn-delete {
+  background-color: #ff3b30;
+  color: #fff;
+}
+
+/* 删除确认对话框 */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  width: 80%;
+  background-color: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.dialog-header {
+  padding: 30rpx;
+  text-align: center;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.dialog-title {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.dialog-content {
+  padding: 40rpx 30rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.dialog-footer {
+  display: flex;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.dialog-footer .btn {
+  flex: 1;
+  height: 90rpx;
+  line-height: 90rpx;
+  text-align: center;
+  font-size: 30rpx;
+  border-radius: 0;
+}
+
+.btn-cancel {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.btn-confirm {
+  background-color: #ff3b30;
+  color: #fff;
+}

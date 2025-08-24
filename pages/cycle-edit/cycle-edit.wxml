@@ -1,0 +1,223 @@
+<!-- pages/cycle-edit/cycle-edit.wxml -->
+<navigation-bar title="{{mode === 'create' ? '新建周期' : '编辑周期'}}" showBack="{{true}}" />
+
+<view class="page-container">
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <view wx:else class="content">
+    <!-- 周期表单 -->
+    <view class="form-container">
+      <!-- 周期名称 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">周期名称</text>
+          <text class="required">*</text>
+        </view>
+        <view class="form-input">
+          <input 
+            class="input {{errors.name ? 'error' : ''}}"
+            placeholder="请输入周期名称"
+            value="{{formData.name}}"
+            bindinput="onNameInput"
+            maxlength="20"
+          />
+        </view>
+      </view>
+      <view wx:if="{{errors.name}}" class="error-text">{{errors.name}}</view>
+
+      <!-- 周期类型 -->
+      <view class="form-item" bindtap="showTypePicker">
+        <view class="form-label">
+          <text class="label-text">周期类型</text>
+          <text class="required">*</text>
+        </view>
+        <view class="form-value">
+          <view class="type-display">
+            <text class="type-icon">{{currentTypeIcon}}</text>
+            <text class="type-name">{{currentTypeName}}</text>
+          </view>
+          <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+        </view>
+      </view>
+      <view wx:if="{{errors.type}}" class="error-text">{{errors.type}}</view>
+
+      <!-- 周期详细设置 -->
+      <view class="cycle-details">
+        <!-- 每周设置 -->
+        <view wx:if="{{formData.type === 'weekly'}}" class="form-item" bindtap="showDayPicker">
+          <view class="form-label">
+            <text class="label-text">星期几</text>
+          </view>
+          <view class="form-value">
+            <text class="selected-text">{{currentDayName}}</text>
+            <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+          </view>
+        </view>
+
+        <!-- 每月设置 -->
+        <view wx:if="{{formData.type === 'monthly'}}" class="form-item">
+          <view class="form-label">
+            <text class="label-text">每月几号</text>
+          </view>
+          <view class="form-input">
+            <input 
+              class="input"
+              type="number"
+              placeholder="1-31"
+              value="{{formData.date}}"
+              bindinput="onDateInput"
+              min="1"
+              max="31"
+            />
+          </view>
+        </view>
+
+        <!-- 自定义间隔 -->
+        <view wx:if="{{formData.type === 'custom'}}" class="form-item">
+          <view class="form-label">
+            <text class="label-text">间隔天数</text>
+          </view>
+          <view class="form-input">
+            <input 
+              class="input"
+              type="number"
+              placeholder="1-365"
+              value="{{formData.interval}}"
+              bindinput="onIntervalInput"
+              min="1"
+              max="365"
+            />
+          </view>
+        </view>
+      </view>
+
+      <!-- 提醒时间 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">提醒时间</text>
+          <text class="required">*</text>
+        </view>
+        <view class="form-value" bindtap="showTimePicker">
+          <text class="selected-text">{{formData.time}}</text>
+          <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+        </view>
+      </view>
+      <view wx:if="{{errors.time}}" class="error-text">{{errors.time}}</view>
+
+      <!-- 启用开关 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">启用提醒</text>
+        </view>
+        <view class="form-value">
+          <switch 
+            checked="{{formData.enabled}}" 
+            bindchange="onEnabledToggle"
+            color="#667eea"
+          />
+        </view>
+      </view>
+
+      <!-- 描述 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">提醒描述</text>
+        </view>
+        <view class="form-input">
+          <textarea 
+            class="textarea"
+            placeholder="添加提醒描述（可选）"
+            value="{{formData.description}}"
+            bindinput="onDescriptionInput"
+            maxlength="100"
+            auto-height
+          />
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-container">
+      <button 
+        class="btn btn-primary btn-large {{submitting ? 'btn-disabled' : ''}}"
+        bindtap="onSubmit"
+        disabled="{{submitting}}"
+      >
+        <text wx:if="{{submitting}}">{{mode === 'create' ? '创建中...' : '保存中...'}}</text>
+        <text wx:else>{{mode === 'create' ? '创建周期' : '保存修改'}}</text>
+      </button>
+      
+      <button 
+        wx:if="{{mode === 'edit'}}"
+        class="btn btn-danger btn-large"
+        bindtap="onDelete"
+      >
+        删除周期
+      </button>
+    </view>
+  </view>
+
+  <!-- 周期类型选择器 -->
+  <view wx:if="{{showTypePicker}}" class="picker-overlay" bindtap="onPickerClose">
+    <view class="picker-container" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">选择周期类型</text>
+        <view class="picker-close" bindtap="onPickerClose">
+          <image class="close-icon" src="/images/icons/close.png" />
+        </view>
+      </view>
+      <view class="picker-content">
+        <view 
+          wx:for="{{cycleTypes}}" 
+          wx:key="value"
+          class="picker-item {{item.value === formData.type ? 'selected' : ''}}"
+          data-type="{{item.value}}"
+          bindtap="onTypeSelect"
+        >
+          <view class="type-info">
+            <text class="type-icon">{{item.icon}}</text>
+            <text class="type-name">{{item.label}}</text>
+          </view>
+          <image wx:if="{{item.value === formData.type}}" class="check-icon" src="/images/icons/check.png" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 星期选择器 -->
+  <view wx:if="{{showDayPicker}}" class="picker-overlay" bindtap="onPickerClose">
+    <view class="picker-container" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">选择星期</text>
+        <view class="picker-close" bindtap="onPickerClose">
+          <image class="close-icon" src="/images/icons/close.png" />
+        </view>
+      </view>
+      <view class="picker-content">
+        <view 
+          wx:for="{{weekDays}}" 
+          wx:key="value"
+          class="picker-item {{item.value === formData.day ? 'selected' : ''}}"
+          data-day="{{item.value}}"
+          bindtap="onDaySelect"
+        >
+          <text class="day-name">{{item.label}}</text>
+          <image wx:if="{{item.value === formData.day}}" class="check-icon" src="/images/icons/check.png" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 时间选择器 -->
+  <picker 
+    wx:if="{{showTimePicker}}"
+    mode="time"
+    value="{{formData.time}}"
+    bindchange="onTimeChange"
+    bindcancel="onPickerClose"
+  >
+  </picker>
+</view>

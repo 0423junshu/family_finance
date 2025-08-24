@@ -1,0 +1,592 @@
+<!-- pages/reports/reports.wxml -->
+<navigation-bar title="财务报表" showBack="{{true}}" />
+
+<view class="page-container">
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <view wx:else class="content">
+    <!-- 时间选择器 -->
+    <view class="time-selector">
+      <view class="time-tabs">
+        <view 
+          class="time-tab {{dateRange === 'week' ? 'active' : ''}}"
+          data-range="week"
+          bindtap="onDateRangeChange"
+        >
+          本周
+        </view>
+        <view 
+          class="time-tab {{dateRange === 'month' ? 'active' : ''}}"
+          data-range="month"
+          bindtap="onDateRangeChange"
+        >
+          本月
+        </view>
+        <view 
+          class="time-tab {{dateRange === 'quarter' ? 'active' : ''}}"
+          data-range="quarter"
+          bindtap="onDateRangeChange"
+        >
+          本季
+        </view>
+        <view 
+          class="time-tab {{dateRange === 'year' ? 'active' : ''}}"
+          data-range="year"
+          bindtap="onDateRangeChange"
+        >
+          本年
+        </view>
+        <view 
+          class="time-tab {{dateRange === 'custom' ? 'active' : ''}}"
+          bindtap="showCustomDatePicker"
+        >
+          自定义
+        </view>
+      </view>
+      
+      <!-- 年月选择 -->
+      <view wx:if="{{dateRange === 'month' || dateRange === 'quarter' || dateRange === 'year'}}" class="date-selector">
+        <view class="date-item" bindtap="showYearPicker">
+          <text>{{currentYear}}年</text>
+          <text class="arrow">▼</text>
+        </view>
+        <view wx:if="{{dateRange === 'month'}}" class="date-item" bindtap="showMonthPicker">
+          <text>{{currentMonth + 1}}月</text>
+          <text class="arrow">▼</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 标签页 -->
+    <view class="tabs">
+      <view 
+        class="tab {{currentTab === 0 ? 'active' : ''}}"
+        data-index="0"
+        bindtap="onTabChange"
+      >
+        收支概览
+      </view>
+      <view 
+        class="tab {{currentTab === 1 ? 'active' : ''}}"
+        data-index="1"
+        bindtap="onTabChange"
+      >
+        分类统计
+      </view>
+      <view 
+        class="tab {{currentTab === 2 ? 'active' : ''}}"
+        data-index="2"
+        bindtap="onTabChange"
+      >
+        趋势图
+      </view>
+      <view 
+        class="tab {{currentTab === 3 ? 'active' : ''}}"
+        data-index="3"
+        bindtap="onTabChange"
+      >
+        资产分析
+      </view>
+      <view 
+        class="tab {{currentTab === 4 ? 'active' : ''}}"
+        data-index="4"
+        bindtap="onTabChange"
+      >
+        标签统计
+      </view>
+    </view>
+
+    <!-- 收支概览 -->
+    <view wx:if="{{currentTab === 0}}" class="overview-content">
+      <view class="summary-card">
+        <view class="summary-item income">
+          <text class="label">总收入</text>
+          <text class="amount">+{{summary.totalIncomeDisplay}}</text>
+        </view>
+        <view class="summary-item expense">
+          <text class="label">总支出</text>
+          <text class="amount">-{{summary.totalExpenseDisplay}}</text>
+        </view>
+        <view class="summary-item balance">
+          <text class="label">结余</text>
+          <text class="amount {{summary.balance >= 0 ? 'positive' : 'negative'}}">{{summary.balanceDisplay}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 分类统计 -->
+    <view wx:if="{{currentTab === 1}}" class="category-content">
+      <view class="category-section">
+        <view class="section-title">支出分类</view>
+        <view wx:if="{{categoryStats.expense.length === 0}}" class="empty-state">
+          <text>暂无支出记录</text>
+        </view>
+        <view wx:else class="category-list">
+          <view 
+            wx:for="{{categoryStats.expense}}" 
+            wx:key="name"
+            class="category-item"
+            data-category="{{item.name}}"
+            data-type="expense"
+            bindtap="viewCategoryDetail"
+          >
+            <view class="category-info">
+              <text class="category-name">{{item.name}}</text>
+              <text class="category-amount">{{item.amountDisplay}}</text>
+            </view>
+            <view class="category-progress">
+              <view class="progress-bar">
+                <view class="progress-fill" style="width: {{item.progressWidth}}"></view>
+              </view>
+              <text class="percentage">{{item.percentage}}%</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="category-section">
+        <view class="section-title">收入分类</view>
+        <view wx:if="{{categoryStats.income.length === 0}}" class="empty-state">
+          <text>暂无收入记录</text>
+        </view>
+        <view wx:else class="category-list">
+          <view 
+            wx:for="{{categoryStats.income}}" 
+            wx:key="name"
+            class="category-item"
+            data-category="{{item.name}}"
+            data-type="income"
+            bindtap="viewCategoryDetail"
+          >
+            <view class="category-info">
+              <text class="category-name">{{item.name}}</text>
+              <text class="category-amount">{{item.amountDisplay}}</text>
+            </view>
+            <view class="category-progress">
+              <view class="progress-bar">
+                <view class="progress-fill income" style="width: {{item.progressWidth}}"></view>
+              </view>
+              <text class="percentage">{{item.percentage}}%</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 趋势图 -->
+    <view wx:if="{{currentTab === 2}}" class="trend-content">
+      <view class="trend-chart">
+        <view wx:if="{{trendData.length === 0}}" class="empty-state">
+          <text>暂无数据</text>
+        </view>
+        <view wx:else class="chart-container">
+          <view 
+            wx:for="{{trendData}}" 
+            wx:key="date"
+            class="chart-item"
+          >
+            <view class="chart-bar">
+              <view class="bar income" style="height: {{item.income / 1000}}px"></view>
+              <view class="bar expense" style="height: {{item.expense / 1000}}px"></view>
+            </view>
+            <text class="chart-label">{{item.dateDisplay}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="trend-legend">
+        <view class="legend-item">
+          <view class="legend-color income"></view>
+          <text>收入</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-color expense"></view>
+          <text>支出</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 资产分析 -->
+    <view wx:if="{{currentTab === 3}}" class="asset-content">
+      <view class="asset-summary">
+        <text class="asset-title">总资产</text>
+        <text class="asset-amount">{{assetData.totalAssetsDisplay}}</text>
+      </view>
+      
+      <view class="asset-distribution">
+        <view class="distribution-title">资产分布</view>
+        <view 
+          wx:for="{{assetData.assetsDistribution}}" 
+          wx:key="name"
+          class="distribution-item"
+        >
+          <view class="distribution-info">
+            <view class="distribution-color" style="background-color: {{item.color}}"></view>
+            <text class="distribution-name">{{item.name}}</text>
+          </view>
+          <view class="distribution-amount">
+            <text class="amount">{{formatAmount(item.amount)}}</text>
+            <text class="percentage">{{item.percentage}}%</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="asset-accounts">
+        <view class="accounts-title">现金账户</view>
+        <view 
+          wx:for="{{assetData.accounts}}" 
+          wx:key="_id"
+          class="account-item"
+          data-id="{{item._id}}"
+          bindtap="viewAccountDetail"
+        >
+          <text class="account-name">{{item.name}}</text>
+          <text class="account-balance">{{item.balanceDisplay}}</text>
+        </view>
+      </view>
+      
+      <view class="asset-investments">
+        <view class="investments-title">投资理财</view>
+        <view 
+          wx:for="{{assetData.investments}}" 
+          wx:key="_id"
+          class="investment-item"
+          data-id="{{item._id}}"
+          bindtap="viewInvestmentDetail"
+        >
+          <view class="investment-info">
+            <text class="investment-name">{{item.name}}</text>
+            <text class="investment-type">{{item.type}}</text>
+          </view>
+          <view class="investment-amount">
+            <text class="amount">{{item.amountDisplay}}</text>
+            <text class="profit {{item.profit >= 0 ? 'positive' : 'negative'}}">{{item.profitDisplay}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 标签统计 -->
+    <view wx:if="{{currentTab === 4}}" class="tag-content">
+      <view class="tag-section">
+        <view class="section-title">支出标签</view>
+        <view wx:if="{{tagStats.expense.length === 0}}" class="empty-state">
+          <text>暂无支出记录</text>
+        </view>
+        <view wx:else class="tag-list">
+          <view 
+            wx:for="{{tagStats.expense}}" 
+            wx:key="name"
+            class="tag-item"
+            data-tag="{{item.name}}"
+            data-type="expense"
+            bindtap="viewTagDetail"
+          >
+            <view class="tag-info">
+              <text class="tag-name">{{item.name}}</text>
+              <text class="tag-amount">{{item.amountDisplay}}</text>
+            </view>
+            <view class="tag-progress">
+              <view class="progress-bar">
+                <view class="progress-fill" style="width: {{item.progressWidth}}"></view>
+              </view>
+              <text class="percentage">{{item.percentage}}%</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="tag-section">
+        <view class="section-title">收入标签</view>
+        <view wx:if="{{tagStats.income.length === 0}}" class="empty-state">
+          <text>暂无收入记录</text>
+        </view>
+        <view wx:else class="tag-list">
+          <view 
+            wx:for="{{tagStats.income}}" 
+            wx:key="name"
+            class="tag-item"
+            data-tag="{{item.name}}"
+            data-type="income"
+            bindtap="viewTagDetail"
+          >
+            <view class="tag-info">
+              <text class="tag-name">{{item.name}}</text>
+              <text class="tag-amount">{{item.amountDisplay}}</text>
+            </view>
+            <view class="tag-progress">
+              <view class="progress-bar">
+                <view class="progress-fill income" style="width: {{item.progressWidth}}"></view>
+              </view>
+              <text class="percentage">{{item.percentage}}%</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 年份选择器 -->
+  <view wx:if="{{showYearPicker}}" class="picker-overlay" bindtap="cancelPicker">
+    <view class="picker-container" catchtap="">
+      <picker-view 
+        class="picker-view"
+        indicator-style="height: 50px;"
+        value="{{[currentYear - 2020]}}"
+        bindchange="onYearChange"
+      >
+        <picker-view-column>
+          <view wx:for="{{[2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030]}}" wx:key="*this">{{item}}年</view>
+        </picker-view-column>
+      </picker-view>
+    </view>
+  </view>
+
+  <!-- 月份选择器 -->
+  <view wx:if="{{showMonthPicker}}" class="picker-overlay" bindtap="cancelPicker">
+    <view class="picker-container" catchtap="">
+      <picker-view 
+        class="picker-view"
+        indicator-style="height: 50px;"
+        value="{{[currentMonth]}}"
+        bindchange="onMonthChange"
+      >
+        <picker-view-column>
+          <view wx:for="{{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}}" wx:key="*this">{{item}}月</view>
+        </picker-view-column>
+      </picker-view>
+    </view>
+  </view>
+
+  <!-- 自定义日期范围选择器 -->
+  <view wx:if="{{showDateRangePicker}}" class="picker-overlay" bindtap="cancelPicker">
+    <view class="date-range-picker" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">选择日期范围</text>
+        <view class="picker-close" bindtap="cancelPicker">×</view>
+      </view>
+      <view class="date-inputs">
+        <view class="date-input-group">
+          <text class="input-label">开始日期</text>
+          <picker mode="date" value="{{customStartDate}}" bindchange="onStartDateChange">
+            <view class="date-input">{{customStartDate}}</view>
+          </picker>
+        </view>
+        <view class="date-input-group">
+          <text class="input-label">结束日期</text>
+          <picker mode="date" value="{{customEndDate}}" bindchange="onEndDateChange">
+            <view class="date-input">{{customEndDate}}</view>
+          </picker>
+        </view>
+      </view>
+      <view class="picker-actions">
+        <button class="btn btn-outline" bindtap="cancelPicker">取消</button>
+        <button class="btn btn-primary" bindtap="confirmCustomDateRange">确定</button>
+      </view>
+    </view>
+  </view>
+</view>
+      <view wx:if="{{assetData.assetsDistribution.length === 0}}" class="empty-tip">
+        暂无资产数据
+      </view>
+      <view wx:else class="category-list">
+        <view 
+          wx:for="{{assetData.assetsDistribution}}" 
+          wx:key="name"
+          class="category-item"
+        >
+          <view class="category-info">
+            <text class="category-name">{{item.name}}</text>
+            <text class="category-amount">¥{{formatAmount(item.amount)}}</text>
+          </view>
+          <view class="category-progress-bg">
+            <view class="category-progress" style="width: {{item.percentage}}%; background-color: {{item.color}};"></view>
+          </view>
+          <text class="category-percentage">{{item.percentage}}%</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 账户列表 -->
+    <view class="section-card">
+      <view class="section-header">
+        <text class="section-title">账户资产</text>
+      </view>
+      <view wx:if="{{assetData.accounts.length === 0}}" class="empty-tip">
+        暂无账户数据
+      </view>
+      <view wx:else class="asset-list">
+        <view 
+          wx:for="{{assetData.accounts}}" 
+          wx:key="id"
+          class="asset-item"
+          bindtap="viewAccountDetail"
+          data-id="{{item.id}}"
+        >
+          <view class="asset-icon">{{item.icon || '💰'}}</view>
+          <view class="asset-info">
+            <text class="asset-name">{{item.name}}</text>
+            <text class="asset-type">
+              <block wx:if="{{item.type === 'cash'}}">现金</block>
+              <block wx:elif="{{item.type === 'bank'}}">银行卡</block>
+              <block wx:else>电子钱包</block>
+            </text>
+          </view>
+          <text class="asset-amount">¥{{item.balanceDisplay}}</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 投资列表 -->
+    <view class="section-card">
+      <view class="section-header">
+        <text class="section-title">投资理财</text>
+      </view>
+      <view wx:if="{{assetData.investments.length === 0}}" class="empty-tip">
+        暂无投资数据
+      </view>
+      <view wx:else class="asset-list">
+        <view 
+          wx:for="{{assetData.investments}}" 
+          wx:key="id"
+          class="asset-item"
+          bindtap="viewInvestmentDetail"
+          data-id="{{item.id}}"
+        >
+          <view class="asset-icon">{{item.icon || '📈'}}</view>
+          <view class="asset-info">
+            <text class="asset-name">{{item.name}}</text>
+            <text class="asset-profit {{item.profit >= 0 ? 'positive' : 'negative'}}">
+              <block wx:if="{{item.profit >= 0}}">+</block>{{item.profitDisplay}}
+            </text>
+          </view>
+          <text class="asset-amount">¥{{item.amountDisplay}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 标签分析 -->
+  <view wx:elif="{{currentTab === 4}}" class="tab-content">
+    <!-- 支出标签统计 -->
+    <view class="section-card">
+      <view class="section-header">
+        <text class="section-title">支出标签统计</text>
+      </view>
+      <view wx:if="{{tagStats.expense.length === 0}}" class="empty-tip">
+        暂无支出标签数据
+      </view>
+      <view wx:else class="category-detail-list">
+        <view 
+          wx:for="{{tagStats.expense}}" 
+          wx:key="name"
+          class="category-detail-item"
+        >
+          <view class="category-detail-header">
+            <text class="category-name">{{item.name}}</text>
+            <text class="category-amount">¥{{item.amountDisplay}}</text>
+          </view>
+          <view class="category-progress-bg">
+            <view class="category-progress" style="width: {{item.progressWidth}}; background-color: #ff3b30;"></view>
+          </view>
+          <view class="category-detail-footer">
+            <text class="category-percentage">{{item.percentage}}%</text>
+            <view class="category-detail-btn" bindtap="viewTagDetail" data-tag="{{item.name}}" data-type="expense">
+              查看明细
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 收入标签统计 -->
+    <view class="section-card">
+      <view class="section-header">
+        <text class="section-title">收入标签统计</text>
+      </view>
+      <view wx:if="{{tagStats.income.length === 0}}" class="empty-tip">
+        暂无收入标签数据
+      </view>
+      <view wx:else class="category-detail-list">
+        <view 
+          wx:for="{{tagStats.income}}" 
+          wx:key="name"
+          class="category-detail-item"
+        >
+          <view class="category-detail-header">
+            <text class="category-name">{{item.name}}</text>
+            <text class="category-amount">¥{{item.amountDisplay}}</text>
+          </view>
+          <view class="category-progress-bg">
+            <view class="category-progress" style="width: {{item.progressWidth}}; background-color: #34c759;"></view>
+          </view>
+          <view class="category-detail-footer">
+            <text class="category-percentage">{{item.percentage}}%</text>
+            <view class="category-detail-btn" bindtap="viewTagDetail" data-tag="{{item.name}}" data-type="income">
+              查看明细
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 年份选择器 -->
+  <picker 
+    wx:if="{{showYearPicker}}"
+    mode="selector"
+    range="{{[2020, 2021, 2022, 2023, 2024, 2025]}}"
+    value="{{currentYear - 2020}}"
+    bindchange="onYearChange"
+    bindcancel="cancelPicker"
+  >
+  </picker>
+  
+  <!-- 月份选择器 -->
+  <picker 
+    wx:if="{{showMonthPicker}}"
+    mode="selector"
+    range="{{['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']}}"
+    value="{{currentMonth}}"
+    bindchange="onMonthChange"
+    bindcancel="cancelPicker"
+  >
+  </picker>
+  
+  <!-- 自定义日期范围选择器 -->
+  <view wx:if="{{showDateRangePicker}}" class="date-range-picker">
+    <view class="date-range-picker-header">
+      <text class="date-range-picker-title">选择日期范围</text>
+      <view class="date-range-picker-close" bindtap="cancelPicker">×</view>
+    </view>
+    <view class="date-range-picker-content">
+      <view class="date-range-picker-item">
+        <text class="date-range-picker-label">开始日期</text>
+        <picker 
+          mode="date" 
+          value="{{customStartDate}}" 
+          bindchange="onStartDateChange"
+        >
+          <view class="date-range-picker-value">{{customStartDate || '请选择'}}</view>
+        </picker>
+      </view>
+      <view class="date-range-picker-item">
+        <text class="date-range-picker-label">结束日期</text>
+        <picker 
+          mode="date" 
+          value="{{customEndDate}}" 
+          bindchange="onEndDateChange"
+        >
+          <view class="date-range-picker-value">{{customEndDate || '请选择'}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="date-range-picker-footer">
+      <button class="date-range-picker-btn cancel" bindtap="cancelPicker">取消</button>
+      <button class="date-range-picker-btn confirm" bindtap="confirmCustomDateRange">确定</button>
+    </view>
+  </view>
+</view>

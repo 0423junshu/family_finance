@@ -1,0 +1,74 @@
+/* components/navigation-bar/navigation-bar.wxss */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.status-bar {
+  width: 100%;
+}
+
+.nav-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32rpx;
+  position: relative;
+}
+
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  min-width: 120rpx;
+}
+
+.nav-right {
+  justify-content: flex-end;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  margin: 0 8rpx;
+  transition: background-color 0.2s ease;
+}
+
+.nav-btn:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.nav-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.nav-text {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.nav-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 400rpx;
+}
+
+.title-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

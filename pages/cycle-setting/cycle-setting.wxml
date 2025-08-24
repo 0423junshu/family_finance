@@ -1,0 +1,40 @@
+<!-- pages/cycle-setting/cycle-setting.wxml -->
+<navigation-bar title="周期设置" showBack="{{true}}" />
+
+<view class="container">
+  <view class="card">
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">自定义记账周期</text>
+      </view>
+      
+      <view class="setting-item">
+        <text class="setting-label">启用自定义周期</text>
+        <switch checked="{{customCycleEnabled}}" bindchange="onSwitchChange" color="#007aff" />
+      </view>
+      
+      <block wx:if="{{customCycleEnabled}}">
+        <view class="setting-item">
+          <text class="setting-label">周期起始日</text>
+          <picker 
+            mode="selector" 
+            range="{{days}}" 
+            value="{{cycleStartDay - 1}}"
+            bindchange="onDayChange"
+            disabled="{{!customCycleEnabled}}"
+          >
+            <view class="picker-view">
+              <text class="picker-text">{{cycleStartDay}}日</text>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+        
+        <view class="tip-box">
+          <text class="tip-icon">💡</text>
+          <text class="tip-text">设置后，每月的{{cycleStartDay}}日至次月{{cycleStartDay - 1}}日将被视为一个完整周期。例如：设置为6日，则6月6日至7月5日被视为"6月"。</text>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

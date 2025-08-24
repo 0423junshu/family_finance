@@ -1,0 +1,70 @@
+<!-- pages/stats/stats.wxml -->
+<navigation-bar title="报表统计" show-back="{{false}}" />
+
+<view class="page-container">
+  <!-- 时间范围选择 -->
+  <view class="date-range-tabs">
+    <view 
+      class="range-tab {{dateRange === 'week' ? 'active' : ''}}"
+      data-range="week"
+      bindtap="onDateRangeChange"
+    >
+      本周
+    </view>
+    <view 
+      class="range-tab {{dateRange === 'month' ? 'active' : ''}}"
+      data-range="month"
+      bindtap="onDateRangeChange"
+    >
+      本月
+    </view>
+    <view 
+      class="range-tab {{dateRange === 'year' ? 'active' : ''}}"
+      data-range="year"
+      bindtap="onDateRangeChange"
+    >
+      本年
+    </view>
+  </view>
+
+  <!-- 统计概览 -->
+  <view class="summary-card">
+    <view class="summary-item">
+      <text class="summary-label">总收入</text>
+      <text class="summary-value income">+{{summary.totalIncomeDisplay}}</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-label">总支出</text>
+      <text class="summary-value expense">-{{summary.totalExpenseDisplay}}</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-label">结余</text>
+      <text class="summary-value {{summary.balance >= 0 ? 'income' : 'expense'}}">
+        <block wx:if="{{summary.balance >= 0}}">+</block>{{summary.balanceDisplay}}
+      </text>
+    </view>
+  </view>
+
+  <!-- 分类统计 -->
+  <view class="category-stats">
+    <view class="section-title">支出分类</view>
+    <view class="category-list">
+      <view 
+        wx:for="{{categoryStats}}" 
+        wx:key="name"
+        class="category-item"
+      >
+        <view class="category-info">
+          <text class="category-name">{{item.name}}</text>
+          <text class="category-amount">{{item.amountDisplay}}</text>
+        </view>
+        <view class="category-bar">
+          <view 
+            class="category-progress" 
+            style="width: {{item.progressWidth}}%"
+          ></view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

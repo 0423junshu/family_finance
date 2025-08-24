@@ -1,0 +1,61 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/record/record",
+    "pages/transfer/transfer",
+    "pages/transaction-list/transaction-list",
+    "pages/account-manage/account-manage",
+    "pages/investment-add/investment-add",
+    "pages/cycle-edit/cycle-edit",
+    "pages/category-manage/category-manage",
+    "pages/custom-cycle/custom-cycle",
+    "pages/budget-manage/budget-manage",
+    "pages/stats/stats",
+    "pages/assets/assets",
+    "pages/investments/investments",
+    "pages/profile/profile",
+    "pages/template-manage/template-manage",
+    "pages/cycle-setting/cycle-setting"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom",
+    "backgroundColor": "#F5F5F5"
+  },
+  "tabBar": {
+    "color": "#8E8E93",
+    "selectedColor": "#007AFF",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/stats/stats",
+        "text": "报表"
+      },
+      {
+        "pagePath": "pages/assets/assets",
+        "text": "资产"
+      },
+      {
+        "pagePath": "pages/investments/investments",
+        "text": "投资"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "您的位置信息将用于记账时自动填写地点"
+    }
+  }
+}

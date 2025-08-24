@@ -1,0 +1,153 @@
+<!-- pages/history-detail/history-detail.wxml -->
+<view class="page-container">
+  <!-- 自定义导航栏 -->
+  <navigation-bar title="历史记录" showBack="{{true}}"></navigation-bar>
+  
+  <!-- 日期选择器 -->
+  <view class="date-selector" bindtap="showDatePicker">
+    <view class="date-display">
+      <text class="date-text">{{selectedYear}}年{{selectedMonth}}月</text>
+      <text class="arrow-icon">▼</text>
+    </view>
+  </view>
+  
+  <!-- 月度统计卡片 -->
+  <view class="stats-card">
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-label">收入</text>
+        <text class="stat-value income">¥{{monthlyStats.incomeDisplay}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-label">支出</text>
+        <text class="stat-value expense">¥{{monthlyStats.expenseDisplay}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-label">结余</text>
+        <text class="stat-value {{monthlyStats.balance >= 0 ? 'income' : 'expense'}}">¥{{monthlyStats.balanceDisplay}}</text>
+      </view>
+    </view>
+    <view class="transaction-count">
+      <text>共{{monthlyStats.transactionCount}}笔交易</text>
+    </view>
+  </view>
+  
+  <!-- 筛选器 -->
+  <view class="filter-tabs">
+    <view 
+      class="filter-tab {{activeFilter === 'all' ? 'active' : ''}}"
+      bindtap="onFilterChange"
+      data-filter="all"
+    >
+      全部
+    </view>
+    <view 
+      class="filter-tab {{activeFilter === 'income' ? 'active' : ''}}"
+      bindtap="onFilterChange"
+      data-filter="income"
+    >
+      收入
+    </view>
+    <view 
+      class="filter-tab {{activeFilter === 'expense' ? 'active' : ''}}"
+      bindtap="onFilterChange"
+      data-filter="expense"
+    >
+      支出
+    </view>
+  </view>
+  
+  <!-- 交易记录列表 -->
+  <view class="transaction-groups">
+    <view wx:if="{{loading}}" class="loading-state">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+    
+    <view wx:elif="{{groupedTransactions.length === 0}}" class="empty-state">
+      <text>暂无交易记录</text>
+    </view>
+    
+    <view wx:else>
+      <view 
+        wx:for="{{groupedTransactions}}" 
+        wx:key="date" 
+        class="date-group"
+      >
+        <!-- 日期标题 -->
+        <view class="date-header">
+          <view class="date-info">
+            <text class="date-display">{{item.dateDisplay}}</text>
+            <text class="weekday">{{item.weekday}}</text>
+          </view>
+          <view class="day-summary">
+            <text wx:if="{{item.dayIncome > 0}}" class="day-income">+{{item.dayIncomeDisplay}}</text>
+            <text wx:if="{{item.dayExpense > 0}}" class="day-expense">-{{item.dayExpenseDisplay}}</text>
+          </view>
+        </view>
+        
+        <!-- 当日交易列表 -->
+        <view class="day-transactions">
+          <view 
+            wx:for="{{item.transactions}}" 
+            wx:for-item="transaction"
+            wx:key="id"
+            class="transaction-item"
+            bindtap="onTransactionTap"
+            bindlongpress="onTransactionLongPress"
+            data-transaction="{{transaction}}"
+          >
+            <view class="transaction-icon {{transaction.type}}">
+              <text>{{transaction.category}}</text>
+            </view>
+            <view class="transaction-info">
+              <view class="transaction-category">{{transaction.category}}</view>
+              <view class="transaction-details">
+                <text wx:if="{{transaction.description}}" class="description">{{transaction.description}}</text>
+                <text class="time">{{transaction.timeDisplay}}</text>
+              </view>
+            </view>
+            <view class="transaction-amount {{transaction.type}}">
+              {{transaction.type === 'income' ? '+' : '-'}}{{transaction.amountDisplay}}
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 日期选择器弹窗 -->
+  <view wx:if="{{showDatePicker}}" class="picker-overlay" bindtap="closeDatePicker">
+    <view class="picker-container" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">选择月份</text>
+        <text class="close-btn" bindtap="closeDatePicker">×</text>
+      </view>
+      <view class="picker-content">
+        <view class="picker-row">
+          <text class="picker-label">年份</text>
+          <picker 
+            range="{{years}}" 
+            value="{{selectedYear - 2020}}"
+            bindchange="onYearChange"
+          >
+            <view class="picker-value">{{selectedYear}}年</view>
+          </picker>
+        </view>
+        <view class="picker-row">
+          <text class="picker-label">月份</text>
+          <picker 
+            range="{{months}}" 
+            value="{{selectedMonth - 1}}"
+            bindchange="onMonthChange"
+          >
+            <view class="picker-value">{{selectedMonth}}月</view>
+          </picker>
+        </view>
+      </view>
+      <view class="picker-footer">
+        <button class="confirm-btn" bindtap="confirmDatePicker">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

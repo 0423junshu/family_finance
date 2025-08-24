@@ -1,0 +1,79 @@
+<!-- pages/investments/investments.wxml -->
+<navigation-bar title="投资" show-back="{{false}}" />
+
+<view class="page-container">
+  <!-- 总览卡片 -->
+  <view class="overview-card">
+    <view class="overview-item">
+      <text class="overview-label">总资产</text>
+      <text class="overview-value">{{totalAssetsDisplay}}</text>
+    </view>
+    <view class="overview-item">
+      <text class="overview-label">总收益</text>
+      <text class="overview-value {{totalReturn >= 0 ? 'positive' : 'negative'}}">
+        <block wx:if="{{totalReturn >= 0}}">+</block>{{totalReturnDisplay}}
+      </text>
+    </view>
+    <view class="overview-item">
+      <text class="overview-label">收益率</text>
+      <text class="overview-value {{returnRate >= 0 ? 'positive' : 'negative'}}">
+        <block wx:if="{{returnRate >= 0}}">+</block>{{returnRateDisplay}}%
+      </text>
+    </view>
+  </view>
+
+  <!-- 标签栏 -->
+  <view class="tab-bar">
+    <view 
+      wx:for="{{tabs}}" 
+      wx:key="index"
+      class="tab-item {{currentTab === index ? 'active' : ''}}"
+      data-index="{{index}}"
+      bindtap="onTabChange"
+    >
+      {{item}}
+    </view>
+  </view>
+
+  <!-- 投资列表 -->
+  <view class="investment-list">
+    <view 
+      wx:for="{{investments}}" 
+      wx:key="id"
+      class="investment-item"
+      data-id="{{item.id}}"
+      bindtap="onInvestmentDetail"
+    >
+      <view class="investment-icon">{{item.icon}}</view>
+      <view class="investment-info">
+        <text class="investment-name">{{item.name}}</text>
+        <text class="investment-amount">{{item.amountDisplay}}</text>
+      </view>
+      <view class="investment-return">
+        <text class="return-amount {{item.return >= 0 ? 'positive' : 'negative'}}">
+          <block wx:if="{{item.return >= 0}}">+</block>{{item.returnDisplay}}
+        </text>
+        <text class="return-rate {{item.returnRate >= 0 ? 'positive' : 'negative'}}">
+          <block wx:if="{{item.returnRate >= 0}}">+</block>{{item.returnRateDisplay}}%
+        </text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{investments.length === 0}}" class="empty-state">
+    <text class="empty-icon">📊</text>
+    <text class="empty-text">暂无投资记录</text>
+    <text class="empty-desc">点击右下角按钮添加投资</text>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="add-btn" bindtap="onAddInvestment">
+    <text class="add-icon">+</text>
+  </view>
+
+  <!-- 刷新按钮 -->
+  <view class="refresh-btn" bindtap="onRefresh">
+    <text class="refresh-icon">🔄</text>
+  </view>
+</view>

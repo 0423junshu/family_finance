@@ -1,0 +1,52 @@
+<!-- pages/profile/profile.wxml -->
+<navigation-bar title="我的" show-back="{{false}}" />
+
+<view class="page-container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card">
+    <image class="avatar" src="{{userInfo.avatarUrl}}" />
+    <view class="user-info">
+      <text class="nickname">{{userInfo.nickName}}</text>
+      <text class="phone">{{userInfo.phone || '未绑定手机'}}</text>
+    </view>
+  </view>
+
+  <!-- 功能设置列表 -->
+  <view class="settings-section">
+    <view 
+      wx:for="{{settings}}" 
+      wx:key="id"
+      class="setting-item"
+      data-id="{{item.id}}"
+      bindtap="onSettingTap"
+    >
+      <view class="setting-icon">{{item.icon}}</view>
+      <view class="setting-info">
+        <text class="setting-title">{{item.title}}</text>
+        <text class="setting-desc">{{item.desc}}</text>
+      </view>
+      <view class="setting-arrow">
+        <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 其他功能 -->
+  <view class="other-section">
+    <view class="other-item" bindtap="onAboutTap">
+      <text class="other-title">关于我们</text>
+      <view class="other-arrow">
+        <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+      </view>
+    </view>
+    
+    <view class="other-item logout" bindtap="onLogoutTap">
+      <text class="other-title logout-text">退出登录</text>
+    </view>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    <text class="version-text">版本 {{version}}</text>
+  </view>
+</view>

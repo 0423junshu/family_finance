@@ -1,0 +1,390 @@
+<!-- pages/budget-manage/budget-manage.wxml -->
+<view class="container">
+  <!-- 自定义导航栏 -->
+  <navigation-bar title="预算管理" showBack="{{true}}"></navigation-bar>
+  
+  <!-- 标签页切换 -->
+  <view class="tab-bar">
+    <view 
+      class="tab-item {{currentTab === 0 ? 'active' : ''}}"
+      bindtap="onTabChange"
+      data-tab="0"
+    >
+      <text>支出预算</text>
+    </view>
+    <view 
+      class="tab-item {{currentTab === 1 ? 'active' : ''}}"
+      bindtap="onTabChange"
+      data-tab="1"
+    >
+      <text>收入预期</text>
+    </view>
+  </view>
+  
+  <!-- 支出预算页面 -->
+  <view wx:if="{{currentTab === 0}}" class="tab-content">
+    <!-- 预算概览 -->
+    <view class="budget-overview">
+      <view class="overview-header">
+        <text class="month-title">{{currentMonth}}支出预算</text>
+      </view>
+      
+      <view class="overview-stats">
+        <view class="stat-item">
+          <view class="stat-label">总预算</view>
+          <view class="stat-value">¥{{expenseStats.totalBudget}}</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">已花费</view>
+          <view class="stat-value expense">¥{{expenseStats.totalSpent}}</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">剩余</view>
+          <view class="stat-value {{expenseStats.remainingBudget >= 0 ? 'income' : 'expense'}}">
+            ¥{{expenseStats.remainingBudget}}
+          </view>
+        </view>
+      </view>
+      
+      <!-- 总体进度条 -->
+      <view wx:if="{{expenseStats.totalBudget > 0}}" class="total-progress">
+        <view class="progress-info">
+          <text>总体进度</text>
+          <text>{{expenseStats.progressPercent}}%</text>
+        </view>
+        <view class="progress-bar">
+          <view 
+            class="progress-fill {{expenseStats.progressWidth > 100 ? 'over-budget' : ''}}"
+            style="width: {{expenseStats.progressWidth}}%"
+          ></view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 预算列表 -->
+    <view class="budget-list">
+      <view class="section-header">
+        <text class="section-title">分类预算</text>
+        <view class="add-budget-btn" bindtap="showAddDialog">
+          <text class="iconfont icon-add"></text>
+          <text>添加</text>
+        </view>
+      </view>
+      
+      <!-- 加载中状态 -->
+      <view wx:if="{{loading}}" class="loading-state">
+        <view class="loading-spinner"></view>
+        <text>加载中...</text>
+      </view>
+      
+      <!-- 空状态 -->
+      <view wx:elif="{{expenseBudgets.length === 0}}" class="empty-state">
+        <view class="empty-icon">📊</view>
+        <text>还没有设置预算</text>
+        <button class="add-first-btn" bindtap="showAddDialog">添加第一个预算</button>
+      </view>
+      
+      <!-- 预算项列表 -->
+      <view wx:else class="budget-items">
+        <view 
+          wx:for="{{expenseBudgets}}" 
+          wx:key="id"
+          class="budget-item {{item.isOverBudget ? 'over-budget-item' : ''}}"
+          bindtap="viewDetail"
+          data-item="{{item}}"
+        >
+          <view class="budget-header">
+            <view class="category-info">
+              <text class="category-name">{{item.categoryName}}</text>
+              <text class="budget-amount">预算: ¥{{item.formattedAmount}}</text>
+            </view>
+            <view class="budget-actions">
+              <view 
+                class="action-btn edit"
+                bindtap="showEditDialog"
+                data-item="{{item}}"
+                catchtap="true"
+              >
+                编辑
+              </view>
+              <view 
+                class="action-btn delete"
+                bindtap="onDelete"
+                data-item="{{item}}"
+                catchtap="true"
+              >
+                删除
+              </view>
+            </view>
+          </view>
+          
+          <view class="budget-progress">
+            <view class="progress-bar-container">
+              <view class="progress-bar">
+                <view 
+                  class="progress-fill {{item.isOverBudget ? 'over-budget' : ''}}"
+                  style="width: {{item.progress}}%"
+                ></view>
+              </view>
+            </view>
+            
+            <view class="progress-details">
+              <view class="progress-info">
+                <text class="spent-amount {{item.isOverBudget ? 'over-budget' : ''}}">
+                  已花费: ¥{{item.formattedSpent}}
+                </text>
+                <text class="progress-percent">{{item.progressPercent}}%</text>
+              </view>
+              
+              <view class="remaining-info">
+                <text class="remaining-amount {{item.remaining >= 0 ? 'positive' : 'negative'}}">
+                  {{item.remaining >= 0 ? '剩余: ' : '超支: '}}¥{{item.formattedRemaining}}
+                </text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 收入预期页面 -->
+  <view wx:if="{{currentTab === 1}}" class="tab-content">
+    <!-- 收入概览 -->
+    <view class="budget-overview income-overview">
+      <view class="overview-header">
+        <text class="month-title">{{currentMonth}}收入预期</text>
+      </view>
+      
+      <view class="overview-stats">
+        <view class="stat-item">
+          <view class="stat-label">总预期</view>
+          <view class="stat-value income">¥{{incomeStats.totalExpected}}</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">已收入</view>
+          <view class="stat-value income">¥{{incomeStats.totalReceived}}</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">待收入</view>
+          <view class="stat-value {{incomeStats.remainingExpected >= 0 ? 'expense' : 'income'}}">
+            ¥{{incomeStats.remainingExpected}}
+          </view>
+        </view>
+      </view>
+      
+      <!-- 总体进度条 -->
+      <view wx:if="{{incomeStats.totalExpected > 0}}" class="total-progress">
+        <view class="progress-info">
+          <text>完成进度</text>
+          <text>{{incomeStats.progressPercent}}%</text>
+        </view>
+        <view class="progress-bar">
+          <view 
+            class="progress-fill income-progress"
+            style="width: {{incomeStats.progressWidth}}%"
+          ></view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 收入预期列表 -->
+    <view class="budget-list">
+      <view class="section-header">
+        <text class="section-title">分类预期</text>
+        <view class="add-budget-btn" bindtap="showAddDialog">
+          <text class="iconfont icon-add"></text>
+          <text>添加</text>
+        </view>
+      </view>
+      
+      <!-- 加载中状态 -->
+      <view wx:if="{{loading}}" class="loading-state">
+        <view class="loading-spinner"></view>
+        <text>加载中...</text>
+      </view>
+      
+      <!-- 空状态 -->
+      <view wx:elif="{{incomeExpectations.length === 0}}" class="empty-state">
+        <view class="empty-icon">💰</view>
+        <text>还没有设置收入预期</text>
+        <button class="add-first-btn" bindtap="showAddDialog">添加第一个预期</button>
+      </view>
+      
+      <!-- 收入预期项列表 -->
+      <view wx:else class="budget-items">
+        <view 
+          wx:for="{{incomeExpectations}}" 
+          wx:key="id"
+          class="budget-item income-item {{item.isUnderExpected ? 'under-expected-item' : ''}}"
+          bindtap="viewDetail"
+          data-item="{{item}}"
+        >
+          <view class="budget-header">
+            <view class="category-info">
+              <text class="category-name">{{item.categoryName}}</text>
+              <text class="budget-amount income">预期: ¥{{item.formattedAmount}}</text>
+            </view>
+            <view class="budget-actions">
+              <view 
+                class="action-btn edit"
+                bindtap="showEditDialog"
+                data-item="{{item}}"
+                catchtap="true"
+              >
+                编辑
+              </view>
+              <view 
+                class="action-btn delete"
+                bindtap="onDelete"
+                data-item="{{item}}"
+                catchtap="true"
+              >
+                删除
+              </view>
+            </view>
+          </view>
+          
+          <view class="budget-progress">
+            <view class="progress-bar-container">
+              <view class="progress-bar">
+                <view 
+                  class="progress-fill income-progress"
+                  style="width: {{item.progress}}%"
+                ></view>
+              </view>
+            </view>
+            
+            <view class="progress-details">
+              <view class="progress-info">
+                <text class="spent-amount income">
+                  已收入: ¥{{item.formattedReceived}}
+                </text>
+                <text class="progress-percent">{{item.progressPercent}}%</text>
+              </view>
+              
+              <view class="remaining-info">
+                <text class="remaining-amount {{item.remaining >= 0 ? 'expense' : 'income'}}">
+                  {{item.remaining >= 0 ? '待收入: ' : '超额: '}}¥{{item.formattedRemaining}}
+                </text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 添加对话框 -->
+  <view wx:if="{{showAddDialog}}" class="dialog-overlay" bindtap="closeDialog">
+    <view class="dialog" catchtap="true">
+      <view class="dialog-header">
+        <text class="dialog-title">{{currentTab === 0 ? '添加预算' : '添加收入预期'}}</text>
+        <view class="close-btn" bindtap="closeDialog">×</view>
+      </view>
+      
+      <view class="dialog-content">
+        <!-- 选择分类 -->
+        <view class="form-group">
+          <view class="label">选择分类</view>
+          <picker 
+            mode="selector" 
+            range="{{currentTab === 0 ? expenseCategories : incomeCategories}}"
+            range-key="name"
+            value="{{-1}}"
+            bindchange="onCategoryChange"
+          >
+            <view class="picker {{errors.category ? 'error' : ''}}">
+              {{formData.categoryName || '请选择分类'}}
+            </view>
+          </picker>
+          <view wx:if="{{errors.category}}" class="error-text">{{errors.category}}</view>
+        </view>
+        
+        <!-- 金额 -->
+        <view class="form-group">
+          <view class="label">{{currentTab === 0 ? '预算金额' : '预期金额'}}</view>
+          <input 
+            class="input {{errors.amount ? 'error' : ''}}"
+            type="digit"
+            placeholder="{{currentTab === 0 ? '请输入预算金额' : '请输入预期金额'}}"
+            value="{{formData.amount}}"
+            bindinput="onAmountInput"
+          />
+          <view wx:if="{{errors.amount}}" class="error-text">{{errors.amount}}</view>
+        </view>
+        
+        <!-- 周期 -->
+        <view class="form-group">
+          <view class="label">{{currentTab === 0 ? '预算周期' : '预期周期'}}</view>
+          <picker 
+            mode="selector" 
+            range="{{['每月', '每年']}}"
+            value="{{formData.period === 'monthly' ? 0 : 1}}"
+            bindchange="onPeriodChange"
+          >
+            <view class="picker">
+              {{formData.period === 'monthly' ? '每月' : '每年'}}
+            </view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="dialog-footer">
+        <button class="btn cancel" bindtap="closeDialog">取消</button>
+        <button class="btn confirm" bindtap="onSave">保存</button>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 编辑对话框 -->
+  <view wx:if="{{showEditDialog}}" class="dialog-overlay" bindtap="closeDialog">
+    <view class="dialog" catchtap="true">
+      <view class="dialog-header">
+        <text class="dialog-title">{{currentTab === 0 ? '编辑预算' : '编辑收入预期'}}</text>
+        <view class="close-btn" bindtap="closeDialog">×</view>
+      </view>
+      
+      <view class="dialog-content">
+        <!-- 分类显示（不可编辑） -->
+        <view class="form-group">
+          <view class="label">分类</view>
+          <view class="category-display">{{formData.categoryName}}</view>
+        </view>
+        
+        <!-- 金额 -->
+        <view class="form-group">
+          <view class="label">{{currentTab === 0 ? '预算金额' : '预期金额'}}</view>
+          <input 
+            class="input {{errors.amount ? 'error' : ''}}"
+            type="digit"
+            placeholder="{{currentTab === 0 ? '请输入预算金额' : '请输入预期金额'}}"
+            value="{{formData.amount}}"
+            bindinput="onAmountInput"
+          />
+          <view wx:if="{{errors.amount}}" class="error-text">{{errors.amount}}</view>
+        </view>
+        
+        <!-- 周期 -->
+        <view class="form-group">
+          <view class="label">{{currentTab === 0 ? '预算周期' : '预期周期'}}</view>
+          <picker 
+            mode="selector" 
+            range="{{['每月', '每年']}}"
+            value="{{formData.period === 'monthly' ? 0 : 1}}"
+            bindchange="onPeriodChange"
+          >
+            <view class="picker">
+              {{formData.period === 'monthly' ? '每月' : '每年'}}
+            </view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="dialog-footer">
+        <button class="btn cancel" bindtap="closeDialog">取消</button>
+        <button class="btn confirm" bindtap="onSave">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

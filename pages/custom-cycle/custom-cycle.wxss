@@ -1,0 +1,412 @@
+/* pages/custom-cycle/custom-cycle.wxss */
+.page-container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding-top: 176rpx;
+  padding-bottom: 40rpx;
+}
+
+/* 当前周期卡片 */
+.current-cycle-card {
+  background-color: #fff;
+  margin: 20rpx;
+  padding: 40rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.reset-btn {
+  padding: 12rpx 24rpx;
+  background-color: #f8f9fa;
+  color: #666;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+}
+
+.cycle-info {
+  margin-bottom: 30rpx;
+}
+
+.cycle-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.cycle-description {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.preview-section {
+  padding: 20rpx;
+  background-color: #f8f9fa;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.preview-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.preview-text {
+  font-size: 24rpx;
+  color: #4caf50;
+  font-weight: 500;
+}
+
+/* 周期类型选择 */
+.cycle-types {
+  margin: 20rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 20rpx;
+  padding: 0 8rpx;
+}
+
+.type-options {
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.type-option {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.type-option:last-child {
+  border-bottom: none;
+}
+
+.type-option.active {
+  background-color: #f0f8ff;
+}
+
+.option-icon {
+  font-size: 40rpx;
+  margin-right: 24rpx;
+}
+
+.option-info {
+  flex: 1;
+}
+
+.option-name {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.option-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.option-check {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-icon {
+  color: #4caf50;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+/* 模板列表 */
+.templates-section {
+  margin: 20rpx;
+}
+
+.template-list {
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.template-item {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.template-item:last-child {
+  border-bottom: none;
+}
+
+.template-item:active {
+  background-color: #f8f9fa;
+}
+
+.template-info {
+  flex: 1;
+}
+
+.template-name {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.template-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.template-arrow {
+  color: #ccc;
+  font-size: 28rpx;
+}
+
+/* 设置区域 */
+.settings-section {
+  margin: 20rpx;
+}
+
+.setting-card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-size: 28rpx;
+  color: #333;
+  margin-right: 24rpx;
+}
+
+.setting-control {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.setting-value {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.setting-arrow {
+  color: #ccc;
+  font-size: 24rpx;
+}
+
+/* 应用按钮 */
+.apply-section {
+  margin: 40rpx 20rpx 20rpx;
+}
+
+.apply-btn {
+  width: 100%;
+  background-color: #4caf50;
+  color: #fff;
+  font-size: 32rpx;
+  padding: 32rpx;
+  border-radius: 16rpx;
+  border: none;
+}
+
+/* 对话框样式 */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background-color: #fff;
+  border-radius: 24rpx;
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40rpx 40rpx 20rpx;
+  border-bottom: 1rpx solid #e9ecef;
+}
+
+.dialog-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.close-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #999;
+}
+
+.dialog-content {
+  padding: 40rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 30rpx;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.picker {
+  padding: 24rpx;
+  background-color: #f8f9fa;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #333;
+  text-align: center;
+}
+
+.input {
+  width: 100%;
+  padding: 24rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  background-color: #fff;
+}
+
+.input-hint {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+.error-text {
+  color: #f44336;
+  font-size: 22rpx;
+  margin-top: 8rpx;
+}
+
+/* 日期范围设置 */
+.date-range-section {
+  margin-bottom: 30rpx;
+}
+
+.date-group {
+  margin-bottom: 30rpx;
+}
+
+.date-label {
+  font-size: 26rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.date-pickers {
+  display: flex;
+  gap: 20rpx;
+}
+
+.date-picker {
+  flex: 1;
+  padding: 20rpx;
+  background-color: #f8f9fa;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: #333;
+  text-align: center;
+}
+
+.preview-info {
+  padding: 20rpx;
+  background-color: #f0f8ff;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.dialog-footer {
+  display: flex;
+  padding: 20rpx 40rpx 40rpx;
+  gap: 20rpx;
+}
+
+.btn {
+  flex: 1;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  text-align: center;
+  border: none;
+}
+
+.btn.cancel {
+  background-color: #f8f9fa;
+  color: #666;
+}
+
+.btn.confirm {
+  background-color: #4caf50;
+  color: #fff;
+}

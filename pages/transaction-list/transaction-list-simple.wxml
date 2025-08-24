@@ -1,0 +1,193 @@
+<!-- pages/transaction-list/transaction-list-simple.wxml -->
+<navigation-bar title="交易记录" showBack="{{true}}" />
+
+<view class="container">
+  <!-- 日期选择 -->
+  <view class="date-selector">
+    <view class="date-display">
+      <block wx:if="{{filters.dateRange === 'week'}}">
+        本周
+      </block>
+      <block wx:elif="{{filters.dateRange === 'month'}}">
+        <picker 
+          mode="selector" 
+          range="{{[2020, 2021, 2022, 2023, 2024, 2025]}}" 
+          value="{{currentYear - 2020}}"
+          bindchange="onYearChange"
+        >
+          <text class="date-text">{{currentYear}}年</text>
+        </picker>
+        <picker 
+          mode="selector" 
+          range="{{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}}" 
+          value="{{currentMonth}}"
+          bindchange="onMonthChange"
+        >
+          <text class="date-text">{{currentMonth + 1}}月</text>
+        </picker>
+      </block>
+      <block wx:elif="{{filters.dateRange === 'quarter'}}">
+        <picker 
+          mode="selector" 
+          range="{{[2020, 2021, 2022, 2023, 2024, 2025]}}" 
+          value="{{currentYear - 2020}}"
+          bindchange="onYearChange"
+        >
+          <text class="date-text">{{currentYear}}年</text>
+        </picker>
+        <text class="date-text">{{Math.floor(currentMonth / 3) + 1}}季度</text>
+      </block>
+      <block wx:elif="{{filters.dateRange === 'year'}}">
+        <picker 
+          mode="selector" 
+          range="{{[2020, 2021, 2022, 2023, 2024, 2025]}}" 
+          value="{{currentYear - 2020}}"
+          bindchange="onYearChange"
+        >
+          <text class="date-text">{{currentYear}}年</text>
+        </picker>
+      </block>
+    </view>
+    
+    <view class="date-range-tabs">
+      <view 
+        class="date-range-tab {{filters.dateRange === 'week' ? 'active' : ''}}" 
+        bindtap="onDateRangeChange" 
+        data-range="week"
+      >
+        周
+      </view>
+      <view 
+        class="date-range-tab {{filters.dateRange === 'month' ? 'active' : ''}}" 
+        bindtap="onDateRangeChange" 
+        data-range="month"
+      >
+        月
+      </view>
+      <view 
+        class="date-range-tab {{filters.dateRange === 'quarter' ? 'active' : ''}}" 
+        bindtap="onDateRangeChange" 
+        data-range="quarter"
+      >
+        季
+      </view>
+      <view 
+        class="date-range-tab {{filters.dateRange === 'year' ? 'active' : ''}}" 
+        bindtap="onDateRangeChange" 
+        data-range="year"
+      >
+        年
+      </view>
+    </view>
+  </view>
+  
+  <!-- 统计信息 -->
+  <view class="summary-card">
+    <view class="summary-item">
+      <text class="summary-label">收入</text>
+      <text class="summary-value income">¥{{totalIncomeDisplay}}</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-label">支出</text>
+      <text class="summary-value expense">¥{{totalExpenseDisplay}}</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-label">结余</text>
+      <text class="summary-value {{netAmount >= 0 ? 'income' : 'expense'}}">¥{{netAmountDisplay}}</text>
+    </view>
+  </view>
+  
+  <!-- 筛选器 -->
+  <view class="filter-bar">
+    <view class="filter-tabs">
+      <view 
+        class="filter-tab {{filters.type === 'all' ? 'active' : ''}}" 
+        bindtap="onTypeChange" 
+        data-type="all"
+      >
+        全部
+      </view>
+      <view 
+        class="filter-tab {{filters.type === 'expense' ? 'active' : ''}}" 
+        bindtap="onTypeChange" 
+        data-type="expense"
+      >
+        支出
+      </view>
+      <view 
+        class="filter-tab {{filters.type === 'income' ? 'active' : ''}}" 
+        bindtap="onTypeChange" 
+        data-type="income"
+      >
+        收入
+      </view>
+    </view>
+    
+    <view class="filter-btn" bindtap="toggleFilterPanel">
+      <text class="filter-icon">⚙️</text>
+      <text class="filter-text">筛选</text>
+    </view>
+  </view>
+  
+  <!-- 筛选面板 -->
+  <view class="filter-panel" wx:if="{{showFilterPanel}}">
+    <view class="filter-section">
+      <text class="filter-section-title">分类</text>
+      <picker 
+        mode="selector" 
+        range="{{['全部', ...categories.map(c => c.name)]}}" 
+        value="{{filters.category === 'all' ? 0 : categories.findIndex(c => c.id === filters.category) + 1}}"
+        bindchange="onCategoryChange"
+      >
+        <view class="picker-view">
+          <text class="picker-text">{{filters.category === 'all' ? '全部' : categories.find(c => c.id === filters.category).name}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+  
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 交易列表 -->
+  <view wx:elif="{{filteredTransactions.length > 0}}" class="transaction-list">
+    <view 
+      wx:for="{{filteredTransactions}}" 
+      wx:key="id"
+      class="transaction-item"
+      bindtap="viewTransactionDetail"
+      data-id="{{item.id}}"
+    >
+      <view class="transaction-icon">
+        <block wx:if="{{item.type === 'income'}}">💰</block>
+        <block wx:elif="{{item.type === 'expense'}}">💸</block>
+        <block wx:else>🔄</block>
+      </view>
+      
+      <view class="transaction-info">
+        <text class="transaction-category">{{item.category}}</text>
+        <text class="transaction-date">{{item.dateDisplay}}</text>
+      </view>
+      
+      <view class="transaction-amount {{item.type === 'income' ? 'income' : 'expense'}}">
+        <text>{{item.type === 'income' ? '+' : '-'}}¥{{item.amountDisplay}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 空状态 -->
+  <view wx:else class="empty-state">
+    <view class="empty-icon">📊</view>
+    <text class="empty-text">暂无交易记录</text>
+    <button class="add-btn" bindtap="onAddRecord">记一笔</button>
+  </view>
+  
+  <!-- 悬浮添加按钮 -->
+  <view class="fab" bindtap="onAddRecord">
+    <text class="fab-icon">+</text>
+  </view>
+</view>

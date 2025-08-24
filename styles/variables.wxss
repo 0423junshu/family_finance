@@ -1,0 +1,79 @@
+/* styles/variables.wxss */
+/* CSS 变量定义 */
+page {
+  /* 颜色变量 */
+  --primary-color: #007AFF;
+  --secondary-color: #34C759;
+  --success-color: #34C759;
+  --warning-color: #FF9500;
+  --error-color: #FF3B30;
+  
+  /* 背景色 */
+  --bg-color: #F5F5F5;
+  --surface-color: #FFFFFF;
+  --card-bg: #FFFFFF;
+  
+  /* 文本颜色 */
+  --text-primary: #1C1C1E;
+  --text-secondary: #8E8E93;
+  --text-tertiary: #C7C7CC;
+  --text-inverse: #FFFFFF;
+  
+  /* 边框颜色 */
+  --border-color: #E5E5EA;
+  --divider-color: #F2F2F7;
+  
+  /* 阴影 */
+  --shadow-light: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
+  --shadow-heavy: 0 8rpx 32rpx rgba(0, 0, 0, 0.2);
+  
+  /* 圆角 */
+  --radius-small: 8rpx;
+  --radius-medium: 16rpx;
+  --radius-large: 24rpx;
+  
+  /* 间距 */
+  --spacing-xs: 8rpx;
+  --spacing-sm: 16rpx;
+  --spacing-md: 24rpx;
+  --spacing-lg: 32rpx;
+  --spacing-xl: 48rpx;
+  
+  /* 字体大小 */
+  --font-size-xs: 20rpx;
+  --font-size-sm: 24rpx;
+  --font-size-md: 28rpx;
+  --font-size-lg: 32rpx;
+  --font-size-xl: 36rpx;
+  --font-size-xxl: 40rpx;
+  
+  /* 字体粗细 */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 600;
+  
+  /* 高度 */
+  --nav-height: 88rpx;
+  --tab-height: 112rpx;
+  --button-height: 88rpx;
+  --input-height: 80rpx;
+  --list-item-height: 120rpx;
+}
+
+/* 深色模式变量 */
+@media (prefers-color-scheme: dark) {
+  page {
+    --bg-color: #000000;
+    --surface-color: #1C1C1E;
+    --card-bg: #2C2C2E;
+    
+    --text-primary: #FFFFFF;
+    --text-secondary: #8E8E93;
+    --text-tertiary: #48484A;
+    
+    --border-color: #38383A;
+    --divider-color: #2C2C2E;
+  }
+}

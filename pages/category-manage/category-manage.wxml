@@ -1,0 +1,266 @@
+<!-- pages/category-manage/category-manage.wxml -->
+<navigation-bar title="分类管理" showBack="{{true}}" />
+
+<view class="page-container">
+  <!-- 标签页 -->
+  <view class="tab-bar">
+    <view 
+      class="tab-item {{currentTab === 0 ? 'active' : ''}}"
+      data-index="0"
+      bindtap="onTabChange"
+    >
+      支出分类
+    </view>
+    <view 
+      class="tab-item {{currentTab === 1 ? 'active' : ''}}"
+      data-index="1"
+      bindtap="onTabChange"
+    >
+      收入分类
+    </view>
+  </view>
+
+  <!-- 分类列表 -->
+  <view class="content">
+    <view wx:if="{{loading}}" class="loading-container">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+    
+    <view wx:else class="category-list">
+      <!-- 支出分类 -->
+      <view wx:if="{{currentTab === 0}}" class="category-section">
+        <view 
+          wx:for="{{expenseCategories}}" 
+          wx:key="_id"
+          class="category-item"
+        >
+          <view class="category-info">
+            <view class="category-icon" style="background-color: {{item.color}}">
+              {{item.icon}}
+            </view>
+            <view class="category-details">
+              <text class="category-name">{{item.name}}</text>
+              <text class="category-type">{{item.isDefault ? '系统分类' : '自定义分类'}}</text>
+            </view>
+          </view>
+          <view class="category-actions">
+            <view 
+              wx:if="{{!item.isDefault}}"
+              class="action-btn edit-btn"
+              data-category="{{item}}"
+              bindtap="showEditCategory"
+            >
+              编辑
+            </view>
+            <view 
+              wx:if="{{!item.isDefault}}"
+              class="action-btn delete-btn"
+              data-category="{{item}}"
+              bindtap="deleteCategory"
+            >
+              删除
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 收入分类 -->
+      <view wx:if="{{currentTab === 1}}" class="category-section">
+        <view 
+          wx:for="{{incomeCategories}}" 
+          wx:key="_id"
+          class="category-item"
+        >
+          <view class="category-info">
+            <view class="category-icon" style="background-color: {{item.color}}">
+              {{item.icon}}
+            </view>
+            <view class="category-details">
+              <text class="category-name">{{item.name}}</text>
+              <text class="category-type">{{item.isDefault ? '系统分类' : '自定义分类'}}</text>
+            </view>
+          </view>
+          <view class="category-actions">
+            <view 
+              wx:if="{{!item.isDefault}}"
+              class="action-btn edit-btn"
+              data-category="{{item}}"
+              bindtap="showEditCategory"
+            >
+              编辑
+            </view>
+            <view 
+              wx:if="{{!item.isDefault}}"
+              class="action-btn delete-btn"
+              data-category="{{item}}"
+              bindtap="deleteCategory"
+            >
+              删除
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="add-btn-container">
+    <view class="add-btn" bindtap="showAddCategory">
+      <text class="add-icon">+</text>
+      <text class="add-text">添加{{currentTab === 0 ? '支出' : '收入'}}分类</text>
+    </view>
+  </view>
+
+  <!-- 新增分类对话框 -->
+  <view wx:if="{{showAddDialog}}" class="dialog-overlay" bindtap="closeDialog">
+    <view class="dialog-container" catchtap="">
+      <view class="dialog-header">
+        <text class="dialog-title">添加{{currentTab === 0 ? '支出' : '收入'}}分类</text>
+        <view class="dialog-close" bindtap="closeDialog">
+          <text class="close-icon">×</text>
+        </view>
+      </view>
+      
+      <view class="dialog-content">
+        <!-- 分类名称 -->
+        <view class="form-item">
+          <text class="form-label">分类名称</text>
+          <input 
+            class="form-input {{errors.name ? 'error' : ''}}"
+            placeholder="请输入分类名称"
+            value="{{newCategory.name}}"
+            bindinput="onCategoryNameInput"
+            maxlength="10"
+          />
+          <view wx:if="{{errors.name}}" class="error-text">{{errors.name}}</view>
+        </view>
+
+        <!-- 图标选择 -->
+        <view class="form-item">
+          <text class="form-label">选择图标</text>
+          <view class="icon-grid">
+            <view 
+              wx:for="{{availableIcons}}" 
+              wx:key="*this"
+              class="icon-option {{newCategory.icon === item ? 'selected' : ''}}"
+              data-icon="{{item}}"
+              bindtap="onIconSelect"
+            >
+              {{item}}
+            </view>
+          </view>
+        </view>
+
+        <!-- 颜色选择 -->
+        <view class="form-item">
+          <text class="form-label">选择颜色</text>
+          <view class="color-grid">
+            <view 
+              wx:for="{{availableColors}}" 
+              wx:key="*this"
+              class="color-option {{newCategory.color === item ? 'selected' : ''}}"
+              style="background-color: {{item}}"
+              data-color="{{item}}"
+              bindtap="onColorSelect"
+            >
+              <view wx:if="{{newCategory.color === item}}" class="color-check">✓</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 预览 -->
+        <view class="form-item">
+          <text class="form-label">预览效果</text>
+          <view class="category-preview">
+            <view class="preview-icon" style="background-color: {{newCategory.color}}">
+              {{newCategory.icon}}
+            </view>
+            <text class="preview-name">{{newCategory.name || '分类名称'}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="dialog-footer">
+        <button class="btn btn-secondary" bindtap="closeDialog">取消</button>
+        <button class="btn btn-primary" bindtap="saveCategory">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑分类对话框 -->
+  <view wx:if="{{showEditDialog}}" class="dialog-overlay" bindtap="closeDialog">
+    <view class="dialog-container" catchtap="">
+      <view class="dialog-header">
+        <text class="dialog-title">编辑分类</text>
+        <view class="dialog-close" bindtap="closeDialog">
+          <text class="close-icon">×</text>
+        </view>
+      </view>
+      
+      <view class="dialog-content">
+        <!-- 分类名称 -->
+        <view class="form-item">
+          <text class="form-label">分类名称</text>
+          <input 
+            class="form-input {{errors.name ? 'error' : ''}}"
+            placeholder="请输入分类名称"
+            value="{{newCategory.name}}"
+            bindinput="onCategoryNameInput"
+            maxlength="10"
+          />
+          <view wx:if="{{errors.name}}" class="error-text">{{errors.name}}</view>
+        </view>
+
+        <!-- 图标选择 -->
+        <view class="form-item">
+          <text class="form-label">选择图标</text>
+          <view class="icon-grid">
+            <view 
+              wx:for="{{availableIcons}}" 
+              wx:key="*this"
+              class="icon-option {{newCategory.icon === item ? 'selected' : ''}}"
+              data-icon="{{item}}"
+              bindtap="onIconSelect"
+            >
+              {{item}}
+            </view>
+          </view>
+        </view>
+
+        <!-- 颜色选择 -->
+        <view class="form-item">
+          <text class="form-label">选择颜色</text>
+          <view class="color-grid">
+            <view 
+              wx:for="{{availableColors}}" 
+              wx:key="*this"
+              class="color-option {{newCategory.color === item ? 'selected' : ''}}"
+              style="background-color: {{item}}"
+              data-color="{{item}}"
+              bindtap="onColorSelect"
+            >
+              <view wx:if="{{newCategory.color === item}}" class="color-check">✓</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 预览 -->
+        <view class="form-item">
+          <text class="form-label">预览效果</text>
+          <view class="category-preview">
+            <view class="preview-icon" style="background-color: {{newCategory.color}}">
+              {{newCategory.icon}}
+            </view>
+            <text class="preview-name">{{newCategory.name || '分类名称'}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="dialog-footer">
+        <button class="btn btn-secondary" bindtap="closeDialog">取消</button>
+        <button class="btn btn-primary" bindtap="saveCategory">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

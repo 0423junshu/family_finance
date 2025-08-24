@@ -1,0 +1,164 @@
+<!-- pages/assets/assets.wxml -->
+<navigation-bar title="资产" showBack="{{false}}" />
+
+<view class="container">
+  <!-- 总资产展示 -->
+  <view class="total-assets">
+    <view class="label">总资产</view>
+    <view class="amount">¥{{totalAssetsDisplay}}</view>
+    
+    <!-- 数据一致性检查按钮 -->
+    <view class="consistency-check" bindtap="onCheckConsistency">
+      <text class="iconfont icon-check"></text>
+      <text class="check-text">校验</text>
+    </view>
+  </view>
+
+  <!-- 账户列表 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">账户</text>
+      <view class="add-btn" bindtap="onAddAccount">
+        <text class="add-icon">+</text>
+      </view>
+    </view>
+    
+    <view class="account-list">
+      <view 
+        wx:for="{{accounts}}" 
+        wx:key="id"
+        class="account-item"
+        data-id="{{item.id}}"
+        bindtap="onAccountTap"
+      >
+        <view class="account-icon">{{item.icon}}</view>
+        <view class="account-info">
+          <text class="account-name">{{item.name}}</text>
+          <text class="account-type">
+            <block wx:if="{{item.type === 'cash'}}">现金</block>
+            <block wx:elif="{{item.type === 'bank'}}">银行卡</block>
+            <block wx:else>电子钱包</block>
+          </text>
+        </view>
+        <view class="account-balance">
+          <text class="balance-amount">¥{{item.balanceDisplay}}</text>
+          <view 
+            class="edit-btn"
+            bindtap="onEditAmount"
+            data-account="{{item}}"
+            catchtap="true"
+          >
+            编辑
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 数据一致性检查结果 -->
+  <view class="section" wx:if="{{dataConsistency.hasIssues}}">
+    <view class="section-header">
+      <text class="section-title warning">数据一致性问题</text>
+      <view class="action-buttons">
+        <view class="detail-btn" bindtap="viewConsistencyDetails">
+          <text class="detail-text">详情</text>
+        </view>
+        <view class="fix-btn" bindtap="fixDataConsistency">
+          <text class="fix-text">修复</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="consistency-issues">
+      <view 
+        wx:for="{{dataConsistency.issues}}" 
+        wx:key="type"
+        class="issue-item"
+      >
+        <view class="issue-icon">⚠️</view>
+        <view class="issue-info">
+          <text class="issue-title">{{item.message}}</text>
+          <view class="issue-details" wx:if="{{item.type === 'account'}}">
+            <view wx:for="{{item.details}}" wx:for-item="account" wx:key="accountId" class="account-issue">
+              <text class="account-name">{{account.accountName}}</text>
+              <text class="account-diff {{account.difference > 0 ? 'negative' : 'positive'}}">
+                {{account.difference > 0 ? '少了' : '多了'}}¥{{account.differenceDisplay}}
+              </text>
+            </view>
+          </view>
+          <text class="issue-detail" wx:if="{{item.type === 'asset'}}">
+            差额: ¥{{item.details.difference / 100}}
+          </text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 投资理财 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">投资理财</text>
+      <view class="add-btn" bindtap="onAddInvestment">
+        <text class="add-icon">+</text>
+      </view>
+    </view>
+    
+    <view class="investment-list">
+      <view 
+        wx:for="{{investments}}" 
+        wx:key="id"
+        class="investment-item"
+        data-id="{{item.id}}"
+        bindtap="onInvestmentTap"
+      >
+        <view class="investment-icon">{{item.icon}}</view>
+        <view class="investment-info">
+          <text class="investment-name">{{item.name}}</text>
+          <text class="investment-type">
+            <block wx:if="{{item.type === 'fund'}}">基金</block>
+            <block wx:else>股票</block>
+          </text>
+        </view>
+        <view class="investment-data">
+          <text class="investment-amount">¥{{item.amountDisplay}}</text>
+          <text class="investment-profit {{item.profit >= 0 ? 'positive' : 'negative'}}">
+            <block wx:if="{{item.profit >= 0}}">+</block>{{item.profitDisplay}} ({{item.profitRate}}%)
+          </text>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 编辑金额对话框 -->
+  <view wx:if="{{showEditDialog}}" class="dialog-overlay" bindtap="closeEditDialog">
+    <view class="dialog" catchtap="true">
+      <view class="dialog-header">
+        <text class="dialog-title">编辑账户余额</text>
+        <view class="close-btn" bindtap="closeEditDialog">×</view>
+      </view>
+      
+      <view class="dialog-content">
+        <view class="account-info-display">
+          <text class="account-name">{{editingAccount.name}}</text>
+        </view>
+        
+        <view class="form-group">
+          <view class="label">账户余额</view>
+          <input 
+            class="amount-input"
+            type="digit"
+            placeholder="请输入金额"
+            value="{{editAmount}}"
+            bindinput="onAmountInput"
+            focus="{{showEditDialog}}"
+          />
+        </view>
+      </view>
+      
+      <view class="dialog-footer">
+        <button class="btn cancel" bindtap="closeEditDialog">取消</button>
+        <button class="btn confirm" bindtap="saveAmount">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

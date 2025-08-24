@@ -1,0 +1,124 @@
+/* pages/template-manage/template-manage.wxss */
+@import "../../styles/variables.wxss";
+@import "../../styles/common.wxss";
+
+.page-container {
+  padding-top: 176rpx;
+  padding-bottom: 160rpx;
+  background: #F5F5F5;
+  min-height: 100vh;
+}
+
+/* 模板列表 */
+.template-list {
+  margin: 32rpx;
+}
+
+.template-item {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+}
+
+.template-icon {
+  width: 80rpx;
+  height: 80rpx;
+  background: #F2F2F7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  margin-right: 24rpx;
+}
+
+.template-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.template-name {
+  font-size: 28rpx;
+  color: #1C1C1E;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+
+.template-detail {
+  font-size: 24rpx;
+  color: #8E8E93;
+}
+
+.template-amount {
+  margin-right: 24rpx;
+}
+
+.amount {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.amount.income {
+  color: #34C759;
+}
+
+.amount.expense {
+  color: #FF3B30;
+}
+
+.template-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.action-btn {
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  text-align: center;
+  min-width: 80rpx;
+}
+
+.action-btn.use {
+  background: #007AFF;
+  color: #FFFFFF;
+}
+
+.action-btn.edit {
+  background: #FF9500;
+  color: #FFFFFF;
+}
+
+.action-btn.delete {
+  background: #FF3B30;
+  color: #FFFFFF;
+}
+
+/* 添加按钮 */
+.add-template-btn {
+  background: #FFFFFF;
+  margin: 32rpx;
+  border-radius: 16rpx;
+  padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2rpx dashed #007AFF;
+}
+
+.add-icon {
+  font-size: 48rpx;
+  color: #007AFF;
+  margin-bottom: 16rpx;
+}
+
+.add-text {
+  font-size: 28rpx;
+  color: #007AFF;
+  font-weight: 500;
+}

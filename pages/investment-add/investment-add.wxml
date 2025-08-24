@@ -1,0 +1,208 @@
+<!-- pages/investment-add/investment-add.wxml -->
+<navigation-bar title="{{mode === 'create' ? '添加投资' : '编辑投资'}}" showBack="{{true}}" />
+
+<view class="page-container">
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <view wx:else class="content">
+    <!-- 投资表单 -->
+    <view class="form-container">
+      <!-- 投资名称 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">投资名称</text>
+          <text class="required">*</text>
+        </view>
+        <view class="form-input">
+          <input 
+            class="input {{errors.name ? 'error' : ''}}"
+            placeholder="请输入投资名称"
+            value="{{formData.name}}"
+            bindinput="onNameInput"
+            maxlength="30"
+          />
+        </view>
+      </view>
+      <view wx:if="{{errors.name}}" class="error-text">{{errors.name}}</view>
+
+      <!-- 投资类型 -->
+      <view class="form-item" bindtap="showTypePicker">
+        <view class="form-label">
+          <text class="label-text">投资类型</text>
+          <text class="required">*</text>
+        </view>
+        <view class="form-value">
+          <view class="type-display">
+            <text class="type-icon">{{currentTypeIcon}}</text>
+            <text class="type-name">{{currentTypeName}}</text>
+          </view>
+          <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+        </view>
+      </view>
+      <view wx:if="{{errors.type}}" class="error-text">{{errors.type}}</view>
+
+      <!-- 当前价值 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">当前价值</text>
+          <text class="required">*</text>
+        </view>
+        <view class="form-input">
+          <view class="amount-input-container">
+            <text class="currency-symbol">¥</text>
+            <input 
+              class="amount-input {{errors.amount ? 'error' : ''}}"
+              type="digit"
+              placeholder="0.00"
+              value="{{formData.amount}}"
+              bindinput="onAmountInput"
+              bindblur="onAmountBlur"
+              data-field="amount"
+              confirm-type="done"
+            />
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{errors.amount}}" class="error-text">{{errors.amount}}</view>
+
+      <!-- 投资成本 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">投资成本</text>
+          <text class="required">*</text>
+        </view>
+        <view class="form-input">
+          <view class="amount-input-container">
+            <text class="currency-symbol">¥</text>
+            <input 
+              class="amount-input {{errors.cost ? 'error' : ''}}"
+              type="digit"
+              placeholder="0.00"
+              value="{{formData.cost}}"
+              bindinput="onCostInput"
+              bindblur="onAmountBlur"
+              data-field="cost"
+              confirm-type="done"
+            />
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{errors.cost}}" class="error-text">{{errors.cost}}</view>
+
+      <!-- 收益计算 -->
+      <view wx:if="{{showProfitDisplay}}" class="profit-display">
+        <view class="profit-item">
+          <text class="profit-label">收益金额</text>
+          <text class="profit-value {{profitData.isPositive ? 'positive' : 'negative'}}">
+            {{profitData.profitAmountText}}
+          </text>
+        </view>
+        <view class="profit-item">
+          <text class="profit-label">收益率</text>
+          <text class="profit-value {{profitData.isPositive ? 'positive' : 'negative'}}">
+            {{profitData.profitRateText}}
+          </text>
+        </view>
+      </view>
+
+      <!-- 购买日期 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">购买日期</text>
+        </view>
+        <view class="form-value">
+          <picker mode="date" value="{{formData.purchaseDate}}" bindchange="onDateChange">
+            <text class="selected-text">{{formData.purchaseDate}}</text>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 预期收益率 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">预期年化收益率</text>
+        </view>
+        <view class="form-input">
+          <view class="percent-input-container">
+            <input 
+              class="percent-input"
+              type="digit"
+              placeholder="0.00"
+              value="{{formData.expectedReturn}}"
+              bindinput="onExpectedReturnInput"
+              confirm-type="done"
+            />
+            <text class="percent-symbol">%</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 投资描述 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">投资描述</text>
+        </view>
+        <view class="form-input">
+          <textarea 
+            class="textarea"
+            placeholder="添加投资描述（可选）"
+            value="{{formData.description}}"
+            bindinput="onDescriptionInput"
+            maxlength="200"
+            auto-height
+          />
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-container">
+      <button 
+        class="btn btn-primary btn-large {{submitting ? 'btn-disabled' : ''}}"
+        bindtap="onSubmit"
+        disabled="{{submitting}}"
+      >
+        <text wx:if="{{submitting}}">{{mode === 'create' ? '添加中...' : '保存中...'}}</text>
+        <text wx:else>{{mode === 'create' ? '添加投资' : '保存修改'}}</text>
+      </button>
+      
+      <button 
+        wx:if="{{mode === 'edit'}}"
+        class="btn btn-danger btn-large"
+        bindtap="onDelete"
+      >
+        删除投资
+      </button>
+    </view>
+  </view>
+
+  <!-- 投资类型选择器 -->
+  <view wx:if="{{showTypePicker}}" class="picker-overlay" bindtap="onPickerClose">
+    <view class="picker-container" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">选择投资类型</text>
+        <view class="picker-close" bindtap="onPickerClose">
+          <image class="close-icon" src="/images/icons/close.png" />
+        </view>
+      </view>
+      <view class="picker-content">
+        <view 
+          wx:for="{{investmentTypes}}" 
+          wx:key="value"
+          class="picker-item {{item.value === formData.type ? 'selected' : ''}}"
+          data-type="{{item.value}}"
+          bindtap="onTypeSelect"
+        >
+          <view class="type-info">
+            <text class="type-icon">{{item.icon}}</text>
+            <text class="type-name">{{item.label}}</text>
+          </view>
+          <image wx:if="{{item.value === formData.type}}" class="check-icon" src="/images/icons/check.png" />
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
