@@ -79,8 +79,9 @@ Page({
   // 编辑模板
   onEditTemplate(e) {
     const templateId = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/template-edit/template-edit?id=${templateId}`
+    wx.showToast({
+      title: '模板编辑功能开发中',
+      icon: 'none'
     })
   },
 

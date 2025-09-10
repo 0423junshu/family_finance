@@ -16,10 +16,12 @@ async function validateAccountBalances() {
     
     // 遍历每个账户进行校验
     for (const account of accounts) {
+      const accountId = account.id || account._id
+      
       // 计算该账户的所有交易
       const accountTransactions = transactions.filter(t => 
-        t.accountId === account.id || 
-        (t.type === 'transfer' && t.targetAccountId === account.id)
+        t.accountId === accountId || 
+        (t.type === 'transfer' && t.targetAccountId === accountId)
       )
       
       // 计算理论上的账户余额
@@ -27,7 +29,7 @@ async function validateAccountBalances() {
       
       // 遍历该账户的所有交易
       for (const transaction of accountTransactions) {
-        if (transaction.accountId === account.id) {
+        if (transaction.accountId === accountId) {
           // 该账户作为源账户
           switch (transaction.type) {
             case 'income':
@@ -40,7 +42,7 @@ async function validateAccountBalances() {
               calculatedBalance -= transaction.amount
               break
           }
-        } else if (transaction.targetAccountId === account.id) {
+        } else if (transaction.targetAccountId === accountId) {
           // 该账户作为目标账户（转账）
           calculatedBalance += transaction.amount
         }
@@ -50,7 +52,7 @@ async function validateAccountBalances() {
       const isValid = Math.abs(calculatedBalance - account.balance) < 0.01 // 允许0.01的误差
       
       validationResults.push({
-        accountId: account.id,
+        accountId: accountId,
         accountName: account.name,
         actualBalance: account.balance,
         calculatedBalance,
@@ -103,7 +105,8 @@ async function fixAccountBalances(autoFix = false) {
     let fixedCount = 0
     
     for (const account of accounts) {
-      const validationResult = validation.results.find(r => r.accountId === account.id)
+      const accountId = account.id || account._id
+      const validationResult = validation.results.find(r => r.accountId === accountId)
       
       if (validationResult && !validationResult.isValid) {
         // 更新账户余额为计算值
@@ -114,6 +117,9 @@ async function fixAccountBalances(autoFix = false) {
     
     // 保存修复后的账户数据
     wx.setStorageSync('accounts', accounts)
+    
+    // 同步更新资产总额
+    await syncTotalAssets()
     
     return {
       needFix: true,
@@ -189,6 +195,31 @@ async function fixTotalAssets() {
 }
 
 /**
+ * 同步更新资产总额
+ * 根据所有账户余额之和更新资产总额
+ */
+async function syncTotalAssets() {
+  try {
+    // 获取所有账户
+    const accounts = wx.getStorageSync('accounts') || []
+    
+    // 计算所有账户余额之和
+    const totalAssets = accounts.reduce((sum, account) => sum + account.balance, 0)
+    
+    // 更新资产总额
+    wx.setStorageSync('totalAssets', totalAssets)
+    
+    return {
+      success: true,
+      totalAssets
+    }
+  } catch (error) {
+    console.error('同步更新资产总额失败:', error)
+    throw error
+  }
+}
+
+/**
  * 执行全面数据一致性检查
  * @param {Boolean} autoFix 是否自动修复问题
  */
@@ -257,10 +288,164 @@ async function performFullConsistencyCheck(autoFix = false) {
   }
 }
 
+/**
+ * 校验交易记录与账户的关联一致性
+ * 确保所有交易记录都关联到有效的账户
+ */
+async function validateTransactionAccountLinks() {
+  try {
+    // 获取所有账户和交易记录
+    const accounts = wx.getStorageSync('accounts') || []
+    const transactions = wx.getStorageSync('transactions') || []
+    
+    // 提取所有账户ID
+    const accountIds = accounts.map(account => account.id || account._id)
+    
+    // 检查每个交易记录的账户关联
+    const invalidTransactions = []
+    
+    transactions.forEach(transaction => {
+      const { id, type, accountId, targetAccountId, amount, date, description } = transaction
+      
+      let isValid = true
+      const issues = []
+      
+      // 检查源账户
+      if (!accountId) {
+        isValid = false
+        issues.push('缺少源账户ID')
+      } else if (!accountIds.includes(accountId)) {
+        isValid = false
+        issues.push('源账户不存在')
+      }
+      
+      // 检查目标账户（仅转账类型）
+      if (type === 'transfer') {
+        if (!targetAccountId) {
+          isValid = false
+          issues.push('缺少目标账户ID')
+        } else if (!accountIds.includes(targetAccountId)) {
+          isValid = false
+          issues.push('目标账户不存在')
+        }
+      }
+      
+      if (!isValid) {
+        invalidTransactions.push({
+          id,
+          type,
+          amount,
+          date,
+          description,
+          accountId,
+          targetAccountId,
+          issues
+        })
+      }
+    })
+    
+    return {
+      isAllValid: invalidTransactions.length === 0,
+      invalidCount: invalidTransactions.length,
+      invalidTransactions
+    }
+  } catch (error) {
+    console.error('校验交易记录与账户关联失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 修复交易记录与账户的关联问题
+ * @param {Boolean} autoFix 是否自动修复（true: 自动删除无效交易, false: 仅返回修复建议）
+ */
+async function fixTransactionAccountLinks(autoFix = false) {
+  try {
+    // 获取校验结果
+    const validation = await validateTransactionAccountLinks()
+    
+    // 如果全部有效，无需修复
+    if (validation.isAllValid) {
+      return {
+        needFix: false,
+        message: '所有交易记录都关联到有效账户，无需修复'
+      }
+    }
+    
+    // 如果不自动修复，返回修复建议
+    if (!autoFix) {
+      return {
+        needFix: true,
+        invalidTransactions: validation.invalidTransactions,
+        message: `发现${validation.invalidCount}条交易记录存在账户关联问题，建议修复`
+      }
+    }
+    
+    // 自动修复：删除无效的交易记录
+    const transactions = wx.getStorageSync('transactions') || []
+    const invalidIds = validation.invalidTransactions.map(t => t.id)
+    
+    const validTransactions = transactions.filter(t => !invalidIds.includes(t.id))
+    
+    // 保存修复后的交易记录
+    wx.setStorageSync('transactions', validTransactions)
+    
+    // 重新校验账户余额
+    await performFullConsistencyCheck(true)
+    
+    return {
+      needFix: true,
+      removedCount: transactions.length - validTransactions.length,
+      removedTransactions: validation.invalidTransactions,
+      message: `已删除${transactions.length - validTransactions.length}条无效交易记录并重新校验账户余额`
+    }
+  } catch (error) {
+    console.error('修复交易记录与账户关联失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 自动同步账户变动到资产总览
+ * 在账户余额变动后自动更新资产总览
+ * @param {String} accountId 变动的账户ID
+ * @param {Number} oldBalance 变动前的余额
+ * @param {Number} newBalance 变动后的余额
+ */
+async function syncAccountChangeToAssets(accountId, oldBalance, newBalance) {
+  try {
+    // 计算变动金额
+    const changeAmount = newBalance - oldBalance
+    
+    // 获取当前资产总额
+    let totalAssets = wx.getStorageSync('totalAssets') || 0
+    
+    // 更新资产总额
+    totalAssets += changeAmount
+    
+    // 保存更新后的资产总额
+    wx.setStorageSync('totalAssets', totalAssets)
+    
+    return {
+      success: true,
+      accountId,
+      changeAmount,
+      newTotalAssets: totalAssets
+    }
+  } catch (error) {
+    console.error('同步账户变动到资产总览失败:', error)
+    throw error
+  }
+}
+
 module.exports = {
   validateAccountBalances,
   fixAccountBalances,
   validateTotalAssets,
   fixTotalAssets,
-  performFullConsistencyCheck
+  syncTotalAssets,
+  performFullConsistencyCheck,
+  validateTransactionAccountLinks,
+  fixTransactionAccountLinks,
+  syncAccountChangeToAssets
 }

@@ -1,0 +1,252 @@
+<!-- pages/tag-manage/tag-manage.wxml -->
+<navigation-bar title="标签管理" show-back="{{true}}" />
+
+<view class="page-container">
+  <!-- 标签列表 -->
+  <view class="content">
+    <view wx:if="{{loading}}" class="loading-container">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+    
+    <view wx:else class="tag-list">
+      <view 
+        wx:for="{{tags}}" 
+        wx:key="_id"
+        class="tag-item"
+        bindtap="showEditTag"
+        data-tag="{{item}}"
+      >
+        <view class="tag-info">
+          <view class="tag-badge" style="background-color: {{item.color}}"></view>
+          <view class="tag-details">
+            <text class="tag-name">{{item.name}}</text>
+            <text class="tag-type">{{item.isDefault ? '系统标签' : '自定义标签'}}</text>
+          </view>
+        </view>
+        <view class="tag-actions">
+          <view 
+            wx:if="{{!item.isDefault}}"
+            class="action-btn edit-btn"
+            data-tag="{{item}}"
+            catchtap="showEditTag"
+          >
+            编辑
+          </view>
+          <view 
+            wx:if="{{!item.isDefault}}"
+            class="action-btn delete-btn"
+            data-tag="{{item}}"
+            catchtap="deleteTag"
+          >
+            删除
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="add-btn-container">
+    <view class="add-btn" bindtap="showAddTag">
+      <text class="add-icon">+</text>
+      <text class="add-text">添加标签</text>
+    </view>
+  </view>
+
+  <!-- 新增标签对话框 -->
+  <view wx:if="{{showAddDialog}}" class="dialog-overlay" bindtap="closeDialog">
+    <view class="dialog-container" catchtap="noop">
+      <view class="dialog-header">
+        <text class="dialog-title">添加标签</text>
+        <view class="dialog-close" bindtap="closeDialog">
+          <text class="close-icon">×</text>
+        </view>
+      </view>
+      
+      <view class="dialog-content">
+        <!-- 标签名称 -->
+        <view class="form-item">
+          <text class="form-label">标签名称</text>
+          <input 
+            class="form-input {{errors.name ? 'error' : ''}}"
+            placeholder="请输入标签名称"
+            value="{{newTag.name}}"
+            bindinput="onTagNameInput"
+            maxlength="10"
+          />
+          <view wx:if="{{errors.name}}" class="error-text">{{errors.name}}</view>
+        </view>
+
+        <!-- 颜色选择 -->
+        <view class="form-item">
+          <text class="form-label">选择颜色</text>
+          <view class="color-grid">
+            <view 
+              wx:for="{{availableColors}}" 
+              wx:key="*this"
+              class="color-option {{newTag.color === item ? 'selected' : ''}}"
+              style="background-color: {{item}}"
+              data-color="{{item}}"
+              bindtap="onColorSelect"
+            >
+              <view wx:if="{{newTag.color === item}}" class="color-check">✓</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 关联分类 -->
+        <view class="form-item">
+          <text class="form-label">关联分类（可选）</text>
+          <text class="form-hint">不选择则为全局标签，可用于所有分类</text>
+          
+          <view class="category-section">
+            <text class="section-title">支出分类</text>
+            <view class="category-grid">
+              <view 
+                wx:for="{{categories}}" 
+                wx:key="_id"
+                wx:if="{{item.type === 'expense'}}"
+                class="category-option {{categorySelectedMap[item._id] ? 'selected' : ''}}"
+                data-id="{{item._id}}"
+                catchtap="toggleCategorySelection"
+              >
+                <text>{{item.name}}</text>
+                <view wx:if="{{categorySelectedMap[item._id]}}" class="category-check">✓</view>
+              </view>
+            </view>
+          </view>
+          
+          <view class="category-section">
+            <text class="section-title">收入分类</text>
+            <view class="category-grid">
+              <view 
+                wx:for="{{categories}}" 
+                wx:key="_id"
+                wx:if="{{item.type === 'income'}}"
+                class="category-option {{categorySelectedMap[item._id] ? 'selected' : ''}}"
+                data-id="{{item._id}}"
+                catchtap="toggleCategorySelection"
+              >
+                <text>{{item.name}}</text>
+                <view wx:if="{{categorySelectedMap[item._id]}}" class="category-check">✓</view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 预览 -->
+        <view class="form-item">
+          <text class="form-label">预览效果</text>
+          <view class="tag-preview">
+            <view class="preview-badge" style="background-color: {{newTag.color}}"></view>
+            <text class="preview-name">{{newTag.name || '标签名称'}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="dialog-footer">
+        <button class="btn btn-secondary" bindtap="closeDialog">取消</button>
+        <button class="btn btn-primary" bindtap="saveTag">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑标签对话框 -->
+  <view wx:if="{{showEditDialog}}" class="dialog-overlay" bindtap="closeDialog">
+    <view class="dialog-container" catchtap="noop">
+      <view class="dialog-header">
+        <text class="dialog-title">编辑标签</text>
+        <view class="dialog-close" bindtap="closeDialog">
+          <text class="close-icon">×</text>
+        </view>
+      </view>
+      
+      <view class="dialog-content">
+        <!-- 标签名称 -->
+        <view class="form-item">
+          <text class="form-label">标签名称</text>
+          <input 
+            class="form-input {{errors.name ? 'error' : ''}}"
+            placeholder="请输入标签名称"
+            value="{{newTag.name}}"
+            bindinput="onTagNameInput"
+            maxlength="10"
+          />
+          <view wx:if="{{errors.name}}" class="error-text">{{errors.name}}</view>
+        </view>
+
+        <!-- 颜色选择 -->
+        <view class="form-item">
+          <text class="form-label">选择颜色</text>
+          <view class="color-grid">
+            <view 
+              wx:for="{{availableColors}}" 
+              wx:key="*this"
+              class="color-option {{newTag.color === item ? 'selected' : ''}}"
+              style="background-color: {{item}}"
+              data-color="{{item}}"
+              bindtap="onColorSelect"
+            >
+              <view wx:if="{{newTag.color === item}}" class="color-check">✓</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 关联分类 -->
+        <view class="form-item">
+          <text class="form-label">关联分类（可选）</text>
+          <text class="form-hint">不选择则为全局标签，可用于所有分类</text>
+          
+          <view class="category-section">
+            <text class="section-title">支出分类</text>
+            <view class="category-grid">
+              <view 
+                wx:for="{{categories}}" 
+                wx:key="_id"
+                wx:if="{{item.type === 'expense'}}"
+                class="category-option {{categorySelectedMap[item._id] ? 'selected' : ''}}"
+                data-id="{{item._id}}"
+                bindtap="toggleCategorySelection"
+              >
+                <text>{{item.name}}</text>
+                <view wx:if="{{categorySelectedMap[item._id]}}" class="category-check">✓</view>
+              </view>
+            </view>
+          </view>
+          
+          <view class="category-section">
+            <text class="section-title">收入分类</text>
+            <view class="category-grid">
+              <view 
+                wx:for="{{categories}}" 
+                wx:key="_id"
+                wx:if="{{item.type === 'income'}}"
+                class="category-option {{categorySelectedMap[item._id] ? 'selected' : ''}}"
+                data-id="{{item._id}}"
+                bindtap="toggleCategorySelection"
+              >
+                <text>{{item.name}}</text>
+                <view wx:if="{{categorySelectedMap[item._id]}}" class="category-check">✓</view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 预览 -->
+        <view class="form-item">
+          <text class="form-label">预览效果</text>
+          <view class="tag-preview">
+            <view class="preview-badge" style="background-color: {{newTag.color}}"></view>
+            <text class="preview-name">{{newTag.name || '标签名称'}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="dialog-footer">
+        <button class="btn btn-secondary" bindtap="closeDialog">取消</button>
+        <button class="btn btn-primary" bindtap="saveTag">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

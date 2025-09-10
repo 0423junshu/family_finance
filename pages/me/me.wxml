@@ -1,2 +1,72 @@
-<!--pages/me/me.wxml-->
-<text>pages/me/me.wxml</text>
+<!-- pages/me/me.wxml -->
+<navigation-bar title="我的" showBack="{{false}}" />
+
+<view class="page-container">
+  <!-- 用户信息区域 -->
+  <view class="profile-section">
+    <view class="avatar">
+      <image src="{{userInfo.avatarUrl || '/images/default-avatar.svg'}}" mode="aspectFill" />
+    </view>
+    <view class="user-info">
+      <text class="nickname">{{userInfo.nickName || '未登录'}}</text>
+      <text class="phone">{{userInfo.phone || '点击登录'}}</text>
+    </view>
+  </view>
+
+  <!-- 家庭协作功能卡片 - 统一设计风格 -->
+  <view class="card collaboration-card" wx:if="{{isInFamily}}" bindtap="onManageFamily">
+    <view class="card-header">
+      <view class="card-icon">
+        <text class="icon-text">👨‍👩‍👧‍👦</text>
+      </view>
+      <view class="card-content">
+        <text class="card-title">家庭协作</text>
+        <text class="card-subtitle">{{familyInfo.name || '我的家庭'}}</text>
+      </view>
+      <view class="card-arrow">
+        <text class="arrow-text">></text>
+      </view>
+    </view>
+    <view class="card-body">
+      <view class="card-stats">
+        <view class="stat-item">
+          <text class="stat-number">{{totalMembers}}</text>
+          <text class="stat-label">成员</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-number">{{onlineMembers}}</text>
+          <text class="stat-label">在线</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-number">{{recentActivities}}</text>
+          <text class="stat-label">今日活动</text>
+        </view>
+      </view>
+      <text class="card-desc">成员管理 · 权限设置 · 操作日志</text>
+    </view>
+  </view>
+
+  <!-- 协作邀请卡片（未加入家庭时显示） -->
+  <view class="card collaboration-invite-card" wx:if="{{!isInFamily}}" bindtap="onCreateOrJoinFamily">
+    <view class="card-header">
+      <view class="card-icon invite">
+        <text class="icon-text">👨‍👩‍👧‍👦</text>
+      </view>
+      <view class="card-content">
+        <text class="card-title">家庭协作</text>
+        <text class="card-subtitle">开启协作功能</text>
+      </view>
+      <view class="card-arrow">
+        <text class="arrow-text">></text>
+      </view>
+    </view>
+    <view class="card-body">
+      <text class="card-desc">创建或加入家庭，与家人共同管理财务</text>
+    </view>
+  </view>
+
+
+</view>
+
+<!-- 协作状态指示器 -->
+<sync-status wx:if="{{collaborationEnabled}}" />

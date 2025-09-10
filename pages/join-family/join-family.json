@@ -1,0 +1,10 @@
+{
+    "usingComponents": {
+        "t-button": "tdesign-miniprogram/button/button",
+        "t-input": "tdesign-miniprogram/input/input",
+        "t-toast": "tdesign-miniprogram/toast/toast",
+        "t-loading": "tdesign-miniprogram/loading/loading",
+        "t-result": "tdesign-miniprogram/result/result",
+        "navigation-bar": "/components/navigation-bar/navigation-bar"
+    }
+}

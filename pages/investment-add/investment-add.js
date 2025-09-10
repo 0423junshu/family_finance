@@ -32,14 +32,25 @@ Page({
     showTypePicker: false,
     
     // 验证错误
-    errors: {}
+    errors: {},
+    // 上下文年月（用于历史月份编辑）
+    ctxYear: null,
+    ctxMonth: null
   },
 
   onLoad(options) {
     const mode = options.mode || 'create'
     const investmentId = options.id
+    const ctxYear = options.year !== undefined ? Number(options.year) : null
+    const ctxMonth = options.month !== undefined ? Number(options.month) : null
     
-    this.setData({ mode })
+    this.setData({ mode, investmentId, ctxYear, ctxMonth })
+    
+    // 若收到上下文年月，设置 lastViewedMonth 供后续读取
+    if (ctxYear !== null && ctxMonth !== null) {
+      const ymKey = `${ctxYear}-${String(ctxMonth + 1).padStart(2, '0')}`
+      wx.setStorageSync('lastViewedMonth', ymKey)
+    }
     
     // 设置默认购买日期为今天
     const today = new Date().toISOString().split('T')[0]
@@ -64,12 +75,22 @@ Page({
     })
   },
 
+  // 获取年月键
+  getYmKey() {
+    const { ctxYear, ctxMonth } = this.data
+    if (ctxYear !== null && ctxMonth !== null && !isNaN(ctxYear) && !isNaN(ctxMonth)) {
+      return `${ctxYear}-${String(ctxMonth + 1).padStart(2, '0')}`
+    }
+    return null
+  },
+
   // 加载投资数据（编辑模式）
   async loadInvestmentData(investmentId) {
     try {
       this.setData({ loading: true })
       
-      const investments = wx.getStorageSync('investments') || []
+      const ymKey = this.getYmKey()
+      const investments = (ymKey ? wx.getStorageSync(`investments:${ymKey}`) : null) || wx.getStorageSync('investments') || []
       const investment = investments.find(inv => inv.id === investmentId)
       
       if (investment) {
@@ -317,13 +338,14 @@ Page({
         description: this.data.formData.description.trim(),
         purchaseDate: this.data.formData.purchaseDate,
         expectedReturn: this.data.formData.expectedReturn ? parseFloat(this.data.formData.expectedReturn) : 0,
-        icon: this.getTypeIcon(this.data.formData.type),
+        icon: this.getTypeIcon(this.data.formData.type, this.data.formData.name),
         createTime: new Date().toISOString(),
         updateTime: new Date().toISOString()
       }
       
-      // 保存到本地存储
-      let investments = wx.getStorageSync('investments') || []
+      // 保存到本地存储（按月优先）
+      const ymKey = this.getYmKey()
+      let investments = (ymKey ? wx.getStorageSync(`investments:${ymKey}`) : null) || wx.getStorageSync('investments') || []
       
       if (this.data.mode === 'create') {
         investments.push(investmentData)
@@ -336,7 +358,47 @@ Page({
         }
       }
       
-      wx.setStorageSync('investments', investments)
+      // 仅在当前月份更新主存储，历史月份只更新对应月份存储
+      const now = new Date()
+      const currentYmKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+      const isCurrentMonth = !ymKey || ymKey === currentYmKey
+
+      if (ymKey) wx.setStorageSync(`investments:${ymKey}`, investments)
+      if (isCurrentMonth) {
+        wx.setStorageSync('investments', ymKey ? (wx.getStorageSync(`investments:${ymKey}`) || investments) : investments)
+      }
+      
+      // 同步更新该月资产快照（账户+投资）
+      {
+        const targetYmKey = ymKey || currentYmKey
+        const monthAccounts = wx.getStorageSync(`accounts:${targetYmKey}`) || []
+        const totalAssets = monthAccounts.reduce((s,a)=>s+(a.balance||0),0) + investments.reduce((s,i)=>s+(i.amount||0),0)
+        wx.setStorageSync(`assetSnapshot:${targetYmKey}`, {
+          timestamp: new Date().toISOString(),
+          yearMonth: targetYmKey,
+          accounts: monthAccounts,
+          investments,
+          totalAssets,
+          accountCount: monthAccounts.length,
+          investmentCount: investments.length
+        })
+      }
+      
+      // 同步更新该月资产快照（账户+投资）
+      {
+        const targetYmKey = ymKey || currentYmKey
+        const monthAccounts = wx.getStorageSync(`accounts:${targetYmKey}`) || []
+        const totalAssets = monthAccounts.reduce((s,a)=>s+(a.balance||0),0) + investments.reduce((s,i)=>s+(i.amount||0),0)
+        wx.setStorageSync(`assetSnapshot:${targetYmKey}`, {
+          timestamp: new Date().toISOString(),
+          yearMonth: targetYmKey,
+          accounts: monthAccounts,
+          investments,
+          totalAssets,
+          accountCount: monthAccounts.length,
+          investmentCount: investments.length
+        })
+      }
       
       // 同步到资产页面
       this.syncToAssetsPage(investments)
@@ -344,7 +406,7 @@ Page({
       // 返回上一页
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     } catch (error) {
       console.error('保存投资失败:', error)
       showToast(error.message || '保存失败', 'error')
@@ -353,12 +415,19 @@ Page({
     }
   },
 
-  // 获取类型图标
-  getTypeIcon(type) {
+  // 获取类型图标 - 统一图标逻辑（与资产页面保持一致）
+  getTypeIcon(type, name) {
+    // 产品级别优先（特殊产品映射）
+    if (name && name.includes('余额宝')) return '💎';
+    if (name && name.includes('腾讯')) return '📊';
+    if (name && name.includes('银行')) return '🏛️';
+    if (name && name.includes('理财')) return '💰';
+    
+    // 类型级别通用映射
     const iconMap = {
-      'fund': '💰',
+      'fund': '📈',
       'bank': '🏦',
-      'stock': '📈',
+      'stock': '📊',
       'bond': '📋',
       'crypto': '₿',
       'other': '🔖'
@@ -405,9 +474,19 @@ Page({
   // 执行删除
   async deleteInvestment() {
     try {
-      let investments = wx.getStorageSync('investments') || []
+      const ymKey = this.getYmKey()
+      let investments = (ymKey ? wx.getStorageSync(`investments:${ymKey}`) : null) || wx.getStorageSync('investments') || []
       investments = investments.filter(inv => inv.id !== this.data.investmentId)
-      wx.setStorageSync('investments', investments)
+
+      // 仅在当前月份更新主存储
+      const now = new Date()
+      const currentYmKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+      const isCurrentMonth = !ymKey || ymKey === currentYmKey
+
+      if (ymKey) wx.setStorageSync(`investments:${ymKey}`, investments)
+      if (isCurrentMonth) {
+        wx.setStorageSync('investments', ymKey ? (wx.getStorageSync(`investments:${ymKey}`) || investments) : investments)
+      }
       
       // 同步到资产页面
       this.syncToAssetsPage(investments)
@@ -416,7 +495,7 @@ Page({
       
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     } catch (error) {
       console.error('删除投资失败:', error)
       showToast('删除失败', 'error')

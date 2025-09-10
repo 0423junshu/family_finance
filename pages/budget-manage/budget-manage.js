@@ -1,8 +1,6 @@
 // pages/budget-manage/budget-manage.js
 const { showLoading, hideLoading, showToast } = require('../../utils/uiUtil')
 const { formatAmount } = require('../../utils/formatter')
-const { createBudget, updateBudget, deleteBudget, getBudgets } = require('../../services/budget-backend')
-const { getCategories } = require('../../services/category-backend')
 const CycleCalculator = require('../../utils/cycle-calculator')
 
 Page({
@@ -98,15 +96,17 @@ Page({
         { id: 'other', name: '其他收入', icon: '💸', color: '#747D8C' }
       ]
       
+      // 规范自定义分类ID为 id 字段，统一全链路标识
+      const normalizedCustom = (customCategories || []).map(c => ({ ...c, id: c.id || c._id }))
       // 合并分类
       const expenseCategories = [
         ...defaultExpenseCategories,
-        ...customCategories.filter(c => c.type === 'expense')
+        ...normalizedCustom.filter(c => c.type === 'expense')
       ]
       
       const incomeCategories = [
         ...defaultIncomeCategories,
-        ...customCategories.filter(c => c.type === 'income')
+        ...normalizedCustom.filter(c => c.type === 'income')
       ]
       
       this.setData({ 
@@ -118,21 +118,19 @@ Page({
     }
   },
 
-  // 加载预算数据 - 使用后端服务
+  // 加载预算数据 - 直接使用本地存储
   async loadBudgets() {
     try {
       this.setData({ loading: true })
       
-      // 调用后端获取预算数据
-      const budgetResult = await getBudgets()
-      if (!budgetResult.success) {
-        throw new Error(budgetResult.error || '获取预算数据失败')
-      }
-      
-      // 分离支出预算和收入预期
-      const budgets = budgetResult.data.filter(item => item.type === 'expense')
-      const incomeExpectations = budgetResult.data.filter(item => item.type === 'income')
+      // 直接从本地存储获取预算数据（兼容历史数据：规范 id 字段）
+      const rawBudgets = wx.getStorageSync('budgets') || []
+      const rawIncomeExpectations = wx.getStorageSync('incomeExpectations') || []
+      const budgets = rawBudgets.map(b => ({ ...b, id: b.id || b._id }))
+      const incomeExpectations = rawIncomeExpectations.map(e => ({ ...e, id: e.id || e._id }))
       const transactions = wx.getStorageSync('transactions') || []
+      
+      console.log('加载预算数据:', { budgets: budgets.length, incomeExpectations: incomeExpectations.length })
       
       // 使用统一的周期计算工具
       CycleCalculator.fixCycleSetting() // 确保周期设置有效
@@ -227,7 +225,9 @@ Page({
 
   // 切换标签页
   onTabChange(e) {
-    const tab = parseInt(e.currentTarget.dataset.tab)
+    const ds = (e && (e.currentTarget && e.currentTarget.dataset)) || (e && e.target && e.target.dataset) || {}
+    const tab = parseInt(ds.tab)
+    if (isNaN(tab)) return
     this.setData({ currentTab: tab })
   },
 
@@ -249,19 +249,36 @@ Page({
 
   // 显示编辑对话框
   showEditDialog(e) {
-    const item = e.currentTarget.dataset.item || e.currentTarget.dataset.budget
+    // 阻止事件冒泡（兼容基础库差异）
+    if (e && e.stopPropagation) e.stopPropagation()
+    
+    const ds = (e && (e.currentTarget && e.currentTarget.dataset)) || (e && e.target && e.target.dataset) || {}
+    const passedItem = ds.item || ds.budget
+    const id = ds.id || (passedItem && (passedItem.id || passedItem._id))
+    const list = this.data.currentTab === 0 ? this.data.expenseBudgets : this.data.incomeExpectations
+    let item = passedItem || list.find(it => String(it.id || it._id) === String(id))
+    if (!item) {
+      showToast('未找到要编辑的项目', 'error')
+      return
+    }
     const type = this.data.currentTab === 0 ? 'expense' : 'income'
     
-    // 确保金额正确转换为元
-    const amountInYuan = item.amount ? (item.amount / 100).toFixed(2) : '0.00'
+    console.log('编辑项目:', item)
+    
+    // 金额统一以分存储，弹窗以元展示；兼容历史字符串
+    let amountInYuan = '0.00'
+    const amtNum = Number(item.amount)
+    if (!isNaN(amtNum)) {
+      amountInYuan = (amtNum / 100).toFixed(2)
+    }
     
     this.setData({
       showEditDialog: true,
-      editingItem: item,
+      editingItem: { ...item, id: item.id || item._id },
       formData: {
         type,
-        categoryId: item.categoryId,
-        categoryName: item.categoryName,
+        categoryId: item.categoryId || item.id,
+        categoryName: item.categoryName || item.name,
         amount: amountInYuan,
         period: item.period || 'monthly'
       },
@@ -295,7 +312,7 @@ Page({
     const category = categories[index]
     
     this.setData({
-      'formData.categoryId': category.id,
+      'formData.categoryId': category.id || category._id,
       'formData.categoryName': category.name
     })
     this.clearFieldError('category')
@@ -352,9 +369,10 @@ Page({
                          this.data.expenseBudgets : 
                          this.data.incomeExpectations
     
+    const currentId = this.data.editingItem ? (this.data.editingItem.id || this.data.editingItem._id) : null
     const existingItem = existingItems.find(item => 
       item.categoryId === this.data.formData.categoryId &&
-      (!this.data.editingItem || item.id !== this.data.editingItem.id)
+      (!currentId || String(item.id || item._id) !== String(currentId))
     )
     
     if (existingItem) {
@@ -372,7 +390,10 @@ Page({
     this.setData({ errors })
   },
 
-  // 保存预算/预期 - 使用后端服务
+  // 阻止冒泡空函数（用于对话框容器 catchtap）
+  noop() {},
+
+  // 保存预算/预期 - 直接使用本地存储
   async onSave() {
     if (!this.validateForm()) {
       showToast(Object.values(this.data.errors)[0], 'error')
@@ -386,31 +407,46 @@ Page({
       const isExpense = this.data.formData.type === 'expense'
       
       const budgetData = {
+        id: this.data.editingItem?.id || Date.now().toString(),
         categoryId: this.data.formData.categoryId,
         categoryName: this.data.formData.categoryName,
         amount,
         period: this.data.formData.period,
-        type: this.data.formData.type
+        type: this.data.formData.type,
+        createTime: this.data.editingItem?.createTime || new Date().toISOString(),
+        updateTime: new Date().toISOString()
       }
       
-      let result
       if (this.data.showAddDialog) {
-        // 调用后端创建预算
-        result = await createBudget(budgetData)
-        if (result.success) {
-          showToast(isExpense ? '预算添加成功' : '收入预期添加成功', 'success')
+        // 添加新预算
+        if (isExpense) {
+          const budgets = wx.getStorageSync('budgets') || []
+          budgets.push(budgetData)
+          wx.setStorageSync('budgets', budgets)
         } else {
-          throw new Error(result.error || '创建失败')
+          const incomeExpectations = wx.getStorageSync('incomeExpectations') || []
+          incomeExpectations.push(budgetData)
+          wx.setStorageSync('incomeExpectations', incomeExpectations)
         }
+        showToast(isExpense ? '预算添加成功' : '收入预期添加成功', 'success')
       } else {
-        // 调用后端更新预算
-        budgetData.id = this.data.editingItem.id
-        result = await updateBudget(budgetData)
-        if (result.success) {
-          showToast(isExpense ? '预算更新成功' : '收入预期更新成功', 'success')
+        // 更新现有预算
+        if (isExpense) {
+          const budgets = wx.getStorageSync('budgets') || []
+          const index = budgets.findIndex(b => String(b.id || b._id) === String(budgetData.id))
+          if (index !== -1) {
+            budgets[index] = budgetData
+            wx.setStorageSync('budgets', budgets)
+          }
         } else {
-          throw new Error(result.error || '更新失败')
+          const incomeExpectations = wx.getStorageSync('incomeExpectations') || []
+          const index = incomeExpectations.findIndex(e => String(e.id || e._id) === String(budgetData.id))
+          if (index !== -1) {
+            incomeExpectations[index] = budgetData
+            wx.setStorageSync('incomeExpectations', incomeExpectations)
+          }
         }
+        showToast(isExpense ? '预算更新成功' : '收入预期更新成功', 'success')
       }
       
       wx.hideLoading()
@@ -425,37 +461,53 @@ Page({
 
   // 删除预算/预期
   onDelete(e) {
-    const item = e.currentTarget.dataset.item || e.currentTarget.dataset.budget
+    // 阻止事件冒泡（兼容基础库差异）
+    if (e && e.stopPropagation) e.stopPropagation()
+    
+    const ds = (e && (e.currentTarget && e.currentTarget.dataset)) || (e && e.target && e.target.dataset) || {}
+    const passedItem = ds.item || ds.budget
+    const id = ds.id || (passedItem && (passedItem.id || passedItem._id))
+    const list = this.data.currentTab === 0 ? this.data.expenseBudgets : this.data.incomeExpectations
+    let item = passedItem || list.find(it => String(it.id || it._id) === String(id))
+    if (!item) {
+      showToast('未找到要删除的项目', 'error')
+      return
+    }
     const isExpense = this.data.currentTab === 0
     const itemType = isExpense ? '预算' : '收入预期'
     
+    console.log('删除项目:', item)
+    
     wx.showModal({
       title: '确认删除',
-      content: `确定要删除"${item.categoryName}"的${itemType}吗？`,
+      content: `确定要删除"${item.categoryName || item.name}"的${itemType}吗？`,
       confirmText: '删除',
       confirmColor: '#ff3b30',
       success: (res) => {
         if (res.confirm) {
-          this.deleteItem(item.id, isExpense)
+          this.deleteItem(item.id || item._id, isExpense)
         }
       }
     })
   },
 
-  // 执行删除 - 使用后端服务
+  // 执行删除 - 直接使用本地存储
   async deleteItem(itemId, isExpense) {
     try {
       wx.showLoading({ title: '删除中...' })
       
-      // 调用后端删除预算
-      const result = await deleteBudget(itemId)
-      
-      if (result.success) {
-        showToast(isExpense ? '预算删除成功' : '收入预期删除成功', 'success')
-        this.loadBudgets()
+      if (isExpense) {
+        const budgets = wx.getStorageSync('budgets') || []
+        const filteredBudgets = budgets.filter(b => String(b.id || b._id) !== String(itemId))
+        wx.setStorageSync('budgets', filteredBudgets)
       } else {
-        throw new Error(result.error || '删除失败')
+        const incomeExpectations = wx.getStorageSync('incomeExpectations') || []
+        const filteredExpectations = incomeExpectations.filter(e => String(e.id || e._id) !== String(itemId))
+        wx.setStorageSync('incomeExpectations', filteredExpectations)
       }
+      
+      showToast(isExpense ? '预算删除成功' : '收入预期删除成功', 'success')
+      this.loadBudgets()
       
       wx.hideLoading()
     } catch (error) {

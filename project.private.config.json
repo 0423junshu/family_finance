@@ -3,5 +3,6 @@
     "projectname": "family_finance",
     "setting": {
         "compileHotReLoad": true
-    }
+    },
+    "libVersion": "3.9.3"
 }

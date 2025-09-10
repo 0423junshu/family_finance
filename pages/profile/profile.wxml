@@ -1,5 +1,5 @@
 <!-- pages/profile/profile.wxml -->
-<navigation-bar title="我的" show-back="{{false}}" />
+<navigation-bar title="家庭财务管理" showBack="{{false}}" />
 
 <view class="page-container">
   <!-- 用户信息卡片 -->
@@ -7,7 +7,49 @@
     <image class="avatar" src="{{userInfo.avatarUrl}}" />
     <view class="user-info">
       <text class="nickname">{{userInfo.nickName}}</text>
-      <text class="phone">{{userInfo.phone || '未绑定手机'}}</text>
+      <text class="phone">{{userInfo.phone || '未绑定手机号'}}</text>
+    </view>
+  </view>
+
+  <!-- 家庭协作功能卡片 -->
+  <view class="collaboration-section">
+    <!-- 已加入家庭状态 -->
+    <view class="collaboration-card" wx:if="{{isInFamily}}" bindtap="onManageFamily">
+      <view class="card-header">
+        <view class="card-icon">
+          <text class="icon-text">👨‍👩‍👧‍👦</text>
+        </view>
+        <view class="card-content">
+          <text class="card-title">家庭协作</text>
+          <text class="card-subtitle">{{familyInfo.name || '我的家庭'}}</text>
+        </view>
+        <view class="card-status">
+          <text class="status-text">{{totalMembers}}人</text>
+          <text class="status-indicator {{onlineMembers > 0 ? 'online' : 'offline'}}"></text>
+        </view>
+      </view>
+      <view class="card-body">
+        <text class="card-desc">管理家庭成员、权限设置、操作日志</text>
+      </view>
+    </view>
+
+    <!-- 未加入家庭状态 -->
+    <view class="collaboration-invite-card" wx:if="{{!isInFamily}}" bindtap="onCreateOrJoinFamily">
+      <view class="card-header">
+        <view class="card-icon invite">
+          <text class="icon-text">👨‍👩‍👧‍👦</text>
+        </view>
+        <view class="card-content">
+          <text class="card-title">家庭协作</text>
+          <text class="card-subtitle">开启协作功能</text>
+        </view>
+        <view class="card-arrow">
+          <text class="arrow-text">></text>
+        </view>
+      </view>
+      <view class="card-body">
+        <text class="card-desc">创建或加入家庭，与家人共同管理财务</text>
+      </view>
     </view>
   </view>
 
@@ -26,7 +68,7 @@
         <text class="setting-desc">{{item.desc}}</text>
       </view>
       <view class="setting-arrow">
-        <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+        <text class="arrow-icon">›</text>
       </view>
     </view>
   </view>
@@ -36,7 +78,7 @@
     <view class="other-item" bindtap="onAboutTap">
       <text class="other-title">关于我们</text>
       <view class="other-arrow">
-        <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+        <text class="arrow-icon">›</text>
       </view>
     </view>
     
@@ -50,3 +92,6 @@
     <text class="version-text">版本 {{version}}</text>
   </view>
 </view>
+
+<!-- 协作状态指示器 -->
+<sync-status wx:if="{{collaborationEnabled}}" />

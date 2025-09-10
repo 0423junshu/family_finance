@@ -1,0 +1,43 @@
+<!--pages/init-core-db/init-core-db.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="title">核心数据库初始化</text>
+    <text class="status">{{status}}</text>
+  </view>
+
+  <view class="info">
+    <text class="info-title">将创建以下核心集合：</text>
+    <view class="collection-list">
+      <text wx:for="{{coreCollections}}" wx:key="*this" class="collection-item">• {{item}}</text>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="btn primary" bindtap="onInitCore" disabled="{{isRunning}}">
+      {{isRunning ? '创建中...' : '开始创建核心集合'}}
+    </button>
+    <button class="btn secondary" bindtap="onTestFamily">测试家庭功能</button>
+    <button class="btn info" bindtap="onManualCreate">手动创建指南</button>
+  </view>
+
+  <view class="results">
+    <view wx:for="{{results}}" wx:key="index" class="result-item {{item.type}}">
+      <view class="result-header">
+        <text class="result-title">{{item.title}}</text>
+        <text class="result-time">{{item.time}}</text>
+      </view>
+      <text class="result-message">{{item.message}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{results.length === 0}}" class="empty">
+    <text>点击上方按钮开始创建核心数据库集合</text>
+  </view>
+
+  <view class="tips">
+    <text class="tips-title">提示：</text>
+    <text class="tips-item">• 只创建家庭功能必需的核心集合</text>
+    <text class="tips-item">• 如果自动创建失败，可使用手动创建</text>
+    <text class="tips-item">• 创建完成后测试家庭功能验证</text>
+  </view>
+</view>

@@ -1,0 +1,44 @@
+<!--pages/complete-db-init/complete-db-init.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="title">完整数据库初始化</text>
+    <text class="status">{{status}}</text>
+  </view>
+
+  <view class="info">
+    <text class="info-title">将检查和创建以下集合：</text>
+    <view class="collection-grid">
+      <text wx:for="{{allCollections}}" wx:key="*this" class="collection-tag">{{item}}</text>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="btn primary" bindtap="onCreateAll" disabled="{{isRunning}}">
+      {{isRunning ? '创建中...' : '创建所有缺失集合'}}
+    </button>
+    <button class="btn secondary" bindtap="onTestAll">测试所有功能</button>
+    <button class="btn info" bindtap="onManualGuide">手动创建指南</button>
+  </view>
+
+  <view class="results">
+    <view wx:for="{{results}}" wx:key="index" class="result-item {{item.type}}">
+      <view class="result-header">
+        <text class="result-title">{{item.title}}</text>
+        <text class="result-time">{{item.time}}</text>
+      </view>
+      <text class="result-message">{{item.message}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{results.length === 0}}" class="empty">
+    <text>页面加载时会自动检查集合状态</text>
+  </view>
+
+  <view class="tips">
+    <text class="tips-title">重要提示：</text>
+    <text class="tips-item">• 此工具会创建所有可能需要的数据库集合</text>
+    <text class="tips-item">• 包括核心功能和扩展功能所需的集合</text>
+    <text class="tips-item">• 会提供索引创建建议以提升性能</text>
+    <text class="tips-item">• 如果自动创建失败，请使用手动创建指南</text>
+  </view>
+</view>

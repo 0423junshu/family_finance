@@ -1,2 +1,149 @@
 <!--pages/family/family.wxml-->
-<text>pages/family/family.wxml</text>
+<navigation-bar title="家庭管理" showBack="{{false}}" />
+
+<view class="page-container">
+  <!-- 家庭信息卡片 -->
+  <view wx:if="{{familyInfo}}" class="card family-info-card">
+    <view class="family-header">
+      <view class="family-title">
+        <text class="family-name">{{familyInfo.name || '我的家庭'}}</text>
+        <t-tag wx:if="{{familyInfo.role === 'owner'}}" theme="primary" size="small">创建者</t-tag>
+        <t-tag wx:elif="{{familyInfo.role === 'admin'}}" theme="success" size="small">管理员</t-tag>
+        <t-tag wx:else theme="default" size="small">成员</t-tag>
+      </view>
+      <text class="member-count">{{familyInfo.memberCount || 0}}位成员</text>
+    </view>
+    
+    <!-- 家庭码展示 -->
+    <view class="family-code-section">
+      <view class="family-code-header">
+        <text class="section-title">家庭码</text>
+        <view class="code-actions">
+          <t-button size="small" variant="text" bind:tap="copyFamilyCode">复制</t-button>
+          <t-button size="small" variant="text" bind:tap="shareFamilyCode">分享</t-button>
+        </view>
+      </view>
+      <view class="family-code-display">
+        <text class="family-code">{{familyInfo.familyCode || '------'}}</text>
+      </view>
+      <text class="family-code-tip">新成员可通过此家庭码加入</text>
+    </view>
+  </view>
+
+  <!-- 未加入家庭提示卡片 -->
+  <view wx:if="{{!familyInfo}}" class="card no-family-card">
+    <view class="no-family-content">
+      <view class="no-family-icon">👨‍👩‍👧‍👦</view>
+      <text class="no-family-title">还未加入家庭</text>
+      <text class="no-family-desc">创建新家庭或加入现有家庭，开始协作管理财务</text>
+      <view class="no-family-actions">
+        <t-button theme="primary" bind:tap="createFamily">创建家庭</t-button>
+        <t-button theme="light" bind:tap="joinFamily">加入家庭</t-button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 成员列表 -->
+  <view class="card members-card">
+    <view class="card-header">
+      <text class="card-title">家庭成员</text>
+      <t-button wx:if="{{canInvite}}" size="small" theme="primary" bind:tap="showInviteDialog">
+        邀请成员
+      </t-button>
+    </view>
+    
+    <t-cell-group>
+      <t-cell 
+        wx:for="{{members}}" 
+        wx:key="id"
+        title="{{item.nickname}}"
+        description="{{item.roleText}}"
+        left-icon="{{item.avatar}}"
+        arrow="{{canManageMembers}}"
+        bind:click="onMemberClick"
+        data-member="{{item}}"
+      >
+        <view slot="left-icon" class="member-avatar">
+          <t-avatar size="small" image="{{item.avatar}}" />
+          <view wx:if="{{item.isOnline}}" class="online-indicator"></view>
+        </view>
+        <view slot="note" class="member-status">
+          <text class="status-text">{{item.isOnline ? '在线' : '离线'}}</text>
+        </view>
+      </t-cell>
+    </t-cell-group>
+  </view>
+
+  <!-- 管理功能 -->
+  <view wx:if="{{canManage}}" class="card management-card">
+    <view class="card-header">
+      <text class="card-title">管理功能</text>
+    </view>
+    
+    <t-cell-group>
+      <t-cell title="成员权限设置" arrow bind:click="goToPermissions" />
+      <t-cell title="成员动态与操作日志" arrow bind:click="goToLogs" />
+      <t-cell title="同步设置" arrow bind:click="goToSyncSettings" />
+      <t-cell wx:if="{{familyInfo.role === 'owner'}}" title="家庭设置" arrow bind:click="goToFamilySettings" />
+    </t-cell-group>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="card actions-card">
+    <view class="card-header">
+      <text class="card-title">快捷操作</text>
+    </view>
+    
+    <view class="action-buttons">
+      <t-button class="action-btn" theme="light" bind:tap="refreshData">
+        刷新数据
+      </t-button>
+      <t-button class="action-btn" theme="light" bind:tap="showSyncStatus">
+        同步状态
+      </t-button>
+    </view>
+  </view>
+</view>
+
+<!-- 邀请成员弹窗 -->
+<t-popup visible="{{showInvitePopup}}" placement="center" bind:visible-change="onInvitePopupChange">
+  <view class="invite-popup">
+    <view class="popup-header">
+      <text class="popup-title">邀请新成员</text>
+    </view>
+    
+    <view class="invite-methods">
+      <view class="invite-method" bind:tap="inviteByCode">
+        <view class="method-icon">📋</view>
+        <text class="method-title">分享家庭码</text>
+        <text class="method-desc">复制家庭码发送给对方</text>
+      </view>
+      
+      <t-divider />
+      
+      <view class="invite-method" bind:tap="inviteByQR">
+        <view class="method-icon">📱</view>
+        <text class="method-title">二维码邀请</text>
+        <text class="method-desc">生成二维码供对方扫描</text>
+      </view>
+      
+      <t-divider />
+      
+      <view class="invite-method" bind:tap="inviteByLink">
+        <view class="method-icon">🔗</view>
+        <text class="method-title">邀请链接</text>
+        <text class="method-desc">生成邀请链接分享</text>
+      </view>
+    </view>
+    
+    <view class="popup-actions">
+      <t-button theme="light" bind:tap="closeInvitePopup">取消</t-button>
+    </view>
+  </view>
+</t-popup>
+
+<!-- Toast 提示 -->
+<t-toast id="t-toast" />
+
+<!-- Dialog 对话框 -->
+<t-dialog id="t-dialog" />

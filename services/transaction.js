@@ -4,6 +4,7 @@
 const request = require('../utils/request')
 const storage = require('../utils/storage')
 const validator = require('../utils/validator')
+const accountSync = require('./account-sync')
 
 class TransactionService {
   // 创建交易记录
@@ -47,11 +48,29 @@ class TransactionService {
   // 本地创建交易记录
   createTransactionLocal(data) {
     const transactions = wx.getStorageSync('transactions') || []
+    const nowId = Date.now().toString()
     const newTransaction = {
-      _id: Date.now().toString(),
+      _id: nowId,
+      id: nowId,
       ...data,
       createTime: new Date().toISOString(),
       updateTime: new Date().toISOString()
+    }
+
+    // 尝试回填 accountId（若缺失且仅有账户名）
+    try {
+      if ((!newTransaction.accountId || newTransaction.accountId === '') && newTransaction.account) {
+        const accounts = wx.getStorageSync('accounts') || []
+        const acc = accounts.find(a => a.name === newTransaction.account)
+        if (acc) newTransaction.accountId = acc.id || acc._id
+      }
+    } catch (_) {}
+
+    // 同步账户余额（本地模式）
+    try {
+      accountSync.syncTransactionWithAccount(newTransaction, 'create')
+    } catch (e) {
+      console.warn('本地创建交易联动账户失败（已继续保存）：', e && e.message)
     }
     
     transactions.unshift(newTransaction)
@@ -103,18 +122,40 @@ class TransactionService {
   // 本地更新交易记录
   updateTransactionLocal(id, data) {
     const transactions = wx.getStorageSync('transactions') || []
-    const index = transactions.findIndex(t => t._id === id)
+    const index = transactions.findIndex(t => t._id === id || t.id === id)
     
     if (index > -1) {
-      transactions[index] = {
+      const oldTransaction = { ...transactions[index] }
+      const updated = {
         ...transactions[index],
         ...data,
         updateTime: new Date().toISOString()
       }
+
+      // 确保 id 存在
+      if (!updated.id) updated.id = updated._id
+
+      // 尝试回填 accountId（若缺失）
+      try {
+        if ((!updated.accountId || updated.accountId === '') && updated.account) {
+          const accounts = wx.getStorageSync('accounts') || []
+          const acc = accounts.find(a => a.name === updated.account)
+          if (acc) updated.accountId = acc.id || acc._id
+        }
+      } catch (_) {}
+
+      // 先写回再联动（或相反顺序均可，这里先联动再保存出错更明显）
+      try {
+        accountSync.syncTransactionWithAccount(updated, 'update', oldTransaction)
+      } catch (e) {
+        console.warn('本地更新交易联动账户失败（已继续保存）：', e && e.message)
+      }
+
+      transactions[index] = updated
       wx.setStorageSync('transactions', transactions)
       
-      this.saveOfflineTransaction('update', { id, ...data })
-      return transactions[index]
+      this.saveOfflineTransaction('update', { id: updated.id || id, ...data })
+      return updated
     }
     
     throw new Error('记录不存在')
@@ -150,11 +191,32 @@ class TransactionService {
   // 本地删除交易记录
   deleteTransactionLocal(id) {
     const transactions = wx.getStorageSync('transactions') || []
-    const filteredTransactions = transactions.filter(t => t._id !== id)
-    
+    const idx = transactions.findIndex(t => t._id === id || t.id === id)
+    if (idx === -1) throw new Error('记录不存在')
+
+    const deleted = transactions[idx]
+    // 确保 id 存在
+    if (!deleted.id) deleted.id = deleted._id
+
+    // 尝试回填 accountId（若缺失）
+    try {
+      if ((!deleted.accountId || deleted.accountId === '') && deleted.account) {
+        const accounts = wx.getStorageSync('accounts') || []
+        const acc = accounts.find(a => a.name === deleted.account)
+        if (acc) deleted.accountId = acc.id || acc._id
+      }
+    } catch (_) {}
+
+    // 联动账户余额（删除反向操作）
+    try {
+      accountSync.syncTransactionWithAccount(deleted, 'delete')
+    } catch (e) {
+      console.warn('本地删除交易联动账户失败（已继续保存）：', e && e.message)
+    }
+
+    const filteredTransactions = transactions.filter((_, i) => i !== idx)
     wx.setStorageSync('transactions', filteredTransactions)
-    this.saveOfflineTransaction('delete', { id })
-    
+    this.saveOfflineTransaction('delete', { id: deleted.id || id })
     return true
   }
 

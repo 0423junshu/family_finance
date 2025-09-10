@@ -22,7 +22,7 @@ Page({
       })
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     }
   },
 
@@ -51,7 +51,7 @@ Page({
       })
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     }
   },
 
@@ -90,7 +90,7 @@ Page({
       
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     } catch (error) {
       console.error('删除失败:', error)
       wx.showToast({
@@ -107,5 +107,8 @@ Page({
   // 返回上一页
   onBackTap() {
     wx.navigateBack()
-  }
+  },
+  
+  // 阻止冒泡空函数（用于对话框容器 catchtap）
+  noop() {}
 })

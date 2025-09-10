@@ -314,7 +314,7 @@ Page({
       // 返回上一页
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     } catch (error) {
       console.error('保存周期失败:', error)
       showToast(error.message || '保存失败', 'error')
@@ -428,7 +428,7 @@ Page({
       
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     } catch (error) {
       console.error('删除周期失败:', error)
       showToast('删除失败', 'error')

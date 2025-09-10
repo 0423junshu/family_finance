@@ -1,6 +1,6 @@
 // services/transaction-simple.js
 // 简化版交易服务，用于解决首页加载问题
-const transactionSync = require('./transaction-sync')
+const accountSync = require('./account-sync')
 
 /**
  * 获取交易记录列表
@@ -99,6 +99,7 @@ async function getTransactions(params = {}) {
  * @param {Number} month 月份（0-11）
  * @returns {Object} 日期范围对象 {startDate, endDate}
  */
+const { formatDate: fmtDate } = require('../utils/formatter')
 function getCycleDateRange(year, month) {
   // 获取周期设置
   const cycleSettings = wx.getStorageSync('cycleSettings') || {
@@ -127,8 +128,8 @@ function getCycleDateRange(year, month) {
   return {
     startDate,
     endDate,
-    startDateString: startDate.toISOString().split('T')[0],
-    endDateString: endDate.toISOString().split('T')[0]
+    startDateString: fmtDate(startDate),
+    endDateString: fmtDate(endDate)
   }
 }
 
@@ -243,7 +244,7 @@ async function createTransaction(data) {
     }
     
     // 同步账户余额
-    await transactionSync.syncTransactionWithAccount(newTransaction, 'create')
+    await accountSync.syncTransactionWithAccount(newTransaction, 'create')
     
     transactions.unshift(newTransaction)
     wx.setStorageSync('transactions', transactions)
@@ -276,7 +277,7 @@ async function updateTransaction(id, data) {
     }
     
     // 同步账户余额
-    await transactionSync.syncTransactionWithAccount(transactions[index], 'update', oldTransaction)
+    await accountSync.syncTransactionWithAccount(transactions[index], 'update', oldTransaction)
     
     wx.setStorageSync('transactions', transactions)
     return transactions[index]
@@ -301,7 +302,7 @@ async function deleteTransaction(id) {
     const deletedTransaction = transactions[index]
     
     // 同步账户余额
-    await transactionSync.syncTransactionWithAccount(deletedTransaction, 'delete')
+    await accountSync.syncTransactionWithAccount(deletedTransaction, 'delete')
     
     const filteredTransactions = transactions.filter(t => t.id !== id && t._id !== id)
     
@@ -337,7 +338,7 @@ async function getTransactionDetail(id) {
  */
 async function validateDataConsistency() {
   try {
-    return await transactionSync.validateAccountBalance()
+    return await accountSync.validateAccountBalance()
   } catch (error) {
     console.error('验证数据一致性失败:', error)
     throw error
@@ -349,7 +350,7 @@ async function validateDataConsistency() {
  */
 async function fixDataConsistency() {
   try {
-    return await transactionSync.fixAccountBalance()
+    return await accountSync.fixAccountBalance()
   } catch (error) {
     console.error('修复数据一致性失败:', error)
     throw error

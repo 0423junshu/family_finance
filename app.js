@@ -1,15 +1,20 @@
 // app.js
 const { globalData } = require('./utils/globalData')
+const fontInterceptor = require('./utils/font-interceptor')
 
 App({
   globalData: globalData,
 
   onLaunch() {
+    // 立即启动字体拦截器
+    fontInterceptor.init()
+    
     // 快速初始化，不显示加载提示
     this.initCloudBase()
     this.initGlobalConfig()
     this.performSystemFix()
     this.checkLoginStatus()
+    this.initDatabaseCheck()
   },
 
   onShow() {
@@ -22,6 +27,7 @@ App({
     if (!wx.cloud) {
       console.log('云开发不可用，使用本地存储模式')
       this.globalData.cloudAvailable = false
+      this.globalData.isCloudEnabled = false
       return
     }
     
@@ -33,23 +39,81 @@ App({
       
       this.globalData.cloud = wx.cloud
       this.globalData.cloudAvailable = true
+      this.globalData.isCloudEnabled = true
       console.log('云开发初始化成功')
+      
+      // 初始化网络工具
+      this.initNetworkUtil()
+      
     } catch (error) {
       console.log('云开发初始化失败，使用本地存储模式:', error)
       this.globalData.cloudAvailable = false
+      this.globalData.isCloudEnabled = false
     }
   },
 
-  // 检查登录状态
+  // 初始化网络工具
+  initNetworkUtil() {
+    try {
+      const NetworkUtil = require('./utils/network.js')
+      this.globalData.NetworkUtil = NetworkUtil
+      
+      // 检查网络状态
+      NetworkUtil.checkNetworkStatus().then(status => {
+        console.log('网络状态:', status)
+        this.globalData.networkStatus = status
+      })
+      
+      // 初始化默认数据
+      this.initDefaultData()
+      
+    } catch (error) {
+      console.error('网络工具初始化失败:', error)
+    }
+  },
+
+  // 初始化默认数据
+  initDefaultData() {
+    try {
+      const NetworkUtil = this.globalData.NetworkUtil
+      if (!NetworkUtil) return
+      
+      // 检查并创建默认分类
+      const categories = wx.getStorageSync('categories')
+      if (!categories || categories.length === 0) {
+        const defaultCategories = NetworkUtil.getDefaultCategories()
+        wx.setStorageSync('categories', defaultCategories)
+        console.log('已创建默认分类数据')
+      }
+      
+      // 检查并创建默认账户
+      const accounts = wx.getStorageSync('accounts')
+      if (!accounts || accounts.length === 0) {
+        const defaultAccounts = NetworkUtil.getDefaultAccounts()
+        wx.setStorageSync('accounts', defaultAccounts)
+        console.log('已创建默认账户数据')
+      }
+      
+    } catch (error) {
+      console.error('默认数据初始化失败:', error)
+    }
+  },
+
+  // 检查登录状态（严格校验 openid/_id）
   async checkLoginStatus() {
     try {
       const userInfo = wx.getStorageSync('userInfo')
-      if (userInfo) {
+      if (userInfo && (userInfo.openid || userInfo._id)) {
         this.globalData.userInfo = userInfo
         this.globalData.isLogin = true
+      } else {
+        // 清理不完整登录态
+        this.globalData.userInfo = null
+        this.globalData.isLogin = false
       }
     } catch (error) {
       console.error('检查登录状态失败:', error)
+      this.globalData.isLogin = false
     }
   },
 
@@ -99,10 +163,18 @@ App({
       })
       
       if (result.success) {
-        this.globalData.userInfo = result.userInfo
+        // 修复数据结构，确保包含openid
+        const userInfo = {
+          ...result.data,
+          openid: result.data.openid,
+          nickName: result.data.nickname,
+          avatarUrl: result.data.avatar
+        }
+        
+        this.globalData.userInfo = userInfo
         this.globalData.isLogin = true
-        wx.setStorageSync('userInfo', result.userInfo)
-        return result.userInfo
+        wx.setStorageSync('userInfo', userInfo)
+        return userInfo
       } else {
         throw new Error(result.message)
       }
@@ -270,5 +342,38 @@ App({
     }))
     
     wx.setStorageSync('customCategories', validatedCategories)
+  },
+
+  // 初始化数据库检查
+  initDatabaseCheck() {
+    // 延迟检查，避免影响启动速度
+    setTimeout(() => {
+      this.checkDatabaseCollections()
+    }, 2000)
+  },
+
+  // 检查数据库集合状态
+  async checkDatabaseCollections() {
+    if (!this.globalData.isCloudEnabled) {
+      return
+    }
+
+    try {
+      // 快速检查一个核心集合
+      await wx.cloud.database().collection('families').limit(1).get()
+    } catch (error) {
+      if (error.errCode === -502005) {
+        console.warn('[App] 检测到数据库集合缺失，建议运行初始化')
+        
+        // 静默提示，不打断用户操作
+        setTimeout(() => {
+          wx.showToast({
+            title: '建议初始化数据库',
+            icon: 'none',
+            duration: 2000
+          })
+        }, 3000)
+      }
+    }
   }
 })

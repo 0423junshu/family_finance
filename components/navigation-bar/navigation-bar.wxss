@@ -1,74 +1,61 @@
 /* components/navigation-bar/navigation-bar.wxss */
-.nav-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
-}
-
-.status-bar {
+.navigation-bar {
   width: 100%;
-}
-
-.nav-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32rpx;
+  background-color: #fff;
   position: relative;
+  z-index: 99;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  /* 增加导航栏整体高度，确保内容不被系统UI遮挡 */
+  padding-bottom: 10rpx;
 }
 
-.nav-left,
-.nav-right {
-  display: flex;
-  align-items: center;
-  min-width: 120rpx;
-}
-
-.nav-right {
-  justify-content: flex-end;
-}
-
-.nav-btn {
+.navigation-bar-content {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  margin: 0 8rpx;
-  transition: background-color 0.2s ease;
+  position: relative;
 }
 
-.nav-btn:active {
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
-.nav-icon {
-  width: 48rpx;
-  height: 48rpx;
-}
-
-.nav-text {
-  font-size: 28rpx;
-  font-weight: 500;
-}
-
-.nav-title {
+.back-button {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 400rpx;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90rpx;
+  z-index: 1;
 }
 
-.title-text {
-  font-size: 32rpx;
-  font-weight: 600;
-  text-align: center;
+.back-icon {
+  font-size: 40rpx;
+  color: #333;
+}
+
+.title {
+  font-size: 34rpx;
+  font-weight: 500;
+  color: #333;
+  max-width: 60%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.action-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30rpx;
+  z-index: 1;
+}
+
+.action-text {
+  font-size: 30rpx;
+  color: #007AFF;
 }

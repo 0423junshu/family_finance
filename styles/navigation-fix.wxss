@@ -1,0 +1,18 @@
+/* 全局导航栏修复样式 */
+/* 仅调整导航栏本身，保持页面布局协调 */
+
+/* 轻微调整页面顶部间距，避免内容被导航栏遮挡 */
+.container {
+  padding-top: 30rpx; /* 轻微增加顶部间距 */
+}
+
+/* 确保页面内容与导航栏有适当间距 */
+.page-container {
+  padding-top: 20rpx;
+}
+
+/* 为第一个内容元素添加轻微间距 */
+.stats-card:first-child,
+.card:first-child {
+  margin-top: 10rpx;
+}

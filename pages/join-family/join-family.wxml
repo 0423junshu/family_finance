@@ -1,0 +1,176 @@
+<!--pages/join-family/join-family.wxml-->
+<navigation-bar title="加入家庭" showBack="{{true}}" />
+
+<view class="page-container">
+  <!-- 加入方式选择 -->
+  <view wx:if="{{currentStep === 'select'}}" class="step-container">
+    <view class="welcome-section">
+      <view class="welcome-icon">👨‍👩‍👧‍👦</view>
+      <text class="welcome-title">加入家庭财务管理</text>
+      <text class="welcome-desc">选择加入方式，开始与家人共同管理财务</text>
+    </view>
+
+    <view class="join-methods">
+      <view class="method-card" bind:tap="selectMethod" data-method="code">
+        <view class="method-icon">🔢</view>
+        <view class="method-content">
+          <text class="method-title">输入家庭码</text>
+          <text class="method-desc">输入6位家庭码快速加入</text>
+        </view>
+        <view class="method-arrow">→</view>
+      </view>
+
+      <view class="method-card" bind:tap="selectMethod" data-method="scan">
+        <view class="method-icon">📱</view>
+        <view class="method-content">
+          <text class="method-title">扫描二维码</text>
+          <text class="method-desc">扫描家庭邀请二维码</text>
+        </view>
+        <view class="method-arrow">→</view>
+      </view>
+
+      <view class="method-card" bind:tap="selectMethod" data-method="link">
+        <view class="method-icon">🔗</view>
+        <view class="method-content">
+          <text class="method-title">通过邀请链接</text>
+          <text class="method-desc">点击邀请链接直接加入</text>
+        </view>
+        <view class="method-arrow">→</view>
+      </view>
+    </view>
+
+    <view class="create-option">
+      <text class="create-text">还没有家庭？</text>
+      <text class="create-link" bind:tap="createFamily">创建新家庭</text>
+    </view>
+  </view>
+
+  <!-- 输入家庭码 -->
+  <view wx:if="{{currentStep === 'input'}}" class="step-container">
+    <view class="input-section">
+      <view class="input-header">
+        <text class="input-title">输入家庭码</text>
+        <text class="input-desc">请输入6位家庭码</text>
+      </view>
+
+      <view class="family-code-input">
+        <t-input
+          value="{{familyCode}}"
+          placeholder="请输入家庭码"
+          maxlength="6"
+          bind:change="onFamilyCodeChange"
+          bind:enter="joinFamily"
+          focus="{{true}}"
+          class="code-input"
+        />
+      </view>
+
+      <view class="input-tips">
+        <text class="tip-text">• 家庭码由6位字母和数字组成</text>
+        <text class="tip-text">• 请向家庭管理员获取家庭码</text>
+      </view>
+    </view>
+
+    <view class="action-buttons">
+      <t-button 
+        theme="primary" 
+        size="large" 
+        bind:tap="joinFamily"
+        disabled="{{familyCode.length !== 6}}"
+        loading="{{joining}}"
+      >
+        {{joining ? '加入中...' : '加入家庭'}}
+      </t-button>
+      
+      <t-button 
+        theme="light" 
+        size="large" 
+        bind:tap="goBack"
+        class="back-btn"
+      >
+        返回
+      </t-button>
+    </view>
+  </view>
+
+  <!-- 扫描二维码 -->
+  <view wx:if="{{currentStep === 'scan'}}" class="step-container">
+    <view class="scan-section">
+      <view class="scan-header">
+        <text class="scan-title">扫描二维码</text>
+        <text class="scan-desc">将二维码放入框内进行扫描</text>
+      </view>
+
+      <view class="scan-area">
+        <camera 
+          device-position="back" 
+          flash="off" 
+          bind:scancode="onScanCode"
+          class="camera"
+        />
+        <view class="scan-frame"></view>
+      </view>
+
+      <view class="scan-tips">
+        <text class="tip-text">• 请对准家庭邀请二维码</text>
+        <text class="tip-text">• 确保光线充足，二维码清晰</text>
+      </view>
+    </view>
+
+    <view class="action-buttons">
+      <t-button 
+        theme="light" 
+        size="large" 
+        bind:tap="goBack"
+      >
+        返回
+      </t-button>
+    </view>
+  </view>
+
+  <!-- 加入结果 -->
+  <view wx:if="{{currentStep === 'result'}}" class="step-container">
+    <t-result
+      theme="{{joinResult.success ? 'success' : 'error'}}"
+      title="{{joinResult.title}}"
+      description="{{joinResult.description}}"
+    >
+      <view slot="extra" class="result-actions">
+        <t-button 
+          wx:if="{{joinResult.success}}" 
+          theme="primary" 
+          size="large" 
+          bind:tap="goToFamily"
+        >
+          进入家庭管理
+        </t-button>
+        
+        <t-button 
+          wx:else 
+          theme="primary" 
+          size="large" 
+          bind:tap="retry"
+        >
+          重新尝试
+        </t-button>
+        
+        <t-button 
+          theme="light" 
+          size="large" 
+          bind:tap="goHome"
+          class="secondary-btn"
+        >
+          返回首页
+        </t-button>
+      </view>
+    </t-result>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-overlay">
+    <t-loading theme="circular" size="large" text="{{loadingText}}" />
+  </view>
+</view>
+
+<!-- Toast 提示 -->
+<t-toast id="t-toast" />

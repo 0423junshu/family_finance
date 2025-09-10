@@ -1,0 +1,396 @@
+/* pages/join-family/join-family.wxss */
+
+.page-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+}
+
+.step-container {
+  padding: 40rpx 32rpx;
+  min-height: calc(100vh - 88rpx);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 欢迎区域 */
+.welcome-section {
+  text-align: center;
+  margin-bottom: 60rpx;
+  color: #ffffff;
+}
+
+.welcome-icon {
+  font-size: 120rpx;
+  margin-bottom: 32rpx;
+}
+
+.welcome-title {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.welcome-desc {
+  display: block;
+  font-size: 28rpx;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+/* 加入方式 */
+.join-methods {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.method-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16rpx;
+  padding: 32rpx;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10rpx);
+}
+
+.method-card:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.method-icon {
+  font-size: 48rpx;
+  margin-right: 24rpx;
+  width: 80rpx;
+  text-align: center;
+}
+
+.method-content {
+  flex: 1;
+}
+
+.method-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8rpx;
+}
+
+.method-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.4;
+}
+
+.method-arrow {
+  font-size: 32rpx;
+  color: #999999;
+  margin-left: 16rpx;
+}
+
+/* 创建选项 */
+.create-option {
+  text-align: center;
+  margin-top: 40rpx;
+  color: #ffffff;
+}
+
+.create-text {
+  font-size: 28rpx;
+  opacity: 0.8;
+  margin-right: 16rpx;
+}
+
+.create-link {
+  font-size: 28rpx;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* 输入区域 */
+.input-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.input-header {
+  text-align: center;
+  margin-bottom: 60rpx;
+  color: #ffffff;
+}
+
+.input-title {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.input-desc {
+  display: block;
+  font-size: 28rpx;
+  opacity: 0.8;
+}
+
+.family-code-input {
+  margin-bottom: 40rpx;
+}
+
+.code-input {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16rpx;
+  font-size: 36rpx;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 8rpx;
+  font-family: 'Courier New', monospace;
+}
+
+.input-tips {
+  margin-bottom: 60rpx;
+}
+
+.tip-text {
+  display: block;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin-bottom: 8rpx;
+}
+
+/* 扫描区域 */
+.scan-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.scan-header {
+  text-align: center;
+  margin-bottom: 40rpx;
+  color: #ffffff;
+}
+
+.scan-title {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.scan-desc {
+  display: block;
+  font-size: 28rpx;
+  opacity: 0.8;
+}
+
+.scan-area {
+  flex: 1;
+  position: relative;
+  margin-bottom: 40rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.camera {
+  width: 100%;
+  height: 100%;
+  min-height: 400rpx;
+}
+
+.scan-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300rpx;
+  height: 300rpx;
+  border: 4rpx solid #ffffff;
+  border-radius: 16rpx;
+  box-shadow: 0 0 0 9999rpx rgba(0, 0, 0, 0.5);
+}
+
+.scan-frame::before,
+.scan-frame::after {
+  content: '';
+  position: absolute;
+  width: 40rpx;
+  height: 40rpx;
+  border: 6rpx solid #00ff00;
+}
+
+.scan-frame::before {
+  top: -6rpx;
+  left: -6rpx;
+  border-right: none;
+  border-bottom: none;
+}
+
+.scan-frame::after {
+  bottom: -6rpx;
+  right: -6rpx;
+  border-left: none;
+  border-top: none;
+}
+
+.scan-tips {
+  margin-bottom: 40rpx;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-top: auto;
+}
+
+.back-btn,
+.secondary-btn {
+  margin-top: 16rpx;
+}
+
+/* 结果页面 */
+.result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-top: 40rpx;
+}
+
+/* 加载覆盖层 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* 动画效果 */
+.method-card {
+  animation: slideInUp 0.5s ease-out;
+}
+
+.method-card:nth-child(1) { animation-delay: 0.1s; }
+.method-card:nth-child(2) { animation-delay: 0.2s; }
+.method-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcome-section {
+  animation: fadeInDown 0.8s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.input-section {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 响应式适配 */
+@media (max-width: 375px) {
+  .welcome-icon {
+    font-size: 100rpx;
+  }
+  
+  .welcome-title {
+    font-size: 40rpx;
+  }
+  
+  .input-title,
+  .scan-title {
+    font-size: 40rpx;
+  }
+  
+  .method-card {
+    padding: 24rpx;
+  }
+  
+  .scan-frame {
+    width: 250rpx;
+    height: 250rpx;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .method-card {
+    background: rgba(42, 42, 42, 0.95);
+  }
+  
+  .method-title {
+    color: #ffffff;
+  }
+  
+  .method-desc {
+    color: #cccccc;
+  }
+  
+  .method-card:active {
+    background: rgba(42, 42, 42, 0.85);
+  }
+}
+
+/* 特殊状态 */
+.code-input[disabled] {
+  opacity: 0.6;
+}
+
+.joining .action-buttons {
+  pointer-events: none;
+}
+
+/* 扫描动画 */
+.scan-frame {
+  animation: scanPulse 2s infinite;
+}
+
+@keyframes scanPulse {
+  0%, 100% {
+    border-color: #ffffff;
+  }
+  50% {
+    border-color: #00ff00;
+  }
+}

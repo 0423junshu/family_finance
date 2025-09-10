@@ -1,0 +1,14 @@
+{
+  "name": "family_finance",
+  "version": "1.0.0",
+  "description": "家庭财务管理微信小程序",
+  "main": "app.js",
+  "scripts": {
+    "dev": "node ./scripts/dev.js",
+    "build": "node ./scripts/build.js"
+  },
+  "dependencies": {
+    "tdesign-miniprogram": "^1.10.1",
+    "wx-server-sdk": "^3.0.1"
+  }
+}

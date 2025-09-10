@@ -1,0 +1,260 @@
+<!--pages/operation-logs/operation-logs.wxml-->
+<navigation-bar title="操作日志" show-back="{{true}}" />
+
+<view class="page-container">
+  <!-- 搜索和筛选栏 -->
+  <view class="filter-bar">
+    <t-search value="{{searchKeyword}}" 
+              placeholder="搜索操作记录..." 
+              bind:change="onSearchChange"
+              bind:submit="onSearchSubmit"
+              bind:clear="onSearchClear" />
+    
+    <t-dropdown-menu>
+      <t-dropdown-item value="{{filterType}}" 
+                       options="{{typeOptions}}" 
+                       bind:change="onTypeFilterChange">
+        操作类型
+      </t-dropdown-item>
+      <t-dropdown-item value="{{filterLevel}}" 
+                       options="{{levelOptions}}" 
+                       bind:change="onLevelFilterChange">
+        日志级别
+      </t-dropdown-item>
+      <t-dropdown-item value="{{filterUser}}" 
+                       options="{{userOptions}}" 
+                       bind:change="onUserFilterChange">
+        操作用户
+      </t-dropdown-item>
+      <t-dropdown-item value="{{filterTime}}" 
+                       options="{{timeOptions}}" 
+                       bind:change="onTimeFilterChange">
+        时间范围
+      </t-dropdown-item>
+    </t-dropdown-menu>
+  </view>
+
+  <!-- 成员动态和统计信息卡片 -->
+  <view wx:if="{{showStats}}" class="stats-card">
+    <view class="stats-header">
+      <text class="stats-title">成员动态概览</text>
+      <t-icon name="chevron-{{statsExpanded ? 'up' : 'down'}}" 
+              size="32rpx" 
+              bindtap="toggleStats" />
+    </view>
+    
+    <view wx:if="{{statsExpanded}}" class="stats-content">
+      <!-- 成员活动统计 -->
+      <view class="member-activity-section">
+        <text class="section-subtitle">成员活动</text>
+        <view class="member-activity-list">
+          <view wx:for="{{memberActivities}}" wx:key="userId" class="member-activity-item">
+            <view class="member-info">
+              <t-avatar size="small" image="{{item.avatar}}" />
+              <text class="member-name">{{item.name}}</text>
+              <view class="online-status {{item.isOnline ? 'online' : 'offline'}}"></view>
+            </view>
+            <view class="activity-stats">
+              <text class="activity-count">{{item.todayCount}}</text>
+              <text class="activity-label">今日操作</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 操作统计 -->
+      <view class="operation-stats-section">
+        <text class="section-subtitle">操作统计</text>
+        <view class="stats-row">
+          <view class="stat-item">
+            <text class="stat-number">{{stats.total}}</text>
+            <text class="stat-label">总操作数</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-number">{{stats.todayCount}}</text>
+            <text class="stat-label">今日操作</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-number">{{stats.activeUsers}}</text>
+            <text class="stat-label">活跃用户</text>
+          </view>
+        </view>
+        
+        <view class="stats-row">
+          <view class="level-stats">
+            <view wx:for="{{stats.byLevel}}" wx:key="level" class="level-item">
+              <t-tag theme="{{item.theme}}" size="small">{{item.name}}</t-tag>
+              <text class="level-count">{{item.count}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 下拉刷新 -->
+  <t-pull-down-refresh value="{{refreshing}}" 
+                       bind:refresh="onRefresh"
+                       loading-props="{{refreshLoadingProps}}">
+    
+    <!-- 日志列表 -->
+    <view class="logs-container">
+      <!-- 空状态 -->
+      <t-empty wx:if="{{logs.length === 0 && !loading}}" 
+               icon="info-circle" 
+               description="{{emptyDescription}}" />
+
+      <!-- 加载状态 -->
+      <t-loading wx:if="{{loading && logs.length === 0}}" 
+                 theme="circular" 
+                 size="40rpx" 
+                 text="加载中..." />
+
+      <!-- 时间轴日志列表 -->
+      <view wx:if="{{logs.length > 0}}" class="timeline-container">
+        <view wx:for="{{groupedLogs}}" wx:key="date" class="date-group">
+          <!-- 日期分组标题 -->
+          <view class="date-header">
+            <text class="date-text">{{item.date}}</text>
+            <view class="date-line"></view>
+          </view>
+
+          <!-- 该日期下的日志列表 -->
+          <view class="timeline-list">
+            <view wx:for="{{item.logs}}" 
+                  wx:for-item="log" 
+                  wx:key="id" 
+                  class="timeline-item {{log.expanded ? 'expanded' : ''}}"
+                  bindtap="toggleLogDetail"
+                  data-log-id="{{log.id}}">
+              
+              <!-- 时间轴节点 -->
+              <view class="timeline-node">
+                <view class="timeline-dot {{log.level}}"></view>
+                <view wx:if="{{!log.isLast}}" class="timeline-line"></view>
+              </view>
+
+              <!-- 日志内容 -->
+              <view class="timeline-content">
+                <!-- 基本信息 -->
+                <view class="log-header">
+                  <view class="log-main-info">
+                    <text class="log-operation">{{log.operationName}}</text>
+                    <t-tag theme="{{log.levelTheme}}" size="small">{{log.levelName}}</t-tag>
+                  </view>
+                  <text class="log-time">{{log.timeDisplay}}</text>
+                </view>
+
+                <!-- 用户信息 -->
+                <view class="log-user">
+                  <t-avatar size="small" image="{{log.userAvatar}}" />
+                  <text class="user-name">{{log.userName}}</text>
+                  <t-tag wx:if="{{log.userRole}}" theme="primary" size="small">{{log.userRole}}</t-tag>
+                </view>
+
+                <!-- 简要描述 -->
+                <view wx:if="{{log.summary}}" class="log-summary">
+                  <text>{{log.summary}}</text>
+                </view>
+
+                <!-- 详细信息（展开时显示） -->
+                <view wx:if="{{log.expanded}}" class="log-details">
+                  <t-divider />
+                  
+                  <!-- 操作详情 -->
+                  <view wx:if="{{log.details}}" class="detail-section">
+                    <text class="detail-title">操作详情</text>
+                    <view class="detail-content">
+                      <view wx:for="{{log.detailItems}}" wx:key="key" class="detail-item">
+                        <text class="detail-key">{{item.key}}:</text>
+                        <text class="detail-value">{{item.value}}</text>
+                      </view>
+                    </view>
+                  </view>
+
+                  <!-- 影响范围 -->
+                  <view wx:if="{{log.affectedData}}" class="detail-section">
+                    <text class="detail-title">影响数据</text>
+                    <view class="affected-data">
+                      <view wx:for="{{log.affectedData}}" wx:key="type" class="affected-item">
+                        <t-tag theme="default" size="small">{{item.type}}</t-tag>
+                        <text class="affected-count">{{item.count}} 项</text>
+                      </view>
+                    </view>
+                  </view>
+
+                  <!-- 元数据信息 -->
+                  <view wx:if="{{log.metadata && showMetadata}}" class="detail-section">
+                    <text class="detail-title">技术信息</text>
+                    <view class="metadata-content">
+                      <text class="metadata-text">设备: {{log.metadata.userAgent}}</text>
+                      <text class="metadata-text">会话: {{log.metadata.sessionId}}</text>
+                      <text class="metadata-text">时间戳: {{log.metadata.timestamp}}</text>
+                    </view>
+                  </view>
+                </view>
+
+                <!-- 操作按钮 -->
+                <view wx:if="{{log.expanded}}" class="log-actions">
+                  <t-button size="small" 
+                            theme="default" 
+                            bindtap="copyLogInfo" 
+                            data-log-id="{{log.id}}">
+                    复制信息
+                  </t-button>
+                  <t-button wx:if="{{log.canRevert}}" 
+                            size="small" 
+                            theme="primary" 
+                            bindtap="revertOperation" 
+                            data-log-id="{{log.id}}">
+                    撤销操作
+                  </t-button>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 加载更多 -->
+      <view wx:if="{{hasMore}}" class="load-more">
+        <t-loading wx:if="{{loadingMore}}" 
+                   theme="circular" 
+                   size="32rpx" 
+                   text="加载更多..." />
+        <t-button wx:else 
+                  theme="default" 
+                  size="large" 
+                  bindtap="loadMore">
+          加载更多
+        </t-button>
+      </view>
+
+      <!-- 到底提示 -->
+      <view wx:if="{{!hasMore && logs.length > 0}}" class="end-tip">
+        <t-divider>已显示全部日志</t-divider>
+      </view>
+    </view>
+  </t-pull-down-refresh>
+
+  <!-- 浮动操作按钮 -->
+  <view class="fab-container">
+    <view class="fab-menu {{fabExpanded ? 'expanded' : ''}}" bindtap="toggleFab">
+      <view class="fab-item" bindtap="exportLogs" data-format="json">
+        <t-icon name="download" size="32rpx" />
+        <text class="fab-text">导出</text>
+      </view>
+      <view class="fab-item" bindtap="clearFilters">
+        <t-icon name="filter-clear" size="32rpx" />
+        <text class="fab-text">清除筛选</text>
+      </view>
+      <view class="fab-item" bindtap="toggleMetadata">
+        <t-icon name="{{showMetadata ? 'view-off' : 'view'}}" size="32rpx" />
+        <text class="fab-text">{{showMetadata ? '隐藏' : '显示'}}技术信息</text>
+      </view>
+      <view class="fab-main">
+        <t-icon name="{{fabExpanded ? 'close' : 'more'}}" size="40rpx" />
+      </view>
+    </view>
+  </view>
+</view>

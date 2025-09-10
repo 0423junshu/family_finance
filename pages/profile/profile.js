@@ -1,12 +1,34 @@
 // pages/profile/profile.js
+const app = getApp();
+const familyService = require('../../services/family.js');
+const collaborationHelper = require('../../utils/collaborationHelper.js');
+
 Page({
   data: {
     userInfo: {
-      avatarUrl: '/images/default-avatar.png',
+      avatarUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
       nickName: '用户',
       phone: ''
     },
+    // 家庭协作相关数据
+    collaborationEnabled: true,
+    isInFamily: false,
+    familyInfo: null,
+    totalMembers: 0,
+    onlineMembers: 0,
     settings: [
+      {
+        id: 'category',
+        title: '分类管理',
+        icon: '📂',
+        desc: '自定义收支分类'
+      },
+      {
+        id: 'tag',
+        title: '标签管理',
+        icon: '🏷️',
+        desc: '自定义标签体系'
+      },
       {
         id: 'template',
         title: '记账模板',
@@ -48,11 +70,15 @@ Page({
   },
 
   onLoad() {
-    this.loadUserInfo()
+    console.log('[DEBUG] Profile页面加载');
+    this.loadUserInfo();
+    this.initCollaboration();
   },
 
   onShow() {
-    this.loadUserInfo()
+    console.log('[DEBUG] Profile页面显示');
+    this.loadUserInfo();
+    this.refreshCollaborationStatus();
   },
 
   // 加载用户信息
@@ -68,6 +94,16 @@ Page({
     const settingId = e.currentTarget.dataset.id
     
     switch (settingId) {
+      case 'category':
+        wx.navigateTo({
+          url: '/pages/category-manage/category-manage'
+        })
+        break
+      case 'tag':
+        wx.navigateTo({
+          url: '/pages/tag-manage/tag-manage'
+        })
+        break
       case 'template':
         wx.navigateTo({
           url: '/pages/template-manage/template-manage'
@@ -90,8 +126,9 @@ Page({
         this.onExportTap()
         break
       case 'theme':
-        wx.navigateTo({
-          url: '/pages/theme-setting/theme-setting'
+        wx.showToast({
+          title: '主题设置功能开发中',
+          icon: 'none'
         })
         break
     }
@@ -204,5 +241,186 @@ Page({
         }
       }
     })
+  },
+
+  // ==================== 家庭协作功能 ====================
+
+  /**
+   * 初始化协作功能
+   */
+  async initCollaboration() {
+    console.log('[DEBUG] 初始化协作功能');
+    try {
+      // 直接加载家庭信息，不使用复杂的协作助手
+      await this.loadFamilyInfo();
+
+      // 确保协作功能启用
+      this.setData({
+        collaborationEnabled: true
+      });
+
+    } catch (error) {
+      console.error('[ERROR] 初始化协作功能失败:', error);
+      // 即使失败也启用协作功能（显示邀请入口）
+      this.setData({
+        collaborationEnabled: true,
+        isInFamily: false,
+        familyInfo: null
+      });
+    }
+  },
+
+  /**
+   * 加载家庭信息
+   */
+  async loadFamilyInfo() {
+    console.log('[DEBUG] 开始加载家庭信息');
+    
+    // 检查用户是否登录
+    const app = getApp();
+    if (!app.globalData || !app.globalData.userInfo) {
+      console.log('[DEBUG] 用户未登录，跳过家庭信息加载');
+      this.setData({
+        collaborationEnabled: true,
+        isInFamily: false,
+        familyInfo: null
+      });
+      return;
+    }
+
+    try {
+      const familyInfo = await familyService.getFamilyInfo();
+      console.log('[DEBUG] 家庭信息加载结果:', familyInfo);
+      
+      if (familyInfo && familyInfo.success && familyInfo.data) {
+        console.log('[DEBUG] 用户已加入家庭:', familyInfo.data);
+        // 用户在家庭中
+        this.setData({
+          collaborationEnabled: true,
+          isInFamily: true,
+          familyInfo: familyInfo.data
+        });
+
+        // 加载家庭成员信息
+        await this.loadFamilyMembers();
+
+      } else {
+        console.log('[DEBUG] 用户未加入家庭');
+        // 用户不在家庭中
+        this.setData({
+          collaborationEnabled: true,
+          isInFamily: false,
+          familyInfo: null
+        });
+      }
+
+    } catch (error) {
+      console.error('[ERROR] 加载家庭信息失败:', error);
+      // 即使失败也启用协作功能（显示邀请入口）
+      this.setData({
+        collaborationEnabled: true,
+        isInFamily: false,
+        familyInfo: null
+      });
+    }
+    
+    console.log('[DEBUG] 当前协作状态:', {
+      collaborationEnabled: this.data.collaborationEnabled,
+      isInFamily: this.data.isInFamily
+    });
+  },
+
+  /**
+   * 加载家庭成员信息
+   */
+  async loadFamilyMembers() {
+    try {
+      const members = await familyService.getFamilyMembers();
+      
+      if (members && members.length > 0) {
+        const onlineMembers = members.filter(m => m.isOnline);
+
+        this.setData({
+          totalMembers: members.length,
+          onlineMembers: onlineMembers.length
+        });
+      }
+
+    } catch (error) {
+      console.error('加载家庭成员失败:', error);
+    }
+  },
+
+  /**
+   * 刷新协作状态
+   */
+  async refreshCollaborationStatus() {
+    console.log('[DEBUG] 刷新协作状态');
+    if (this.data.collaborationEnabled) {
+      await this.loadFamilyInfo();
+    } else {
+      this.setData({
+        collaborationEnabled: true
+      });
+      await this.loadFamilyInfo();
+    }
+  },
+
+  /**
+   * 管理家庭（点击协作卡片）
+   */
+  onManageFamily() {
+    console.log('[DEBUG] 点击管理家庭');
+    // 显示家庭协作功能菜单
+    wx.showActionSheet({
+      itemList: ['家庭管理', '权限设置', '操作日志', '同步设置'],
+      success: (res) => {
+        switch (res.tapIndex) {
+          case 0:
+            wx.navigateTo({
+              url: '/pages/family/family'
+            });
+            break;
+          case 1:
+            wx.navigateTo({
+              url: '/pages/family-permissions/family-permissions'
+            });
+            break;
+          case 2:
+            wx.navigateTo({
+              url: '/pages/operation-logs/operation-logs'
+            });
+            break;
+          case 3:
+            wx.navigateTo({
+              url: '/pages/settings/settings?tab=sync'
+            });
+            break;
+        }
+      }
+    });
+  },
+
+  /**
+   * 创建或加入家庭
+   */
+  onCreateOrJoinFamily() {
+    console.log('[DEBUG] 点击创建或加入家庭');
+    wx.showActionSheet({
+      itemList: ['创建家庭', '加入家庭'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          // 创建家庭（使用 reLaunch 保证不被回退覆盖）
+          wx.reLaunch({
+            url: '/pages/family/family?action=create'
+          });
+        } else if (res.tapIndex === 1) {
+          // 加入家庭
+          wx.navigateTo({
+            url: '/pages/join-family/join-family'
+          });
+        }
+      }
+    });
   }
 })

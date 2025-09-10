@@ -1,4 +1,10 @@
 {
   "navigationStyle": "custom",
-  "backgroundColor": "#F5F5F5"
+  "backgroundColor": "#F5F5F5",
+  "usingComponents": {
+    "navigation-bar": "/components/navigation-bar/navigation-bar",
+    "sync-status": "../../components/sync-status/sync-status"
+  },
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "light"
 }

@@ -301,7 +301,7 @@ const SystemDiagnostic = {
     
     const envInfo = {
       // 系统信息
-      systemInfo: wx.getSystemInfoSync(),
+      systemInfo: await this.getSystemInfoCompat(),
       
       // 小程序版本信息
       appVersion: wx.getAccountInfoSync(),

@@ -1,0 +1,100 @@
+<!--pages/manual-db-guide/manual-db-guide.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="title">手动创建数据库集合指南</text>
+    <text class="subtitle">如果自动创建失败，请按此指南手动创建</text>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">操作步骤</text>
+    </view>
+    <view class="steps">
+      <view class="step">
+        <text class="step-number">1</text>
+        <text class="step-text">在微信开发者工具中点击"云开发"按钮</text>
+      </view>
+      <view class="step">
+        <text class="step-number">2</text>
+        <text class="step-text">进入"数据库"页面</text>
+      </view>
+      <view class="step">
+        <text class="step-number">3</text>
+        <text class="step-text">点击"+"号创建集合</text>
+      </view>
+      <view class="step">
+        <text class="step-number">4</text>
+        <text class="step-text">输入下方列出的集合名称</text>
+      </view>
+    </view>
+    
+    <view class="actions">
+      <button class="btn primary" bindtap="onOpenConsole">打开控制台指南</button>
+      <button class="btn secondary" bindtap="onCopyAllNames">复制所有集合名</button>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">必需集合 ({{requiredCount}}个)</text>
+      <text class="section-desc">这些集合是核心功能必需的</text>
+    </view>
+    <view class="collection-list">
+      <view wx:for="{{collections}}" wx:key="name" wx:if="{{item.required}}" 
+            class="collection-item required" 
+            bindtap="onCopyCollectionName" 
+            data-name="{{item.name}}">
+        <view class="collection-header">
+          <text class="collection-name">{{item.name}}</text>
+          <text class="collection-badge required">必需</text>
+        </view>
+        <text class="collection-desc">{{item.description}}</text>
+        <text class="collection-fields">字段: {{item.fields}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">可选集合 ({{optionalCount}}个)</text>
+      <text class="section-desc">这些集合用于扩展功能</text>
+    </view>
+    <view class="collection-list">
+      <view wx:for="{{collections}}" wx:key="name" wx:if="{{!item.required}}" 
+            class="collection-item optional" 
+            bindtap="onCopyCollectionName" 
+            data-name="{{item.name}}">
+        <view class="collection-header">
+          <text class="collection-name">{{item.name}}</text>
+          <text class="collection-badge optional">可选</text>
+        </view>
+        <text class="collection-desc">{{item.description}}</text>
+        <text class="collection-fields">字段: {{item.fields}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">索引建议</text>
+      <text class="section-desc">为提升查询性能，建议创建以下索引</text>
+    </view>
+    <view class="index-list">
+      <view wx:for="{{indexes}}" wx:key="index" class="index-item">
+        <text class="index-collection">{{item.collection}}</text>
+        <text class="index-fields">{{item.fields.join(', ')}}</text>
+        <text class="index-desc">{{item.description}}</text>
+      </view>
+    </view>
+    <button class="btn info" bindtap="onShowIndexGuide">索引创建指南</button>
+  </view>
+
+  <view class="tips">
+    <text class="tips-title">重要提示</text>
+    <text class="tips-item">• 点击集合名可复制到剪贴板</text>
+    <text class="tips-item">• 必需集合必须创建，否则功能无法正常使用</text>
+    <text class="tips-item">• 可选集合可根据需要创建</text>
+    <text class="tips-item">• 索引可以显著提升查询性能</text>
+    <text class="tips-item">• 创建完成后请重新测试应用功能</text>
+  </view>
+</view>

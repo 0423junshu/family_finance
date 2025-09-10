@@ -374,3 +374,195 @@
 .pr-md { padding-right: var(--spacing-md); }
 .pr-lg { padding-right: var(--spacing-lg); }
 .pr-xl { padding-right: var(--spacing-xl); }
+
+/* Family card (统一页头卡片样式，与首页风格一致) */
+.family-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(20rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+
+/* 顶部渐变条（与首页保持一致配色） */
+.family-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.family-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.family-card-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.family-card-tip {
+  font-size: 24rpx;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+}
+
+.family-card-body {
+  padding-top: 4rpx;
+}
+
+.family-card-text {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+/* 与首页一致的月度统计卡片（可复用于各页顶部） */
+.stats-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(20rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+/* 紧凑版（资产页要求更小一些） */
+.stats-card--compact {
+  padding: 28rpx 24rpx;
+  border-radius: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.stats-content {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx 16rpx;
+  border-radius: 16rpx;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #8E8E93;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1C1C1E;
+}
+
+.stat-item.income .stat-value { color: #38ef7d; }
+.stat-item.expense .stat-value { color: #ff416c; }
+
+.stat-value.positive { color: #38ef7d; }
+.stat-value.negative { color: #ff416c; }
+
+/* 统一首页统计卡片头部结构样式（与首页一致） */
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.month-selector {
+  display: flex;
+  align-items: center;
+}
+
+.stats-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-right: 16rpx;
+}
+
+.month-arrow {
+  font-size: 24rpx;
+  color: #667eea;
+  transition: transform 0.3s ease;
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+}
+
+.sync-text {
+  font-size: 24rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+}
+
+.sync-text.success {
+  color: #38ef7d;
+  background: rgba(56, 239, 125, 0.1);
+}
+
+.sync-text.error {
+  color: #ff416c;
+  background: rgba(255, 65, 108, 0.1);
+}
+
+.sync-text.syncing {
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  animation: pulse 2s infinite;
+}
+
+/* 紧凑版卡片字体（资产页“更小一点”） */
+.stats-card--compact .stat-label {
+  font-size: 22rpx;
+}
+.stats-card--compact .stat-value {
+  font-size: 32rpx;
+}
+
+/* 通用动画（配合 syncing 使用） */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}

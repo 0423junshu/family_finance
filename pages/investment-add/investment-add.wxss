@@ -1,6 +1,7 @@
 /* pages/investment-add/investment-add.wxss */
+
 .page-container {
-  padding-top: 176rpx;
+  padding-top: 20rpx;
   padding-bottom: 160rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
@@ -173,17 +174,18 @@
   background: rgba(102, 126, 234, 0.05);
 }
 
+/* 投资类型选择样式 */
 .type-display {
   display: flex;
   align-items: center;
+  gap: 16rpx;
 }
 
 .type-icon {
   font-size: 32rpx;
-  margin-right: 16rpx;
 }
 
-.type-name {
+.type-text {
   font-size: 28rpx;
   font-weight: 500;
   color: #1C1C1E;
@@ -305,7 +307,7 @@
   pointer-events: none;
 }
 
-/* 选择器样式 */
+/* 投资类型选择器弹窗样式 */
 .picker-overlay {
   position: fixed;
   top: 0;
@@ -379,6 +381,17 @@
 .type-info {
   display: flex;
   align-items: center;
+  gap: 24rpx;
+}
+
+.type-name {
+  font-size: 32rpx;
+  color: #333;
+}
+
+.picker-item.selected .type-name {
+  color: #667eea;
+  font-weight: 500;
 }
 
 .check-icon {

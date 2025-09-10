@@ -1,3 +1,15 @@
 {
-    "usingComponents": {}
+    "usingComponents": {
+        "t-button": "tdesign-miniprogram/button/button",
+        "t-cell": "tdesign-miniprogram/cell/cell",
+        "t-cell-group": "tdesign-miniprogram/cell-group/cell-group",
+        "t-input": "tdesign-miniprogram/input/input",
+        "t-dialog": "tdesign-miniprogram/dialog/dialog",
+        "t-toast": "tdesign-miniprogram/toast/toast",
+        "t-tag": "tdesign-miniprogram/tag/tag",
+        "t-avatar": "tdesign-miniprogram/avatar/avatar",
+        "t-divider": "tdesign-miniprogram/divider/divider",
+        "t-popup": "tdesign-miniprogram/popup/popup",
+        "navigation-bar": "/components/navigation-bar/navigation-bar"
+    }
 }

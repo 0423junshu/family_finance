@@ -342,7 +342,7 @@ Page({
       // 返回上一页
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     } catch (error) {
       console.error('转账失败:', error)
       showToast(error.message || '转账失败', 'error')

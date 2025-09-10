@@ -90,8 +90,9 @@
           wx:for="{{expenseBudgets}}" 
           wx:key="id"
           class="budget-item {{item.isOverBudget ? 'over-budget-item' : ''}}"
-          bindtap="viewDetail"
+          bindtap="showEditDialog"
           data-item="{{item}}"
+          data-id="{{item.id || item._id}}"
         >
           <view class="budget-header">
             <view class="category-info">
@@ -101,17 +102,17 @@
             <view class="budget-actions">
               <view 
                 class="action-btn edit"
-                bindtap="showEditDialog"
+                catchtap="showEditDialog"
                 data-item="{{item}}"
-                catchtap="true"
+                data-id="{{item.id || item._id}}"
               >
                 编辑
               </view>
               <view 
                 class="action-btn delete"
-                bindtap="onDelete"
+                catchtap="onDelete"
                 data-item="{{item}}"
-                catchtap="true"
+                data-id="{{item.id || item._id}}"
               >
                 删除
               </view>
@@ -217,8 +218,9 @@
           wx:for="{{incomeExpectations}}" 
           wx:key="id"
           class="budget-item income-item {{item.isUnderExpected ? 'under-expected-item' : ''}}"
-          bindtap="viewDetail"
+          bindtap="showEditDialog"
           data-item="{{item}}"
+          data-id="{{item.id || item._id}}"
         >
           <view class="budget-header">
             <view class="category-info">
@@ -228,17 +230,17 @@
             <view class="budget-actions">
               <view 
                 class="action-btn edit"
-                bindtap="showEditDialog"
+                catchtap="showEditDialog"
                 data-item="{{item}}"
-                catchtap="true"
+                data-id="{{item.id || item._id}}"
               >
                 编辑
               </view>
               <view 
                 class="action-btn delete"
-                bindtap="onDelete"
+                catchtap="onDelete"
                 data-item="{{item}}"
-                catchtap="true"
+                data-id="{{item.id || item._id}}"
               >
                 删除
               </view>
@@ -277,7 +279,7 @@
   
   <!-- 添加对话框 -->
   <view wx:if="{{showAddDialog}}" class="dialog-overlay" bindtap="closeDialog">
-    <view class="dialog" catchtap="true">
+    <view class="dialog" catchtap="noop">
       <view class="dialog-header">
         <text class="dialog-title">{{currentTab === 0 ? '添加预算' : '添加收入预期'}}</text>
         <view class="close-btn" bindtap="closeDialog">×</view>
@@ -339,7 +341,7 @@
   
   <!-- 编辑对话框 -->
   <view wx:if="{{showEditDialog}}" class="dialog-overlay" bindtap="closeDialog">
-    <view class="dialog" catchtap="true">
+    <view class="dialog" catchtap="noop">
       <view class="dialog-header">
         <text class="dialog-title">{{currentTab === 0 ? '编辑预算' : '编辑收入预期'}}</text>
         <view class="close-btn" bindtap="closeDialog">×</view>

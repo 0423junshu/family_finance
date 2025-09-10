@@ -10,6 +10,22 @@
   <view wx:else class="content">
     <!-- 投资表单 -->
     <view class="form-container">
+      <!-- 投资类型 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="label-text">投资类型</text>
+          <text class="required">*</text>
+        </view>
+        <view class="form-value" bindtap="showTypePicker">
+          <view class="type-display">
+            <text class="type-icon">{{currentTypeIcon}}</text>
+            <text class="type-text">{{currentTypeName}}</text>
+          </view>
+          <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+        </view>
+      </view>
+      <view wx:if="{{errors.type}}" class="error-text">{{errors.type}}</view>
+
       <!-- 投资名称 -->
       <view class="form-item">
         <view class="form-label">
@@ -28,26 +44,10 @@
       </view>
       <view wx:if="{{errors.name}}" class="error-text">{{errors.name}}</view>
 
-      <!-- 投资类型 -->
-      <view class="form-item" bindtap="showTypePicker">
-        <view class="form-label">
-          <text class="label-text">投资类型</text>
-          <text class="required">*</text>
-        </view>
-        <view class="form-value">
-          <view class="type-display">
-            <text class="type-icon">{{currentTypeIcon}}</text>
-            <text class="type-name">{{currentTypeName}}</text>
-          </view>
-          <image class="arrow-icon" src="/images/icons/arrow-right.png" />
-        </view>
-      </view>
-      <view wx:if="{{errors.type}}" class="error-text">{{errors.type}}</view>
-
-      <!-- 当前价值 -->
+      <!-- 当前价格 -->
       <view class="form-item">
         <view class="form-label">
-          <text class="label-text">当前价值</text>
+          <text class="label-text">当前价格</text>
           <text class="required">*</text>
         </view>
         <view class="form-input">
@@ -120,7 +120,7 @@
         </view>
       </view>
 
-      <!-- 预期收益率 -->
+      <!-- 预期收益 -->
       <view class="form-item">
         <view class="form-label">
           <text class="label-text">预期年化收益率</text>
@@ -179,7 +179,7 @@
     </view>
   </view>
 
-  <!-- 投资类型选择器 -->
+  <!-- 投资类型选择 -->
   <view wx:if="{{showTypePicker}}" class="picker-overlay" bindtap="onPickerClose">
     <view class="picker-container" catchtap="">
       <view class="picker-header">

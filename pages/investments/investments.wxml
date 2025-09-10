@@ -1,5 +1,5 @@
 <!-- pages/investments/investments.wxml -->
-<navigation-bar title="投资" show-back="{{false}}" />
+<navigation-bar title="家庭财务管理" show-back="{{false}}" />
 
 <view class="page-container">
   <!-- 总览卡片 -->

@@ -226,7 +226,7 @@
 
   <!-- 分类选择器 -->
   <view wx:if="{{showCategoryPicker}}" class="picker-overlay" bindtap="onPickerClose">
-    <view class="picker-container" catchtap="">
+    <view class="picker-container" catchtap="noop">
       <view class="picker-header">
         <text class="picker-title">选择分类</text>
         <view class="picker-actions">
@@ -264,7 +264,7 @@
 
   <!-- 新增分类对话框 -->
   <view wx:if="{{showAddCategoryDialog}}" class="dialog-overlay" bindtap="cancelAddCategory">
-    <view class="dialog-container" catchtap="">
+    <view class="dialog-container" catchtap="noop">
       <view class="dialog-header">
         <text class="dialog-title">新增分类</text>
         <view class="dialog-close" bindtap="cancelAddCategory">
@@ -328,7 +328,7 @@
 
   <!-- 账户选择器 -->
   <view wx:if="{{showAccountPicker}}" class="picker-overlay" bindtap="onPickerClose">
-    <view class="picker-container" catchtap="">
+    <view class="picker-container" catchtap="noop">
       <view class="picker-header">
         <text class="picker-title">选择账户</text>
         <view class="picker-close" bindtap="onPickerClose">
@@ -363,11 +363,17 @@
 
   <!-- 标签选择器 -->
   <view wx:if="{{showTagPicker}}" class="picker-overlay" bindtap="onPickerClose">
-    <view class="picker-container" catchtap="">
+    <view class="picker-container" catchtap="noop">
       <view class="picker-header">
         <text class="picker-title">选择标签</text>
-        <view class="picker-close" bindtap="onPickerClose">
-          <text class="close-icon">×</text>
+        <view class="picker-actions">
+          <view class="add-tag-btn" bindtap="onManageTagsTap">
+            <text class="add-icon">⚙️</text>
+            <text>管理标签</text>
+          </view>
+          <view class="picker-close" bindtap="onPickerClose">
+            <text class="close-icon">×</text>
+          </view>
         </view>
       </view>
       <view class="picker-content">
@@ -379,6 +385,7 @@
             data-id="{{item._id}}"
             bindtap="onTagSelect"
           >
+            <view class="tag-badge" style="background-color: {{item.color || '#007AFF'}}"></view>
             <text>{{item.name}}</text>
             <view wx:if="{{formData.tags.includes(item._id)}}" class="tag-check">
               <text class="check-icon">✓</text>

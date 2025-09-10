@@ -1,8 +1,9 @@
 // pages/index/index.js
 const app = getApp()
 const { formatDate, formatAmount } = require('../../utils/formatter')
-const { getTransactions } = require('../../services/transaction-simple')
+const { getTransactions, getCycleDateRange } = require('../../services/transaction-simple')
 const { showLoading, hideLoading, showToast } = require('../../utils/uiUtil')
+
 
 Page({
   data: {
@@ -33,17 +34,28 @@ Page({
     
     // 月份选择器数据
     monthPickerData: [],
-    monthPickerIndex: [0, 0] // [年份索引, 月份索引]
+    monthPickerIndex: [0, 0], // [年份索引, 月份索引]
+    
+
   },
 
-  onLoad() {
+  async onLoad() {
     console.log('首页加载开始')
     this.initPage()
   },
   
   onShow() {
     console.log('首页显示')
-    this.loadData()
+    
+    // 添加缓存检查，避免重复加载
+    const now = Date.now()
+    const lastLoadTime = this.data.lastLoadTime || 0
+    
+    // 只有在超过2秒未加载时才重新加载
+    if (now - lastLoadTime > 2000) {
+      this.loadData()
+      this.setData({ lastLoadTime: now })
+    }
   },
   
   // 初始化页面
@@ -111,7 +123,7 @@ Page({
       // 使用自定义周期获取日期范围
       let dateRange;
       try {
-        dateRange = getTransactions.getCycleDateRange(year, month)
+        dateRange = getCycleDateRange(year, month)
       } catch (error) {
         console.error('获取周期日期范围失败:', error)
         // 使用默认日期范围
@@ -284,20 +296,70 @@ Page({
   
   // 查看全部记录
   onViewAllTap() {
-    const year = this.data.selectedYear
-    const month = this.data.selectedMonth
-    wx.navigateTo({
-      url: `/pages/transaction-list/transaction-list-simple?year=${year}&month=${month}`
-    })
+    try {
+      const year = this.data.selectedYear
+      const monthIndex = this.data.selectedMonth - 1
+      let range
+      
+      try {
+        range = getCycleDateRange(year, monthIndex)
+      } catch (e) {
+        console.warn('获取周期日期范围失败，使用默认范围:', e)
+        const startDate = new Date(year, monthIndex, 1)
+        const endDate = new Date(year, monthIndex + 1, 0)
+        const { formatDate: fmtDate } = require('../../utils/formatter')
+        range = {
+          startDateString: fmtDate(startDate),
+          endDateString: fmtDate(endDate)
+        }
+      }
+      
+      // 确保日期格式正确
+      const startDate = range.startDateString || range.startDate
+      const endDate = range.endDateString || range.endDate
+      
+      if (!startDate || !endDate) {
+        throw new Error('日期范围无效')
+      }
+      
+      const title = `${year}年${this.data.selectedMonth}月全部记录`
+      const url = `/pages/transaction-list/transaction-list?startDate=${startDate}&endDate=${endDate}&title=${encodeURIComponent(title)}&year=${year}&month=${this.data.selectedMonth}`
+      
+      console.log('跳转到交易列表:', url)
+      wx.navigateTo({ url })
+      
+    } catch (error) {
+      console.error('跳转到交易列表失败:', error)
+      wx.showToast({
+        title: '跳转失败，请重试',
+        icon: 'none',
+        duration: 2000
+      })
+    }
   },
   
-  // 点击交易记录
+  // 点击交易记录（统一为编辑页）
   onTransactionTap(e) {
-    const { item } = e.currentTarget.dataset
-    if (item && item.id) {
+    const ds = (e && e.currentTarget && e.currentTarget.dataset) || (e && e.target && e.target.dataset) || {}
+    const item = ds.item
+    const id = ds.id || (item && (item.id || item._id))
+    if (id) {
+      // 先将交易记录保存到本地缓存，确保编辑页面可以找到
+      try {
+        const transactions = wx.getStorageSync('transactions') || []
+        if (item && !transactions.some(t => (t.id || t._id) === id)) {
+          transactions.unshift(item)
+          wx.setStorageSync('transactions', transactions)
+        }
+      } catch (err) {
+        console.error('缓存交易记录失败:', err)
+      }
+      
       wx.navigateTo({
-        url: `/pages/transaction-detail/transaction-detail-simple?id=${item.id}`
+        url: `/pages/record/record?id=${id}&mode=edit`
       })
+    } else {
+      wx.showToast({ title: '记录无效，无法打开', icon: 'none' })
     }
   },
   
@@ -324,8 +386,13 @@ Page({
   
   // 编辑交易
   editTransaction(item) {
+    const id = item && (item.id || item._id)
+    if (!id) {
+      wx.showToast({ title: '记录无效', icon: 'none' })
+      return
+    }
     wx.navigateTo({
-      url: `/pages/record/record?id=${item.id}&mode=edit`
+      url: `/pages/record/record?id=${id}&mode=edit`
     })
   },
   
@@ -337,46 +404,9 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            // 从本地存储删除记录
-            const transactions = wx.getStorageSync('transactions') || []
-            const updatedTransactions = transactions.filter(t => t.id !== item.id)
-            wx.setStorageSync('transactions', updatedTransactions)
-            
-            // 如果是转账记录，需要恢复账户余额
-            if (item.category === '转账') {
-              const accounts = wx.getStorageSync('accounts') || []
-              const accountIndex = accounts.findIndex(acc => 
-                acc.name === item.account || acc._id === item.accountId || acc.id === item.accountId
-              )
-              
-              if (accountIndex !== -1) {
-                if (item.type === 'expense') {
-                  // 转出记录，恢复余额
-                  accounts[accountIndex].balance += item.amount
-                } else if (item.type === 'income') {
-                  // 转入记录，扣减余额
-                  accounts[accountIndex].balance -= item.amount
-                }
-                wx.setStorageSync('accounts', accounts)
-              }
-            } else {
-              // 普通收支记录，恢复账户余额
-              const accounts = wx.getStorageSync('accounts') || []
-              const accountIndex = accounts.findIndex(acc => 
-                acc.name === item.account || acc._id === item.accountId || acc.id === item.accountId
-              )
-              
-              if (accountIndex !== -1) {
-                if (item.type === 'expense') {
-                  // 支出记录，恢复余额
-                  accounts[accountIndex].balance += item.amount
-                } else if (item.type === 'income') {
-                  // 收入记录，扣减余额
-                  accounts[accountIndex].balance -= item.amount
-                }
-                wx.setStorageSync('accounts', accounts)
-              }
-            }
+            // 使用交易服务删除记录
+            const { deleteTransaction } = require('../../services/transaction-simple')
+            await deleteTransaction(item.id || item._id)
             
             showToast('删除成功', 'success')
             this.loadData()
@@ -461,7 +491,14 @@ Page({
   
   // 关闭提示
   onCloseTip(e) {
-    e.stopPropagation()
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation()
+    }
     this.setData({ newTransactionCount: 0 })
-  }
+  },
+
+  // 阻止冒泡空函数（用于弹层容器 catchtap）
+  noop() {},
+
+
 })

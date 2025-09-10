@@ -1,0 +1,804 @@
+/* pages/reports/reports-simple.wxss */
+.page-container {
+  padding: 0 0 120rpx;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* 日期选择器 */
+.date-selector {
+  background-color: #fff;
+  padding: 20rpx 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.date-range-tabs {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 8rpx;
+  padding: 4rpx;
+  border: 1px solid #e0e0e0;
+}
+
+.date-range-tabs .tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+  border-radius: 6rpx;
+  margin: 0 4rpx;
+  transition: all 0.3s ease;
+}
+
+.date-range-tabs .tab.active {
+  color: #ffffff;
+  font-weight: 500;
+  background-color: #007AFF;
+  box-shadow: 0 2rpx 8rpx rgba(0, 123, 255, 0.3);
+}
+
+.date-display {
+  text-align: center;
+  padding: 10rpx 0;
+  background-color: #f9f9f9;
+  border-radius: 8rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
+}
+
+.date-text {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.date-arrow {
+  font-size: 24rpx;
+  margin-left: 10rpx;
+  color: #999;
+}
+
+/* 顶部选项卡 */
+.tab-header {
+  display: flex;
+  background-color: #fff;
+  padding: 0 20rpx;
+  border-bottom: 1rpx solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+}
+
+.tab-item.active {
+  color: #007AFF;
+  font-weight: 500;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 6rpx;
+  background-color: #007AFF;
+  border-radius: 3rpx;
+}
+
+/* 加载中 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid #f3f3f3;
+  border-top: 6rpx solid #007AFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 选项卡内容 */
+.tab-content {
+  padding: 20rpx 30rpx;
+}
+
+/* 卡片样式 */
+.summary-card, .section-card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.summary-header, .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.summary-title, .section-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.summary-tools {
+  position: relative;
+}
+
+.icon-more {
+  font-size: 36rpx;
+  color: #666;
+  padding: 10rpx;
+}
+
+.options-menu {
+  position: absolute;
+  top: 60rpx;
+  right: 0;
+  background-color: #fff;
+  border-radius: 8rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.15);
+  width: 200rpx;
+  z-index: 100;
+  display: none;
+}
+
+.options-menu.show {
+  display: block;
+}
+
+.option-item {
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #333;
+  border-bottom: 1rpx solid #eee;
+}
+
+.option-item:last-child {
+  border-bottom: none;
+}
+
+.section-more {
+  font-size: 26rpx;
+  color: #007AFF;
+}
+
+/* 收支概览 */
+.summary-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.summary-item {
+  flex: 1;
+  text-align: center;
+}
+
+.summary-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+  display: block;
+}
+
+.summary-value {
+  font-size: 40rpx;
+  font-weight: 500;
+  display: block;
+}
+
+.income {
+  color: #34c759;
+}
+
+.expense {
+  color: #ff3b30;
+}
+
+/* 分类列表 */
+.category-list {
+  margin-top: 20rpx;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.category-item:last-child {
+  border-bottom: none;
+}
+
+.category-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  margin-right: 20rpx;
+}
+
+.category-info {
+  flex: 1;
+}
+
+.category-name {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.category-progress {
+  height: 10rpx;
+  background-color: #f5f5f5;
+  border-radius: 5rpx;
+  overflow: hidden;
+  margin-bottom: 10rpx;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #ff3b30;
+  border-radius: 5rpx;
+}
+
+.income-bar {
+  background-color: #34c759;
+}
+
+.category-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.category-amount {
+  font-size: 32rpx;
+  font-weight: 500;
+  margin-left: 20rpx;
+}
+
+/* 资产概览 */
+.asset-overview {
+  padding: 10rpx 0;
+}
+
+.asset-total {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.asset-label {
+  font-size: 28rpx;
+  color: #666;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.asset-value {
+  font-size: 48rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.asset-distribution {
+  margin-top: 20rpx;
+}
+
+.asset-type {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.asset-type:last-child {
+  margin-bottom: 0;
+}
+
+.asset-type-dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  margin-right: 10rpx;
+}
+
+.asset-type-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.asset-type-value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 分类统计 */
+.category-type-switch {
+  display: flex;
+  background-color: #f5f5f5;
+  border-radius: 8rpx;
+  margin-bottom: 30rpx;
+  overflow: hidden;
+}
+
+.switch-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.switch-item.active {
+  background-color: #007AFF;
+  color: #fff;
+}
+
+.category-stats {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 趋势图 - 增加左侧padding以显示Y轴标签 */
+.chart-container {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  overflow: visible; /* 确保Y轴标签不被裁剪 */
+}
+
+.trend-canvas {
+  width: 100%;
+  height: 400rpx;
+  margin-left: 10rpx; /* 给左侧留出更多空间 */
+}
+
+.trend-data {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.trend-header {
+  margin-bottom: 20rpx;
+}
+
+.trend-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.trend-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.trend-table-header {
+  display: flex;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #eee;
+  font-weight: 500;
+}
+
+.trend-table-row {
+  display: flex;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.trend-table-row:last-child {
+  border-bottom: none;
+}
+
+.trend-table-cell {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  text-align: center;
+}
+
+.trend-table-cell.asset {
+  color: #007AFF;
+  font-weight: 500;
+}
+
+/* 资产分析 */
+.asset-chart {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.asset-canvas {
+  width: 100%;
+  height: 400rpx;
+}
+
+.account-list, .investment-list {
+  margin-top: 20rpx;
+}
+
+.account-item, .investment-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.account-item:last-child, .investment-item:last-child {
+  border-bottom: none;
+}
+
+.account-icon, .investment-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  margin-right: 20rpx;
+}
+
+.account-info, .investment-info {
+  flex: 1;
+}
+
+.account-name, .investment-name {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.account-type, .investment-type {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.account-balance {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.investment-data {
+  text-align: right;
+}
+
+.investment-value {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.investment-profit {
+  font-size: 24rpx;
+}
+
+/* 数据一致性 */
+.consistency-content {
+  padding: 20rpx 0;
+}
+
+.checking-tip, .consistency-tip {
+  text-align: center;
+  font-size: 28rpx;
+  color: #999;
+  padding: 30rpx 0;
+}
+
+.consistency-success, .consistency-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.icon-success, .icon-error {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-bottom: 20rpx;
+}
+
+.icon-success {
+  background-color: #34c759;
+  color: #fff;
+}
+
+.icon-error {
+  background-color: #ff3b30;
+  color: #fff;
+}
+
+.consistency-detail {
+  margin: 20rpx 0;
+  padding: 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #666;
+  white-space: pre-wrap;
+}
+
+.fix-button {
+  margin-top: 20rpx;
+  background-color: #007AFF;
+  color: #fff;
+  font-size: 28rpx;
+  padding: 16rpx 40rpx;
+  border-radius: 8rpx;
+}
+
+/* 标签分析 */
+.tag-stats {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.tag-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.tag-item:last-child {
+  border-bottom: none;
+}
+
+.tag-name {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.tag-info {
+  display: flex;
+  align-items: center;
+}
+
+.tag-count {
+  font-size: 24rpx;
+  color: #999;
+  margin-right: 20rpx;
+}
+
+.tag-amount {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* 空数据提示 */
+.empty-tip {
+  text-align: center;
+  padding: 60rpx 0;
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 浮动工具按钮 */
+.float-button {
+  position: fixed;
+  right: 30rpx;
+  bottom: 100rpx;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background-color: #007AFF;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.float-icon {
+  font-size: 40rpx;
+}
+
+/* 工具菜单 */
+.tools-menu {
+  position: fixed;
+  right: 30rpx;
+  bottom: 220rpx;
+  background-color: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.15);
+  padding: 20rpx;
+  z-index: 50;
+  transform: scale(0);
+  transform-origin: bottom right;
+  transition: transform 0.3s ease;
+}
+
+.tools-menu.show {
+  transform: scale(1);
+}
+
+.tools-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.tools-item:last-child {
+  border-bottom: none;
+}
+
+.tools-icon {
+  font-size: 36rpx;
+  margin-right: 20rpx;
+}
+
+.tools-text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+/* 日期选择器弹窗 */
+.picker-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.picker-content {
+  width: 80%;
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.picker-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.picker-close {
+  font-size: 40rpx;
+  color: #999;
+}
+
+.picker-body {
+  padding: 30rpx;
+}
+
+.picker-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.date-range-picker {
+  padding: 20rpx 0;
+}
+
+.date-picker-item {
+  margin-bottom: 30rpx;
+}
+
+.date-picker-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+  display: block;
+}
+
+.date-picker-value {
+  padding: 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.confirm-button {
+  margin-top: 30rpx;
+  background-color: #007AFF;
+  color: #fff;
+  font-size: 28rpx;
+  padding: 20rpx 0;
+  border-radius: 8rpx;
+}
+
+/* 禁用状态的tab样式 */
+.tab-item.disabled {
+  color: #cccccc !important;
+  cursor: not-allowed;
+}
+
+.tab-item.disabled::after {
+  display: none;
+}
+
+/* 自定义年月选择器显示 */
+.custom-date-display {
+  text-align: center;
+  padding: 20rpx;
+  background-color: #f9f9f9;
+  border-radius: 8rpx;
+  margin: 20rpx 0;
+}
+
+.custom-date-text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}

@@ -1,0 +1,109 @@
+/* pages/record/record-simple.wxss */
+.container {
+  padding: 20rpx;
+  padding-top: 40rpx; /* 统一顶部间距为40rpx */
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.page-header {
+  padding: 30rpx 0;
+  text-align: center;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200rpx;
+  color: #999;
+}
+
+.form-container {
+  background: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-top: 20rpx;
+}
+
+.form-section {
+  margin-bottom: 40rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.type-radio-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+.radio-item {
+  padding: 20rpx 40rpx;
+  border: 2rpx solid #ddd;
+  border-radius: 12rpx;
+  background: #f9f9f9;
+}
+
+.radio-item radio {
+  margin-right: 10rpx;
+}
+
+.amount-input,
+.date-input {
+  border: 2rpx solid #ddd;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 32rpx;
+  background: white;
+}
+
+.category-picker,
+.account-picker {
+  border: 2rpx solid #ddd;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  background: white;
+}
+
+.picker-value {
+  color: #333;
+}
+
+.description-textarea {
+  border: 2rpx solid #ddd;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  min-height: 120rpx;
+  background: white;
+}
+
+.error-text {
+  color: #ff4d4f;
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+.submit-button {
+  margin-top: 40rpx;
+  background: #07c160;
+  color: white;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+}
+
+.submit-button:active {
+  background: #06ae56;
+}

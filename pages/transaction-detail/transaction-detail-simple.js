@@ -32,7 +32,7 @@ Page({
       })
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     }
   },
   
@@ -78,7 +78,7 @@ Page({
       })
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     }
   },
   
@@ -316,7 +316,7 @@ Page({
             // 返回上一页
             setTimeout(() => {
               wx.navigateBack()
-            }, 1500)
+            }, 800)
           } catch (error) {
             console.error('删除交易失败:', error)
             wx.showToast({

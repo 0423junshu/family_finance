@@ -1,0 +1,28 @@
+<!--pages/init-db-simple/init-db-simple.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="title">数据库初始化工具</text>
+    <text class="status">{{status}}</text>
+  </view>
+
+  <view class="actions">
+    <button class="btn primary" bindtap="onInitDatabase" disabled="{{isRunning}}">
+      {{isRunning ? '初始化中...' : '开始初始化数据库'}}
+    </button>
+    <button class="btn secondary" bindtap="onTestFamily">测试家庭功能</button>
+  </view>
+
+  <view class="results">
+    <view wx:for="{{results}}" wx:key="index" class="result-item {{item.type}}">
+      <view class="result-header">
+        <text class="result-title">{{item.title}}</text>
+        <text class="result-time">{{item.time}}</text>
+      </view>
+      <text class="result-message">{{item.message}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{results.length === 0}}" class="empty">
+    <text>点击上方按钮开始初始化数据库</text>
+  </view>
+</view>

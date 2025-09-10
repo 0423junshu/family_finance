@@ -5,7 +5,8 @@ const { callCloudFunction } = require('./cloud-base')
 async function getBudgets() {
   try {
     const result = await callCloudFunction('manageBudget', {
-      action: 'getBudgets'
+      action: 'list',
+      userId: 'current-user'
     })
     
     if (result.success) {
@@ -46,14 +47,13 @@ async function createBudget(budgetData) {
     }
     
     const result = await callCloudFunction('manageBudget', {
-      action: 'createBudget',
-      data: {
+      action: 'create',
+      budgetData: {
         categoryId: budgetData.categoryId,
         categoryName: budgetData.categoryName,
         amount: parseInt(budgetData.amount),
         period: budgetData.period || 'monthly',
-        type: budgetData.type || 'expense',
-        createTime: new Date().toISOString()
+        type: budgetData.type || 'expense'
       }
     })
     
@@ -75,15 +75,14 @@ async function updateBudget(budgetData) {
     }
     
     const result = await callCloudFunction('manageBudget', {
-      action: 'updateBudget',
-      data: {
-        id: budgetData.id,
+      action: 'update',
+      budgetId: budgetData.id,
+      budgetData: {
         categoryId: budgetData.categoryId,
         categoryName: budgetData.categoryName,
         amount: parseInt(budgetData.amount),
         period: budgetData.period || 'monthly',
-        type: budgetData.type || 'expense',
-        updateTime: new Date().toISOString()
+        type: budgetData.type || 'expense'
       }
     })
     
@@ -105,8 +104,8 @@ async function deleteBudget(budgetId) {
     }
     
     const result = await callCloudFunction('manageBudget', {
-      action: 'deleteBudget',
-      data: { id: budgetId }
+      action: 'delete',
+      budgetId: budgetId
     })
     
     return result

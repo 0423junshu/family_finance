@@ -44,8 +44,17 @@ Page({
   onLoad(options) {
     const mode = options.mode || 'create'
     const accountId = options.id
+    const year = options.year
+    const month = options.month
     
-    this.setData({ mode })
+    // 如果传递了年月参数，设置到存储中
+    if (year && month !== undefined) {
+      const ymKey = `${year}-${String(parseInt(month) + 1).padStart(2, '0')}`
+      wx.setStorageSync('lastViewedMonth', ymKey)
+      console.log(`账户管理页面接收到年月参数: ${ymKey}`)
+    }
+    
+    this.setData({ mode, accountId })
     
     // 初始化当前类型名称
     this.updateCurrentTypeName()
@@ -244,9 +253,29 @@ Page({
         updateTime: new Date().toISOString()
       }
       
-      // 保存到本地存储
-      let accounts = wx.getStorageSync('accounts') || []
+      // 根据当前查看的月份加载正确的数据源
+      const currentDate = new Date()
+      const currentYmKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
+      const lastViewedMonth = wx.getStorageSync('lastViewedMonth')
+      const isCurrentMonth = !lastViewedMonth || lastViewedMonth === currentYmKey
       
+      let accounts
+      if (isCurrentMonth) {
+        // 当前月份：从主存储加载
+        accounts = wx.getStorageSync('accounts') || []
+      } else {
+        // 历史月份：从历史存储加载，确保基于历史数据修改
+        accounts = wx.getStorageSync(`accounts:${lastViewedMonth}`) || []
+        
+        // 如果历史存储为空，从主存储初始化（仅一次）
+        if (accounts.length === 0) {
+          const mainAccounts = wx.getStorageSync('accounts') || []
+          accounts = JSON.parse(JSON.stringify(mainAccounts))
+          console.log(`初始化历史月份数据: ${lastViewedMonth}`)
+        }
+      }
+      
+      // 执行修改操作
       if (this.data.mode === 'create') {
         accounts.push(accountData)
         showToast('账户创建成功', 'success')
@@ -258,12 +287,55 @@ Page({
         }
       }
       
-      wx.setStorageSync('accounts', accounts)
+      // 保存到正确的存储位置
+      if (isCurrentMonth) {
+        // 当前月份：更新主存储和当前月份存储
+        wx.setStorageSync('accounts', accounts)
+        wx.setStorageSync(`accounts:${currentYmKey}`, accounts)
+        console.log(`更新当前月份数据: ${currentYmKey}`)
+        // 同步更新当月资产快照，确保资产页立即可见
+        {
+          const ymKey = currentYmKey
+          const monthInvestments = wx.getStorageSync(`investments:${ymKey}`) || []
+          const totalAssets = accounts.reduce((s,a)=>s+(a.balance||0),0) + monthInvestments.reduce((s,i)=>s+(i.amount||0),0)
+          wx.setStorageSync(`assetSnapshot:${ymKey}`, {
+            timestamp: new Date().toISOString(),
+            yearMonth: ymKey,
+            accounts,
+            investments: monthInvestments,
+            totalAssets,
+            accountCount: accounts.length,
+            investmentCount: monthInvestments.length
+          })
+        }
+      } else {
+        // 历史月份：仅更新该月份存储，保持数据独立性
+        wx.setStorageSync(`accounts:${lastViewedMonth}`, accounts)
+        console.log(`更新历史月份数据: ${lastViewedMonth}`)
+        // 同步更新历史月资产快照
+        {
+          const ymKey = lastViewedMonth
+          const monthInvestments = wx.getStorageSync(`investments:${ymKey}`) || []
+          const totalAssets = accounts.reduce((s,a)=>s+(a.balance||0),0) + monthInvestments.reduce((s,i)=>s+(i.amount||0),0)
+          wx.setStorageSync(`assetSnapshot:${ymKey}`, {
+            timestamp: new Date().toISOString(),
+            yearMonth: ymKey,
+            accounts,
+            investments: monthInvestments,
+            totalAssets,
+            accountCount: accounts.length,
+            investmentCount: monthInvestments.length
+          })
+        }
+      }
+      
+      // 触发资产页面数据刷新
+      wx.setStorageSync('accountChanged', Date.now())
       
       // 返回上一页
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     } catch (error) {
       console.error('保存账户失败:', error)
       showToast(error.message || '保存失败', 'error')
@@ -300,7 +372,7 @@ Page({
       
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     } catch (error) {
       console.error('删除账户失败:', error)
       showToast('删除失败', 'error')

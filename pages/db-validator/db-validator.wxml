@@ -1,0 +1,36 @@
+<!--pages/db-validator/db-validator.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="title">数据库状态验证</text>
+    <text class="subtitle">检查云函数部署和数据库集合状态</text>
+  </view>
+
+  <view class="actions">
+    <button class="btn primary" bindtap="onRecheck" disabled="{{isChecking}}">
+      {{isChecking ? '检查中...' : '重新检查'}}
+    </button>
+    <button class="btn secondary" bindtap="onRetryInit">手动初始化</button>
+    <button class="btn" bindtap="onClearResults">清空结果</button>
+  </view>
+
+  <view class="results">
+    <view wx:for="{{checkResults}}" wx:key="index" class="result-item {{item.type}}">
+      <view class="result-header">
+        <text class="result-title">{{item.title}}</text>
+        <text class="result-time">{{item.time}}</text>
+      </view>
+      <text class="result-message">{{item.message}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{checkResults.length === 0}}" class="empty">
+    <text>暂无检查结果</text>
+  </view>
+
+  <view class="instructions">
+    <text class="instructions-title">操作指南：</text>
+    <text class="instructions-item">1. 如果云函数显示"部署异常"，请在开发者工具中重新部署</text>
+    <text class="instructions-item">2. 如果集合显示"不存在"，点击"手动初始化"按钮</text>
+    <text class="instructions-item">3. 初始化完成后，点击"重新检查"验证结果</text>
+  </view>
+</view>

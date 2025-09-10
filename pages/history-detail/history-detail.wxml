@@ -1,152 +1,153 @@
 <!-- pages/history-detail/history-detail.wxml -->
+<navigation-bar title="历史记录详情" showBack="{{true}}" />
+
 <view class="page-container">
-  <!-- 自定义导航栏 -->
-  <navigation-bar title="历史记录" showBack="{{true}}"></navigation-bar>
-  
-  <!-- 日期选择器 -->
-  <view class="date-selector" bindtap="showDatePicker">
-    <view class="date-display">
-      <text class="date-text">{{selectedYear}}年{{selectedMonth}}月</text>
-      <text class="arrow-icon">▼</text>
-    </view>
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
   </view>
   
-  <!-- 月度统计卡片 -->
-  <view class="stats-card">
-    <view class="stats-row">
-      <view class="stat-item">
-        <text class="stat-label">收入</text>
-        <text class="stat-value income">¥{{monthlyStats.incomeDisplay}}</text>
+  <view wx:else class="content">
+    <!-- 月份选择器 -->
+    <view class="date-selector" bindtap="showDatePicker">
+      <view class="date-display">
+        <text class="date-text">{{selectedYear}}年{{selectedMonth}}月</text>
+        <text class="date-arrow">▼</text>
       </view>
-      <view class="stat-item">
-        <text class="stat-label">支出</text>
-        <text class="stat-value expense">¥{{monthlyStats.expenseDisplay}}</text>
+      
+      <!-- 周期信息 -->
+      <view class="cycle-info" wx:if="{{cycleSettings.customCycleEnabled}}">
+        <text class="cycle-text">自定义周期: {{startDate}} 至 {{endDate}}</text>
       </view>
-      <view class="stat-item">
-        <text class="stat-label">结余</text>
-        <text class="stat-value {{monthlyStats.balance >= 0 ? 'income' : 'expense'}}">¥{{monthlyStats.balanceDisplay}}</text>
-      </view>
-    </view>
-    <view class="transaction-count">
-      <text>共{{monthlyStats.transactionCount}}笔交易</text>
-    </view>
-  </view>
-  
-  <!-- 筛选器 -->
-  <view class="filter-tabs">
-    <view 
-      class="filter-tab {{activeFilter === 'all' ? 'active' : ''}}"
-      bindtap="onFilterChange"
-      data-filter="all"
-    >
-      全部
-    </view>
-    <view 
-      class="filter-tab {{activeFilter === 'income' ? 'active' : ''}}"
-      bindtap="onFilterChange"
-      data-filter="income"
-    >
-      收入
-    </view>
-    <view 
-      class="filter-tab {{activeFilter === 'expense' ? 'active' : ''}}"
-      bindtap="onFilterChange"
-      data-filter="expense"
-    >
-      支出
-    </view>
-  </view>
-  
-  <!-- 交易记录列表 -->
-  <view class="transaction-groups">
-    <view wx:if="{{loading}}" class="loading-state">
-      <view class="loading-spinner"></view>
-      <text>加载中...</text>
     </view>
     
-    <view wx:elif="{{groupedTransactions.length === 0}}" class="empty-state">
-      <text>暂无交易记录</text>
+    <!-- 月度统计 -->
+    <view class="stats-card">
+      <view class="stats-item">
+        <text class="stats-label">收入</text>
+        <text class="stats-value income">{{monthlyStats.incomeDisplay}}</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-label">支出</text>
+        <text class="stats-value expense">{{monthlyStats.expenseDisplay}}</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-label">结余</text>
+        <text class="stats-value {{monthlyStats.balance >= 0 ? 'income' : 'expense'}}">{{monthlyStats.balanceDisplay}}</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-label">笔数</text>
+        <text class="stats-value">{{monthlyStats.transactionCount}}</text>
+      </view>
     </view>
     
-    <view wx:else>
-      <view 
-        wx:for="{{groupedTransactions}}" 
-        wx:key="date" 
-        class="date-group"
-      >
-        <!-- 日期标题 -->
-        <view class="date-header">
-          <view class="date-info">
-            <text class="date-display">{{item.dateDisplay}}</text>
-            <text class="weekday">{{item.weekday}}</text>
-          </view>
-          <view class="day-summary">
-            <text wx:if="{{item.dayIncome > 0}}" class="day-income">+{{item.dayIncomeDisplay}}</text>
-            <text wx:if="{{item.dayExpense > 0}}" class="day-expense">-{{item.dayExpenseDisplay}}</text>
-          </view>
+    <!-- 筛选器 -->
+    <view class="filter-bar">
+      <view class="filter-item {{activeFilter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="onFilterChange">全部</view>
+      <view class="filter-item {{activeFilter === 'expense' ? 'active' : ''}}" data-filter="expense" bindtap="onFilterChange">支出</view>
+      <view class="filter-item {{activeFilter === 'income' ? 'active' : ''}}" data-filter="income" bindtap="onFilterChange">收入</view>
+      <view class="filter-item {{activeFilter === 'transfer' ? 'active' : ''}}" data-filter="transfer" bindtap="onFilterChange">转账</view>
+    </view>
+    
+    <!-- 交易记录列表 -->
+    <view class="transaction-list">
+      <block wx:if="{{groupedTransactions.length === 0}}">
+        <view class="empty-state">
+          <text class="empty-text">暂无记录</text>
         </view>
-        
-        <!-- 当日交易列表 -->
-        <view class="day-transactions">
-          <view 
-            wx:for="{{item.transactions}}" 
-            wx:for-item="transaction"
-            wx:key="id"
-            class="transaction-item"
-            bindtap="onTransactionTap"
-            bindlongpress="onTransactionLongPress"
-            data-transaction="{{transaction}}"
-          >
-            <view class="transaction-icon {{transaction.type}}">
-              <text>{{transaction.category}}</text>
+      </block>
+      
+      <block wx:for="{{groupedTransactions}}" wx:key="date">
+        <view class="date-group">
+          <view class="date-header">
+            <view class="date-info">
+              <text class="date">{{item.dateDisplay}}</text>
+              <text class="weekday">{{item.weekday}}</text>
             </view>
-            <view class="transaction-info">
-              <view class="transaction-category">{{transaction.category}}</view>
-              <view class="transaction-details">
-                <text wx:if="{{transaction.description}}" class="description">{{transaction.description}}</text>
-                <text class="time">{{transaction.timeDisplay}}</text>
+            <view class="date-summary">
+              <text class="income">收入: {{item.dayIncomeDisplay}}</text>
+              <text class="expense">支出: {{item.dayExpenseDisplay}}</text>
+            </view>
+          </view>
+          
+          <view class="transactions">
+            <view 
+              wx:for="{{item.transactions}}" 
+              wx:for-item="transaction" 
+              wx:key="id"
+              class="transaction-item"
+              data-transaction="{{transaction}}"
+              bindtap="onTransactionTap"
+              bindlongpress="onTransactionLongPress"
+            >
+              <view class="transaction-icon-container">
+                <text class="transaction-icon">{{transaction.icon || (transaction.type === 'income' ? '💰' : transaction.type === 'expense' ? '🛒' : '🔄')}}</text>
+              </view>
+              
+              <view class="transaction-content">
+                <view class="transaction-main">
+                  <text class="transaction-category">{{transaction.category}}</text>
+                  <text class="transaction-amount {{transaction.type === 'income' ? 'income' : transaction.type === 'expense' ? 'expense' : 'transfer'}}">
+                    {{transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}}{{transaction.amountDisplay}}
+                  </text>
+                </view>
+                
+                <view class="transaction-sub">
+                  <view class="transaction-details">
+                    <text class="transaction-account">{{transaction.account}}</text>
+                    <text wx:if="{{transaction.type === 'transfer'}}" class="transaction-transfer-arrow">→</text>
+                    <text wx:if="{{transaction.type === 'transfer'}}" class="transaction-target-account">{{transaction.targetAccount}}</text>
+                    <text wx:if="{{transaction.description}}" class="transaction-description">{{transaction.description}}</text>
+                  </view>
+                  <text class="transaction-time">{{transaction.timeDisplay}}</text>
+                </view>
+                
+                <!-- 标签 -->
+                <view class="transaction-tags" wx:if="{{transaction.tags && transaction.tags.length > 0}}">
+                  <view wx:for="{{transaction.tags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</view>
+                </view>
+              </view>
+              
+              <view class="transaction-actions">
+                <view class="action-btn edit" catchtap="onEditTransaction" data-transaction="{{transaction}}">
+                  <text class="action-icon">✏️</text>
+                </view>
+                <view class="action-btn delete" catchtap="onDeleteTransaction" data-transaction="{{transaction}}">
+                  <text class="action-icon">🗑️</text>
+                </view>
               </view>
             </view>
-            <view class="transaction-amount {{transaction.type}}">
-              {{transaction.type === 'income' ? '+' : '-'}}{{transaction.amountDisplay}}
-            </view>
           </view>
         </view>
-      </view>
+      </block>
     </view>
   </view>
   
   <!-- 日期选择器弹窗 -->
-  <view wx:if="{{showDatePicker}}" class="picker-overlay" bindtap="closeDatePicker">
-    <view class="picker-container" catchtap="">
+  <view wx:if="{{showDatePicker}}" class="picker-overlay" catchtap="closeDatePicker">
+    <view class="picker-container" catchtap="noop">
       <view class="picker-header">
         <text class="picker-title">选择月份</text>
-        <text class="close-btn" bindtap="closeDatePicker">×</text>
+        <view class="picker-close" catchtap="closeDatePicker">×</view>
       </view>
+      
       <view class="picker-content">
-        <view class="picker-row">
-          <text class="picker-label">年份</text>
-          <picker 
-            range="{{years}}" 
-            value="{{selectedYear - 2020}}"
-            bindchange="onYearChange"
-          >
-            <view class="picker-value">{{selectedYear}}年</view>
-          </picker>
-        </view>
-        <view class="picker-row">
-          <text class="picker-label">月份</text>
-          <picker 
-            range="{{months}}" 
-            value="{{selectedMonth - 1}}"
-            bindchange="onMonthChange"
-          >
-            <view class="picker-value">{{selectedMonth}}月</view>
-          </picker>
-        </view>
+        <picker-view class="year-picker" indicator-style="height: 40px;" value="{{[years.indexOf(`${selectedYear}年`)]}}" bindchange="onYearChange">
+          <picker-view-column>
+            <view wx:for="{{years}}" wx:key="*this" class="picker-item">{{item}}</view>
+          </picker-view-column>
+        </picker-view>
+        
+        <picker-view class="month-picker" indicator-style="height: 40px;" value="{{[selectedMonth - 1]}}" bindchange="onMonthChange">
+          <picker-view-column>
+            <view wx:for="{{months}}" wx:key="*this" class="picker-item">{{item}}</view>
+          </picker-view-column>
+        </picker-view>
       </view>
-      <view class="picker-footer">
-        <button class="confirm-btn" bindtap="confirmDatePicker">确定</button>
+      
+      <view class="picker-actions">
+        <button class="btn btn-cancel" catchtap="closeDatePicker">取消</button>
+        <button class="btn btn-confirm" catchtap="confirmDatePicker">确定</button>
       </view>
     </view>
   </view>

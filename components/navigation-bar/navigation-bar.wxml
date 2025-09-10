@@ -1,40 +1,15 @@
 <!-- components/navigation-bar/navigation-bar.wxml -->
-<view class="nav-bar" style="background: {{background}}; color: {{color}};">
-  <!-- 状态栏占位 -->
-  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
-  
-  <!-- 导航栏内容 -->
-  <view class="nav-content" style="height: {{navBarHeight}}px;">
-    <!-- 左侧按钮区域 -->
-    <view class="nav-left">
-      <view wx:if="{{showBack}}" class="nav-btn" bindtap="onBackTap">
-        <image class="nav-icon" src="/images/icons/back.png" mode="aspectFit" />
-      </view>
-      <view wx:if="{{showHome}}" class="nav-btn" bindtap="onHomeTap">
-        <image class="nav-icon" src="/images/icons/home.png" mode="aspectFit" />
-      </view>
+<view class="navigation-bar" style="height: {{navBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+  <view class="navigation-bar-content" style="height: {{navBarHeight}}px;">
+    <view wx:if="{{showBack}}" class="back-button" bindtap="onBackTap">
+      <text class="back-icon">←</text>
     </view>
-    
-    <!-- 标题区域 -->
-    <view class="nav-title">
-      <text class="title-text">{{title}}</text>
+    <view class="title">{{title}}</view>
+    <view wx:if="{{showHideAmount}}" class="action-button" bindtap="onHideAmountTap">
+      <text class="action-text">{{hideAmount ? '***' : '显示'}}</text>
     </view>
-    
-    <!-- 右侧按钮区域 -->
-    <view class="nav-right">
-      <view wx:if="{{showHideAmount}}" class="nav-btn" bindtap="onHideAmountTap">
-        <image 
-          class="nav-icon" 
-          src="{{hideAmount ? '/images/icons/eye-off.png' : '/images/icons/eye.png'}}" 
-          mode="aspectFit" 
-        />
-      </view>
-      
-      <view wx:if="{{rightContent}}" class="nav-btn" bindtap="onRightTap">
-        <text class="nav-text">{{rightContent}}</text>
-      </view>
-      
-      <slot name="right"></slot>
+    <view wx:if="{{rightContent}}" class="action-button" bindtap="onRightTap">
+      <text class="action-text">{{rightContent}}</text>
     </view>
   </view>
 </view>

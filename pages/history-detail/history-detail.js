@@ -52,6 +52,11 @@ Page({
     this.initYears()
     this.loadHistoryData()
   },
+  
+  onShow() {
+    // 页面显示时重新加载数据，确保编辑后的数据能够实时更新
+    this.loadHistoryData()
+  },
 
   // 初始化年份选择器
   initYears() {
@@ -74,8 +79,30 @@ Page({
       
       // 获取指定月份的交易记录
       const { selectedYear, selectedMonth } = this.data
-      const startDate = new Date(selectedYear, selectedMonth - 1, 1)
-      const endDate = new Date(selectedYear, selectedMonth, 0)
+      
+      // 获取周期设置，支持自定义周期
+      const cycleSettings = wx.getStorageSync('cycleSettings') || {
+        cycleStartDay: 1,
+        customCycleEnabled: false
+      }
+      
+      let startDate, endDate
+      
+      if (cycleSettings.customCycleEnabled) {
+        // 使用自定义周期
+        const cycleStartDay = cycleSettings.cycleStartDay || 1
+        
+        // 计算周期开始日期
+        startDate = new Date(selectedYear, selectedMonth - 1, cycleStartDay)
+        
+        // 计算周期结束日期（下个月的周期开始日期前一天）
+        endDate = new Date(selectedYear, selectedMonth, cycleStartDay)
+        endDate.setDate(endDate.getDate() - 1)
+      } else {
+        // 使用自然月
+        startDate = new Date(selectedYear, selectedMonth - 1, 1)
+        endDate = new Date(selectedYear, selectedMonth, 0) // 当月最后一天
+      }
       
       // 从本地存储获取交易记录
       const allTransactions = wx.getStorageSync('transactions') || []
@@ -95,7 +122,10 @@ Page({
         transactions,
         monthlyStats: stats,
         groupedTransactions,
-        loading: false
+        loading: false,
+        cycleSettings,
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0]
       })
       
       hideLoading()
@@ -227,6 +257,8 @@ Page({
       filteredTransactions = transactions.filter(t => t.type === 'income')
     } else if (filter === 'expense') {
       filteredTransactions = transactions.filter(t => t.type === 'expense')
+    } else if (filter === 'transfer') {
+      filteredTransactions = transactions.filter(t => t.type === 'transfer')
     }
     
     const groupedTransactions = this.groupTransactionsByDate(filteredTransactions)
@@ -255,7 +287,7 @@ Page({
     
     wx.showModal({
       title: '确认删除',
-      content: '确定要删除这条记录吗？',
+      content: '确定要删除这条记录吗？删除后将同步更新相关账户余额。',
       confirmText: '删除',
       confirmColor: '#ff3b30',
       success: (res) => {
@@ -269,10 +301,11 @@ Page({
   // 执行删除
   async deleteTransaction(transactionId) {
     try {
-      const transactions = wx.getStorageSync('transactions') || []
-      const filteredTransactions = transactions.filter(t => t.id !== transactionId)
+      // 引入交易服务
+      const transactionService = require('../../services/transaction-simple')
       
-      wx.setStorageSync('transactions', filteredTransactions)
+      // 使用交易服务删除交易，确保同步更新账户余额
+      await transactionService.deleteTransaction(transactionId)
       
       showToast('删除成功', 'success')
       this.loadHistoryData()

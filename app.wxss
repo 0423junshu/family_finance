@@ -2,6 +2,93 @@
 @import './styles/variables.wxss';
 @import './styles/common.wxss';
 @import './styles/iconfont.wxss';
+@import './styles/navigation-fix.wxss';
+
+/* TDesign 字体完全本地化 - 彻底阻止远程加载 */
+@font-face {
+  font-family: 't' !important;
+  src: url('/fonts/t.woff') format('woff'), url('data:,') format('woff') !important;
+  font-display: block !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+}
+
+/* 强制覆盖TDesign远程字体 - 优先级最高 */
+@font-face {
+  font-family: 't' !important;
+  src: url('/fonts/t.woff') format('woff') !important;
+  unicode-range: U+0000-FFFF !important;
+  font-display: swap !important;
+}
+
+/* 拦截可能的远程字体URL模式 */
+@font-face {
+  font-family: 't';
+  src: url('data:application/font-woff;charset=utf-8;base64,') format('woff');
+  unicode-range: U+E000-F8FF;
+}
+
+/* 强制覆盖所有可能的 TDesign 字体引用 */
+.t-icon, 
+[class*="t-icon"], 
+.tdesign-icon,
+[class*="tdesign-icon"],
+.t-class-icon,
+[class*="t-class-icon"] {
+  font-family: 't' !important;
+}
+
+/* 阻止远程字体加载 - 创建空的远程字体定义 */
+@font-face {
+  font-family: 't-remote-block';
+  src: url('data:font/woff;base64,') format('woff');
+  unicode-range: U+0000-FFFF;
+}
+
+/* 覆盖可能的远程字体URL */
+@font-face {
+  font-family: 't-gtimg-block';
+  src: url('data:,') format('woff');
+  unicode-range: U+0000-FFFF;
+}
+
+/* 当字体加载失败时的回退样式 */
+.t-icon {
+  font-family: 't-icon', 'iconfont', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 字体加载失败时的文字替代方案 */
+.t-icon[data-fallback]:before {
+  content: attr(data-fallback);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.9em;
+}
+
+/* 字体加载状态指示器 */
+.t-icon-loading {
+  animation: spin 1s linear infinite;
+}
+
+/* 关键图标的手动映射 */
+.t-icon-home:before { content: "🏠"; }
+.t-icon-user:before { content: "👤"; }
+.t-icon-settings:before { content: "⚙️"; }
+.t-icon-add:before { content: "➕"; }
+.t-icon-edit:before { content: "✏️"; }
+.t-icon-delete:before { content: "🗑️"; }
+.t-icon-search:before { content: "🔍"; }
+.t-icon-notification:before { content: "🔔"; }
+.t-icon-arrow:before { content: "➡️"; }
+.t-icon-check:before { content: "✅"; }
+.t-icon-close:before { content: "❌"; }
 
 /* 现代化全局样式 */
 page {

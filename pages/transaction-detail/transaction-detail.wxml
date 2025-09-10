@@ -64,8 +64,8 @@
   </view>
 
   <!-- 删除确认对话框 -->
-  <view wx:if="{{showDeleteConfirm}}" class="dialog-overlay">
-    <view class="dialog">
+  <view wx:if="{{showDeleteConfirm}}" class="dialog-overlay" bindtap="onCancelDelete">
+    <view class="dialog" catchtap="noop">
       <view class="dialog-header">
         <text class="dialog-title">确认删除</text>
       </view>

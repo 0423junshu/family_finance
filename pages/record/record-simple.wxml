@@ -1,0 +1,147 @@
+<!--pages/record/record-simple.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">{{mode === 'create' ? '记一笔' : '编辑交易'}}</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 表单内容 -->
+  <view wx:else class="form-container">
+    <form bindsubmit="onSubmit">
+      
+      <!-- 交易类型选择 -->
+      <view class="form-section">
+        <view class="section-title">交易类型</view>
+        <radio-group class="type-radio-group" name="type" bindchange="onInputChange" data-field="type">
+          <label class="radio-item">
+            <radio value="expense" checked="{{formData.type === 'expense'}}"/>支出
+          </label>
+          <label class="radio-item">
+            <radio value="income" checked="{{formData.type === 'income'}}"/>收入
+          </label>
+          <label class="radio-item">
+            <radio value="transfer" checked="{{formData.type === 'transfer'}}"/>转账
+          </label>
+        </radio-group>
+      </view>
+
+      <!-- 金额输入 -->
+      <view class="form-section">
+        <view class="section-title">金额</view>
+        <input 
+          class="amount-input" 
+          type="digit" 
+          name="amount" 
+          placeholder="请输入金额" 
+          value="{{formData.amount}}"
+          bindinput="onInputChange"
+          data-field="amount"
+        />
+        <view wx:if="{{validationErrors.amount}}" class="error-text">
+          {{validationErrors.amount}}
+        </view>
+      </view>
+
+      <!-- 分类选择 -->
+      <view class="form-section">
+        <view class="section-title">分类</view>
+        <picker 
+          class="category-picker" 
+          range="{{categories}}" 
+          range-key="name"
+          bindchange="onPickerChange"
+          data-field="categoryId"
+        >
+          <view class="picker-value">
+            {{selectedCategory ? selectedCategory.name : '请选择分类'}}
+          </view>
+        </picker>
+        <view wx:if="{{validationErrors.categoryId}}" class="error-text">
+          {{validationErrors.categoryId}}
+        </view>
+      </view>
+
+      <!-- 账户选择 -->
+      <view class="form-section">
+        <view class="section-title">账户</view>
+        <picker 
+          class="account-picker" 
+          range="{{accounts}}" 
+          range-key="name"
+          bindchange="onPickerChange"
+          data-field="accountId"
+        >
+          <view class="picker-value">
+            {{selectedAccount ? selectedAccount.name : '请选择账户'}}
+          </view>
+        </picker>
+        <view wx:if="{{validationErrors.accountId}}" class="error-text">
+          {{validationErrors.accountId}}
+        </view>
+      </view>
+
+      <!-- 转账目标账户（仅转账类型显示） -->
+      <view wx:if="{{formData.type === 'transfer'}}" class="form-section">
+        <view class="section-title">目标账户</view>
+        <picker 
+          class="account-picker" 
+          range="{{accounts}}" 
+          range-key="name"
+          bindchange="onPickerChange"
+          data-field="targetAccountId"
+        >
+          <view class="picker-value">
+            {{selectedTargetAccount ? selectedTargetAccount.name : '请选择目标账户'}}
+          </view>
+        </picker>
+      </view>
+
+      <!-- 日期选择 -->
+      <view class="form-section">
+        <view class="section-title">日期</view>
+        <input 
+          class="date-input" 
+          type="date" 
+          name="date" 
+          value="{{formData.date}}"
+          bindinput="onInputChange"
+          data-field="date"
+        />
+        <view wx:if="{{validationErrors.date}}" class="error-text">
+          {{validationErrors.date}}
+        </view>
+      </view>
+
+      <!-- 描述输入 -->
+      <view class="form-section">
+        <view class="section-title">描述</view>
+        <textarea 
+          class="description-textarea" 
+          name="description" 
+          placeholder="请输入描述（可选）" 
+          value="{{formData.description}}"
+          bindinput="onInputChange"
+          data-field="description"
+        />
+      </view>
+
+      <!-- 提交按钮 -->
+      <view class="form-section">
+        <button 
+          class="submit-button" 
+          form-type="submit" 
+          loading="{{submitting}}"
+          type="primary"
+        >
+          {{submitting ? '提交中...' : (mode === 'create' ? '记一笔' : '更新')}}
+        </button>
+      </view>
+
+    </form>
+  </view>
+</view>

@@ -1,0 +1,210 @@
+<!--pages/conflict-resolution/conflict-resolution.wxml-->
+<navigation-bar title="冲突解决" show-back="{{true}}" />
+
+<view class="page-container">
+  <!-- 冲突列表为空时 -->
+  <t-empty wx:if="{{conflicts.length === 0 && !loading}}" 
+           icon="info-circle" 
+           description="暂无需要解决的冲突" />
+
+  <!-- 加载状态 -->
+  <t-loading wx:if="{{loading}}" theme="circular" size="40rpx" text="加载中..." />
+
+  <!-- 冲突列表 -->
+  <view wx:if="{{conflicts.length > 0}}" class="conflict-list">
+    <view wx:for="{{conflicts}}" wx:key="conflictId" class="conflict-item">
+      <!-- 冲突头部信息 -->
+      <view class="conflict-header" bindtap="toggleConflictDetail" data-index="{{index}}">
+        <view class="conflict-info">
+          <view class="conflict-title">
+            <t-tag theme="{{item.type === 'concurrent_edit' ? 'warning' : 'danger'}}" size="small">
+              {{item.type === 'concurrent_edit' ? '并发编辑' : '版本冲突'}}
+            </t-tag>
+            <text class="conflict-collection">{{item.collection}}</text>
+          </view>
+          <view class="conflict-time">{{item.createdAt}}</view>
+        </view>
+        <view class="conflict-status">
+          <t-tag theme="{{item.status === 'pending' ? 'primary' : 'success'}}" size="small">
+            {{item.status === 'pending' ? '待解决' : '已解决'}}
+          </t-tag>
+        </view>
+      </view>
+
+      <!-- 冲突详情（展开时显示） -->
+      <view wx:if="{{item.expanded}}" class="conflict-detail">
+        <!-- 涉及用户 -->
+        <view class="involved-users">
+          <text class="section-title">涉及用户</text>
+          <view class="user-list">
+            <view wx:for="{{item.involvedUsers}}" wx:for-item="user" wx:key="userId" class="user-item">
+              <t-avatar size="small" image="{{user.avatar}}" />
+              <text class="user-name">{{user.nickname}}</text>
+              <t-tag wx:if="{{user.isOnline}}" theme="success" size="small">在线</t-tag>
+            </view>
+          </view>
+        </view>
+
+        <t-divider />
+
+        <!-- 冲突数据对比 -->
+        <view class="data-comparison">
+          <text class="section-title">数据对比</text>
+          
+          <!-- 版本1 -->
+          <view class="version-block">
+            <view class="version-header">
+              <text class="version-title">版本 A</text>
+              <text class="version-author">{{item.version1.author}}</text>
+              <text class="version-time">{{item.version1.time}}</text>
+            </view>
+            <view class="version-content">
+              <text>{{item.version1.preview}}</text>
+            </view>
+          </view>
+
+          <!-- 版本2 -->
+          <view class="version-block">
+            <view class="version-header">
+              <text class="version-title">版本 B</text>
+              <text class="version-author">{{item.version2.author}}</text>
+              <text class="version-time">{{item.version2.time}}</text>
+            </view>
+            <view class="version-content">
+              <text>{{item.version2.preview}}</text>
+            </view>
+          </view>
+        </view>
+
+        <t-divider />
+
+        <!-- 解决方案选择 -->
+        <view wx:if="{{item.status === 'pending'}}" class="resolution-options">
+          <text class="section-title">选择解决方案</text>
+          
+          <t-radio-group value="{{item.selectedStrategy}}" 
+                         bind:change="onStrategyChange" 
+                         data-conflict-id="{{item.conflictId}}">
+            <t-radio value="last_write_wins" class="strategy-option">
+              <view class="strategy-content">
+                <text class="strategy-title">最后写入获胜</text>
+                <text class="strategy-desc">使用最新修改的版本，覆盖其他版本</text>
+              </view>
+            </t-radio>
+            
+            <t-radio value="merge" class="strategy-option">
+              <view class="strategy-content">
+                <text class="strategy-title">自动合并</text>
+                <text class="strategy-desc">尝试自动合并两个版本的更改</text>
+              </view>
+            </t-radio>
+            
+            <t-radio value="manual" class="strategy-option">
+              <view class="strategy-content">
+                <text class="strategy-title">手动选择</text>
+                <text class="strategy-desc">手动选择要保留的版本</text>
+              </view>
+            </t-radio>
+            
+            <t-radio value="priority_based" class="strategy-option">
+              <view class="strategy-content">
+                <text class="strategy-title">基于权限</text>
+                <text class="strategy-desc">使用权限最高用户的版本</text>
+              </view>
+            </t-radio>
+          </t-radio-group>
+
+          <!-- 手动选择时的版本选择 -->
+          <view wx:if="{{item.selectedStrategy === 'manual'}}" class="manual-selection">
+            <text class="section-title">选择要保留的版本</text>
+            <t-radio-group value="{{item.selectedVersion}}" 
+                           bind:change="onVersionChange" 
+                           data-conflict-id="{{item.conflictId}}">
+              <t-radio value="version1" class="version-option">
+                <view class="version-preview">
+                  <text class="version-label">版本 A ({{item.version1.author}})</text>
+                  <text class="version-content">{{item.version1.preview}}</text>
+                </view>
+              </t-radio>
+              <t-radio value="version2" class="version-option">
+                <view class="version-preview">
+                  <text class="version-label">版本 B ({{item.version2.author}})</text>
+                  <text class="version-content">{{item.version2.preview}}</text>
+                </view>
+              </t-radio>
+            </t-radio-group>
+          </view>
+
+          <!-- 操作按钮 -->
+          <view class="action-buttons">
+            <t-button theme="default" 
+                      size="medium" 
+                      bindtap="ignoreConflict" 
+                      data-conflict-id="{{item.conflictId}}">
+              忽略
+            </t-button>
+            <t-button theme="primary" 
+                      size="medium" 
+                      loading="{{item.resolving}}"
+                      disabled="{{!item.selectedStrategy}}"
+                      bindtap="resolveConflict" 
+                      data-conflict-id="{{item.conflictId}}">
+              {{item.resolving ? '解决中...' : '解决冲突'}}
+            </t-button>
+          </view>
+        </view>
+
+        <!-- 已解决的冲突显示解决结果 -->
+        <view wx:if="{{item.status === 'resolved'}}" class="resolution-result">
+          <text class="section-title">解决结果</text>
+          <view class="result-info">
+            <t-tag theme="success" size="small">{{item.resolutionStrategy}}</t-tag>
+            <text class="result-desc">{{item.resolutionMessage}}</text>
+            <text class="result-time">解决时间：{{item.resolvedAt}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 批量操作 -->
+  <view wx:if="{{conflicts.length > 0}}" class="batch-actions">
+    <t-button theme="default" 
+              size="large" 
+              bindtap="refreshConflicts">
+      刷新列表
+    </t-button>
+    <t-button theme="primary" 
+              size="large" 
+              disabled="{{pendingCount === 0}}"
+              bindtap="showBatchResolveDialog">
+      批量解决 ({{pendingCount}})
+    </t-button>
+  </view>
+</view>
+
+<!-- 批量解决对话框 -->
+<t-dialog visible="{{showBatchDialog}}" 
+          title="批量解决冲突" 
+          confirm-btn="确定" 
+          cancel-btn="取消"
+          bind:confirm="confirmBatchResolve"
+          bind:cancel="cancelBatchResolve">
+  <view class="batch-dialog-content">
+    <text class="dialog-desc">将对所有待解决的冲突应用相同的解决策略：</text>
+    <t-radio-group value="{{batchStrategy}}" bind:change="onBatchStrategyChange">
+      <t-radio value="last_write_wins">最后写入获胜</t-radio>
+      <t-radio value="priority_based">基于权限优先级</t-radio>
+    </t-radio-group>
+  </view>
+</t-dialog>
+
+<!-- 解决结果提示对话框 -->
+<t-dialog visible="{{showResultDialog}}" 
+          title="{{resultDialog.title}}" 
+          confirm-btn="确定"
+          bind:confirm="closeResultDialog">
+  <view class="result-dialog-content">
+    <text>{{resultDialog.message}}</text>
+  </view>
+</t-dialog>

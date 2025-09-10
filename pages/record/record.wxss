@@ -1,6 +1,6 @@
 /* pages/record/record.wxss */
 .page-container {
-  padding-top: 220rpx; /* 增加顶部间距，避免遮挡 */
+  padding-top: 40rpx; /* 统一顶部间距为40rpx */
   padding-bottom: 160rpx;
   min-height: 100vh;
   background: #F8F9FA;
@@ -54,10 +54,10 @@
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
-/* 金额输入区域 - 突出显示 */
+/* 金额输入区域 - 增加高度和优化显示 */
 .amount-section {
   background: linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 100%);
-  padding: 48rpx 32rpx;
+  padding: 80rpx 32rpx; /* 增加上下内边距 */
   border-bottom: 1rpx solid #F0F0F0;
 }
 
@@ -65,7 +65,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
+  height: 160rpx; /* 进一步增加高度 */
 }
 
 .currency-symbol {
@@ -73,6 +74,7 @@
   font-weight: 600;
   color: #007AFF;
   margin-right: 16rpx;
+  line-height: 160rpx; /* 垂直居中 */
 }
 
 .amount-input {
@@ -83,6 +85,9 @@
   border: none;
   background: transparent;
   min-width: 240rpx;
+  height: 160rpx; /* 增加高度 */
+  line-height: 160rpx; /* 垂直居中 */
+  padding: 0 30rpx; /* 增加水平内边距 */
 }
 
 .amount-input.error {
@@ -532,6 +537,8 @@
 }
 
 .tag-item {
+  display: flex;
+  align-items: center;
   padding: 16rpx 24rpx;
   background: #F2F2F7;
   color: #1D1D1F;
@@ -547,8 +554,16 @@
 }
 
 .tag-item.selected {
-  background: #007AFF;
-  color: #FFFFFF;
+  background: #E3F2FD;
+  color: #007AFF;
+  border: 1rpx solid #007AFF;
+}
+
+.tag-badge {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  margin-right: 12rpx;
 }
 
 .tag-check {
@@ -562,6 +577,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.add-tag-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
+  background: #E3F2FD;
+  color: #007AFF;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  font-weight: 500;
 }
 
 /* 新增分类对话框 */

@@ -47,7 +47,7 @@
             <text class="type-icon">{{formData.icon}}</text>
             <text class="type-name">{{currentTypeName}}</text>
           </view>
-          <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+          <text class="arrow-icon">›</text>
         </view>
       </view>
       <view wx:if="{{errors.type}}" class="error-text">{{errors.type}}</view>
@@ -114,7 +114,7 @@
     </view>
   </view>
 
-  <!-- 账户类型选择器 -->
+  <!-- 账户类型选择 -->
   <view wx:if="{{showTypePicker}}" class="picker-overlay" bindtap="onPickerClose">
     <view class="picker-container" catchtap="">
       <view class="picker-header">
@@ -141,7 +141,7 @@
     </view>
   </view>
 
-  <!-- 图标选择器 -->
+  <!-- 图标选择 -->
   <view wx:if="{{showIconPicker}}" class="picker-overlay" bindtap="onPickerClose">
     <view class="picker-container" catchtap="">
       <view class="picker-header">

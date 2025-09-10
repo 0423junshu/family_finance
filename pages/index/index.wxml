@@ -6,6 +6,8 @@
   bind:toggle-amount="onToggleAmount"
 />
 
+
+
 <view class="page-container">
   <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="loading-container">
@@ -59,6 +61,8 @@
       </view>
     </view>
 
+
+
     <!-- 快捷操作 -->
     <view class="quick-actions">
       <view class="action-item" bindtap="onQuickExpense">
@@ -72,6 +76,10 @@
       <view class="action-item" bindtap="onQuickTransfer">
         <view class="action-icon transfer">🔄</view>
         <text class="action-text">账户转账</text>
+      </view>
+      <view wx:if="{{isInFamily}}" class="action-item" bindtap="onViewOperationLogs">
+        <view class="action-icon logs">📋</view>
+        <text class="action-text">操作日志</text>
       </view>
     </view>
 
@@ -94,8 +102,9 @@
         <view 
           wx:for="{{transactions}}" 
           wx:key="id"
-          class="transaction-item"
+          class="transaction-item card-item"
           data-item="{{item}}"
+          data-id="{{item.id}}"
           bindtap="onTransactionTap"
           bindlongpress="onTransactionLongPress"
         >
@@ -127,12 +136,12 @@
   <!-- 新账单提示 -->
   <view wx:if="{{newTransactionCount > 0}}" class="new-transaction-tip" bindtap="onNewTransactionTap">
     <text class="tip-text">新增 {{newTransactionCount}} 条记录</text>
-    <text class="tip-close" bindtap="onCloseTip">×</text>
+    <text class="tip-close" catchtap="onCloseTip">×</text>
   </view>
 
   <!-- 月份选择器 -->
   <view wx:if="{{showMonthPicker}}" class="month-picker-overlay" bindtap="onMonthPickerCancel">
-    <view class="month-picker-container" catchtap="">
+    <view class="month-picker-container" catchtap="noop">
       <view class="month-picker-header">
         <text class="picker-title">选择月份</text>
         <text class="picker-cancel" bindtap="onMonthPickerCancel">取消</text>

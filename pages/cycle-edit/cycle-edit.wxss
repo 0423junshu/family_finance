@@ -1,6 +1,6 @@
 /* pages/cycle-edit/cycle-edit.wxss */
 .page-container {
-  padding-top: 176rpx;
+  padding-top: 20rpx;
   padding-bottom: 160rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
@@ -152,6 +152,9 @@
   width: 32rpx;
   height: 32rpx;
   opacity: 0.6;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #8E8E93;
 }
 
 /* 周期详细设置 */

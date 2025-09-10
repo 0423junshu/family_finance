@@ -2,31 +2,58 @@
 <navigation-bar title="交易记录" showBack="{{true}}" />
 
 <view class="page-container">
-  <!-- 统计概览 -->
-  <view class="stats-overview">
-    <view class="stats-item">
-      <text class="stats-label">收入</text>
-      <text class="stats-value income">¥{{totalIncome}}</text>
-    </view>
-    <view class="stats-item">
-      <text class="stats-label">支出</text>
-      <text class="stats-value expense">¥{{totalExpense}}</text>
-    </view>
-    <view class="stats-item">
-      <text class="stats-label">结余</text>
-      <text class="stats-value {{netAmount >= 0 ? 'income' : 'expense'}}">¥{{netAmount}}</text>
+  <!-- Material Design 统计卡片 -->
+  <view class="md-stats-container">
+    <view class="md-stats-card">
+      <view class="md-stats-header">
+        <text class="md-stats-title">财务概览</text>
+        <text class="md-stats-subtitle">{{statsSubtitle || '本月数据'}}</text>
+      </view>
+      <view class="md-stats-grid">
+        <view class="md-stat-item md-stat-income">
+          <view class="md-stat-icon">
+            <text class="md-icon">↗</text>
+          </view>
+          <view class="md-stat-content">
+            <text class="md-stat-label">收入</text>
+            <text class="md-stat-value">¥{{totalIncome}}</text>
+          </view>
+        </view>
+        <view class="md-stat-item md-stat-expense">
+          <view class="md-stat-icon">
+            <text class="md-icon">↙</text>
+          </view>
+          <view class="md-stat-content">
+            <text class="md-stat-label">支出</text>
+            <text class="md-stat-value">¥{{totalExpense}}</text>
+          </view>
+        </view>
+        <view class="md-stat-item md-stat-balance">
+          <view class="md-stat-icon">
+            <text class="md-icon">≈</text>
+          </view>
+          <view class="md-stat-content">
+            <text class="md-stat-label">结余</text>
+            <text class="md-stat-value {{netAmount >= 0 ? 'positive' : 'negative'}}">¥{{netAmount}}</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 
-  <!-- 筛选工具栏 -->
-  <view class="filter-toolbar">
-    <view class="filter-item" bindtap="showFilterPanel">
-      <image class="filter-icon" src="/images/icons/filter.png" />
-      <text>筛选</text>
+  <!-- 移除时间选择器，采用更简洁的设计 -->
+  
+
+
+  <!-- Material Design 操作栏 -->
+  <view class="md-action-bar">
+    <view class="md-action-chip" bindtap="showFilterPanel" aria-label="筛选交易记录">
+      <text class="md-chip-icon">⚙</text>
+      <text class="md-chip-text">筛选</text>
     </view>
-    <view class="filter-item" bindtap="exportData">
-      <image class="filter-icon" src="/images/icons/export.png" />
-      <text>导出</text>
+    <view class="md-action-chip" bindtap="exportData" aria-label="导出数据">
+      <text class="md-chip-icon">↗</text>
+      <text class="md-chip-text">导出</text>
     </view>
   </view>
 
@@ -55,11 +82,7 @@
         data-id="{{item.id}}"
       >
         <view class="transaction-icon">
-          <image 
-            class="category-icon" 
-            src="/images/categories/{{item.category}}.png" 
-            mode="aspectFit"
-          />
+          <view class="category-text-icon">{{getCategoryAbbr(item.category)}}</view>
         </view>
         <view class="transaction-info">
           <view class="transaction-title">{{item.category}}</view>
@@ -78,7 +101,7 @@
 
   <!-- 筛选面板 -->
   <view wx:if="{{showFilterPanel}}" class="filter-overlay" bindtap="hideFilterPanel">
-    <view class="filter-panel" catchtap="">
+    <view class="filter-panel" catchtap="noop">
       <view class="filter-header">
         <text class="filter-title">筛选条件</text>
         <view class="filter-actions">
@@ -148,12 +171,27 @@
             >
               <text>本年</text>
             </view>
+            <view 
+              class="filter-option {{filters.dateRange === 'custom' ? 'active' : ''}}"
+              data-range="custom"
+              bindtap="onDateRangeFilter"
+            >
+              <text>自定义</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 自定义日期选择器 - 始终显示当前日期范围 -->
+        <view class="filter-section">
+          <text class="filter-section-title">当前日期范围</text>
+          <view class="date-range-display">
+            <text class="date-range-text">{{filters.startDate}} 至 {{filters.endDate}}</text>
           </view>
         </view>
 
         <!-- 自定义日期 -->
         <view wx:if="{{filters.dateRange === 'custom'}}" class="filter-section">
-          <text class="filter-section-title">自定义日期</text>
+          <text class="filter-section-title">自定义日期设置</text>
           <view class="date-range-picker">
             <view class="date-picker-item" data-type="start" bindtap="onCustomDateTap">
               <text class="date-label">开始日期</text>
@@ -166,25 +204,56 @@
           </view>
         </view>
 
-        <!-- 分类筛选 -->
+        <!-- 分类筛选 - 下拉菜单 -->
         <view class="filter-section">
           <text class="filter-section-title">交易分类</text>
-          <view class="category-filter">
+          <view class="dropdown-selector" bindtap="showCategoryDropdown">
+            <text class="dropdown-text">{{filters.category === 'all' ? '全部分类' : filters.category}}</text>
+            <text class="dropdown-arrow">▼</text>
+          </view>
+          <view wx:if="{{showCategoryDropdown}}" class="dropdown-options">
             <view 
-              class="category-option {{filters.category === 'all' ? 'active' : ''}}"
+              class="dropdown-option {{filters.category === 'all' ? 'active' : ''}}"
               data-category="all"
-              bindtap="onCategoryFilter"
+              bindtap="onCategorySelect"
             >
               <text>全部分类</text>
             </view>
             <view 
               wx:for="{{categories}}" 
               wx:key="id"
-              class="category-option {{filters.category === item.name ? 'active' : ''}}"
+              class="dropdown-option {{filters.category === item.name ? 'active' : ''}}"
               data-category="{{item.name}}"
-              bindtap="onCategoryFilter"
+              bindtap="onCategorySelect"
             >
               <text>{{item.name}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 标签筛选 -->
+        <view class="filter-section">
+          <text class="filter-section-title">标签筛选</text>
+          <view class="dropdown-selector" bindtap="showTagDropdown">
+            <text class="dropdown-text">{{filters.tag === 'all' ? '全部标签' : filters.tag}}</text>
+            <text class="dropdown-arrow">▼</text>
+          </view>
+          <view wx:if="{{showTagDropdown}}" class="dropdown-options">
+            <view 
+              class="dropdown-option {{filters.tag === 'all' ? 'active' : ''}}"
+              data-tag="all"
+              bindtap="onTagSelect"
+            >
+              <text>全部标签</text>
+            </view>
+            <view 
+              wx:for="{{availableTags}}" 
+              wx:key="*this"
+              class="dropdown-option {{filters.tag === item ? 'active' : ''}}"
+              data-tag="{{item}}"
+              bindtap="onTagSelect"
+            >
+              <text>{{item}}</text>
             </view>
           </view>
         </view>
@@ -192,13 +261,30 @@
     </view>
   </view>
 
-  <!-- 日期选择器 -->
-  <picker 
-    wx:if="{{showDatePicker}}"
-    mode="date"
-    value="{{datePickerType === 'start' ? filters.startDate : filters.endDate}}"
-    bindchange="onDateChange"
-    bindcancel="onDatePickerCancel"
-  >
-  </picker>
+  <!-- 日期选择器弹窗 - 修复显示和交互问题 -->
+  <view wx:if="{{showDatePicker}}" class="date-picker-overlay" bindtap="onDatePickerCancel">
+    <view class="date-picker-container" catchtap="noop">
+      <view class="date-picker-header">
+        <text class="date-picker-title">{{datePickerType === 'start' ? '选择开始日期' : '选择结束日期'}}</text>
+        <text class="date-picker-close" bindtap="onDatePickerCancel">×</text>
+      </view>
+      <view class="date-picker-content">
+        <picker 
+          mode="date"
+          value="{{datePickerType === 'start' ? filters.startDate : filters.endDate}}"
+          bindchange="onDateChange"
+          class="date-picker-input"
+        >
+          <view class="date-picker-display">
+            <text class="date-picker-text">{{datePickerType === 'start' ? filters.startDate : filters.endDate}}</text>
+            <text class="date-picker-arrow">📅</text>
+          </view>
+        </picker>
+        <view class="date-picker-buttons">
+          <button class="date-picker-btn cancel" bindtap="onDatePickerCancel">取消</button>
+          <button class="date-picker-btn confirm" bindtap="onDatePickerCancel">确定</button>
+        </view>
+      </view>
+    </view>
+  </view>
 </view>

@@ -1,6 +1,7 @@
 // pages/transaction-list/transaction-list-simple.js
 // 简化版交易列表页面
 
+const { formatDate: fmtDate } = require('../../utils/formatter')
 Page({
   data: {
     loading: true,
@@ -70,26 +71,26 @@ Page({
       case 'week':
         const weekStart = new Date(now)
         weekStart.setDate(now.getDate() - now.getDay())
-        startDate = weekStart.toISOString().split('T')[0]
-        endDate = now.toISOString().split('T')[0]
+        startDate = fmtDate(weekStart)
+        endDate = fmtDate(now)
         break
       case 'month':
-        startDate = new Date(year, month, 1).toISOString().split('T')[0]
-        endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
+        startDate = fmtDate(new Date(year, month, 1))
+        endDate = fmtDate(new Date(year, month + 1, 0))
         break
       case 'quarter':
         const quarterMonth = Math.floor(month / 3) * 3
-        startDate = new Date(year, quarterMonth, 1).toISOString().split('T')[0]
-        endDate = new Date(year, quarterMonth + 3, 0).toISOString().split('T')[0]
+        startDate = fmtDate(new Date(year, quarterMonth, 1))
+        endDate = fmtDate(new Date(year, quarterMonth + 3, 0))
         break
       case 'year':
-        startDate = new Date(year, 0, 1).toISOString().split('T')[0]
-        endDate = new Date(year, 11, 31).toISOString().split('T')[0]
+        startDate = fmtDate(new Date(year, 0, 1))
+        endDate = fmtDate(new Date(year, 11, 31))
         break
       case 'custom':
         // 自定义日期范围，默认为当前月
-        startDate = new Date(year, month, 1).toISOString().split('T')[0]
-        endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
+        startDate = fmtDate(new Date(year, month, 1))
+        endDate = fmtDate(new Date(year, month + 1, 0))
         break
     }
     
@@ -176,9 +177,12 @@ Page({
       filtered = filtered.filter(t => t.category === filters.category)
     }
     
-    // 按日期范围筛选
+    // 按日期范围筛选（改为时间戳比较，避免字符串比较误判与时区偏移）
+    const startTime = new Date(`${filters.startDate}T00:00:00`).getTime()
+    const endTime = new Date(`${filters.endDate}T23:59:59`).getTime()
     filtered = filtered.filter(t => {
-      return t.date >= filters.startDate && t.date <= filters.endDate
+      const txTime = new Date(t.date).getTime()
+      return txTime >= startTime && txTime <= endTime
     })
     
     // 计算统计数据

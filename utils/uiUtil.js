@@ -211,10 +211,41 @@ function pageScrollTo(scrollTop, duration = 300) {
  */
 function getSystemInfo() {
   return new Promise((resolve, reject) => {
-    wx.getSystemInfo({
-      success: resolve,
-      fail: reject
-    })
+    // 兼容基础库3.8.12的API调用
+    try {
+      if (wx.getDeviceInfo && wx.getWindowInfo && wx.getSystemSetting) {
+        // 使用新版API组合
+        Promise.all([
+          new Promise((res, rej) => wx.getDeviceInfo({ success: res, fail: rej })),
+          new Promise((res, rej) => wx.getWindowInfo({ success: res, fail: rej })),
+          new Promise((res, rej) => wx.getSystemSetting({ success: res, fail: rej }))
+        ]).then(([deviceInfo, windowInfo, systemSetting]) => {
+          resolve({
+            ...deviceInfo,
+            ...windowInfo,
+            ...systemSetting
+          })
+        }).catch(() => {
+          // 降级到旧版API
+          wx.getSystemInfo({
+            success: resolve,
+            fail: reject
+          })
+        })
+      } else {
+        // 使用旧版API
+        wx.getSystemInfo({
+          success: resolve,
+          fail: reject
+        })
+      }
+    } catch (error) {
+      // 异常情况下的降级处理
+      wx.getSystemInfo({
+        success: resolve,
+        fail: reject
+      })
+    }
   })
 }
 

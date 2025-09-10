@@ -1,0 +1,39 @@
+<!--pages/font-test/font-test.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="title">字体加载测试</text>
+    <text class="subtitle">TDesign图标字体状态检测</text>
+  </view>
+
+  <view class="loading" wx:if="{{isLoading}}">
+    <text class="loading-text">检测中...</text>
+  </view>
+
+  <view class="results" wx:else>
+    <view class="result-item" wx:for="{{testResults}}" wx:key="index">
+      <view class="result-header">
+        <text class="result-name">{{item.name}}</text>
+        <text class="result-status {{item.status === '成功' ? 'success' : 'error'}}">
+          {{item.status}}
+        </text>
+      </view>
+      <text class="result-details">{{item.details}}</text>
+    </view>
+
+    <view class="font-info" wx:if="{{fontStatus}}">
+      <text class="info-title">字体信息</text>
+      <text class="info-item">最后检测时间: {{fontStatus.lastChecked}}</text>
+      <text class="info-item">本地字体: {{fontStatus.hasLocalFont ? '存在' : '不存在'}}</text>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="btn btn-primary" bindtap="onRetry">重新检测</button>
+    <button class="btn btn-secondary" bindtap="onBack">返回</button>
+  </view>
+
+  <!-- 测试元素 -->
+  <view wx:if="{{testElement}}" id="font-test-element" class="t-icon test-element">
+    <text>测试文本</text>
+  </view>
+</view>

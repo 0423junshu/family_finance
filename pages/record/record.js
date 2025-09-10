@@ -17,12 +17,12 @@ Page({
       targetAccountId: '', // 转账目标账户
       date: '',
       description: '',
-      tags: [],
+      tags: [], // 确保初始化为空数组
       images: [],
       location: null
     },
     
-    // 显示数据
+    // 显示数据 - 确保不会设置为undefined
     selectedCategory: null,
     selectedAccount: null,
     selectedTargetAccount: null,
@@ -58,6 +58,21 @@ Page({
     this.initPage(options)
   },
 
+  // 安全的setData方法，防止undefined赋值
+  safeSetData(data) {
+    const cleanData = {}
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) {
+        cleanData[key] = value
+      } else {
+        console.warn(`字段 ${key} 的值为undefined，已跳过设置`)
+      }
+    }
+    if (Object.keys(cleanData).length > 0) {
+      this.setData(cleanData)
+    }
+  },
+
   onShow() {
     this.loadData()
   },
@@ -76,13 +91,19 @@ Page({
     const { mode = 'create', id, type = 'expense' } = options
     const today = new Date().toISOString().split('T')[0]
     
-    this.setData({
+    // 安全设置数据，避免undefined值
+    const updateData = {
       mode,
-      transactionId: id,
       'formData.date': today,
       'formData.type': type,
       hideAmount: getApp().globalData.hideAmount || false
-    })
+    }
+    
+    if (id !== undefined) {
+      updateData.transactionId = id
+    }
+    
+    this.setData(updateData)
 
     if (mode === 'edit' && id) {
       await this.loadTransactionDetail(id)
@@ -118,7 +139,10 @@ Page({
     const selectedCategory = this.data.categories.find(cat => cat._id === this.data.formData.categoryId)
     const selectedAccount = this.data.accounts.find(acc => acc._id === this.data.formData.accountId || acc.id === this.data.formData.accountId)
     const selectedTargetAccount = this.data.accounts.find(acc => acc._id === this.data.formData.targetAccountId || acc.id === this.data.formData.targetAccountId)
-    const selectedTags = this.data.tags.filter(tag => this.data.formData.tags.includes(tag._id))
+    // 确保formData.tags存在，避免TypeError: Cannot read property 'includes' of undefined
+    const selectedTags = this.data.tags.filter(tag => 
+      Array.isArray(this.data.formData.tags) && this.data.formData.tags.includes(tag._id)
+    )
     
     // 处理账户余额显示
     const processedAccounts = this.data.accounts.map(account => ({
@@ -126,13 +150,25 @@ Page({
       balanceDisplay: (account.balance / 100).toFixed(2)
     }))
     
-    this.setData({
-      selectedCategory,
-      selectedAccount,
-      selectedTargetAccount,
-      selectedTags,
+    // 安全设置数据，避免undefined值
+    const updateData = {
       accounts: processedAccounts
-    })
+    }
+    
+    if (selectedCategory !== undefined) {
+      updateData.selectedCategory = selectedCategory
+    }
+    if (selectedAccount !== undefined) {
+      updateData.selectedAccount = selectedAccount
+    }
+    if (selectedTargetAccount !== undefined) {
+      updateData.selectedTargetAccount = selectedTargetAccount
+    }
+    if (selectedTags !== undefined) {
+      updateData.selectedTags = selectedTags
+    }
+    
+    this.setData(updateData)
   },
 
   // 加载分类
@@ -196,15 +232,35 @@ Page({
   // 加载标签
   async loadTags() {
     try {
-      // 这里应该调用实际的API
-      const tags = [
-        { _id: '1', name: '必需品' },
-        { _id: '2', name: '娱乐' },
-        { _id: '3', name: '投资' },
-        { _id: '4', name: '礼品' }
+      // 从本地存储获取自定义标签
+      const customTags = wx.getStorageSync('customTags') || []
+      
+      // 默认标签
+      const defaultTags = [
+        { _id: 'tag_1', name: '必需品', color: '#007AFF', isDefault: true },
+        { _id: 'tag_2', name: '娱乐', color: '#FF6B6B', isDefault: true },
+        { _id: 'tag_3', name: '投资', color: '#32CD32', isDefault: true },
+        { _id: 'tag_4', name: '礼品', color: '#FFD700', isDefault: true }
       ]
       
-      this.setData({ tags })
+      // 合并默认标签和自定义标签
+      const allTags = [...defaultTags, ...customTags]
+      
+      // 如果当前分类有关联的标签，过滤出可用的标签
+      if (this.data.formData.categoryId) {
+        const categoryId = this.data.formData.categoryId
+        const filteredTags = allTags.filter(tag => {
+          // 确保categoryIds存在且是数组，避免undefined.includes错误
+          return !tag.categoryIds || 
+                 !Array.isArray(tag.categoryIds) || 
+                 tag.categoryIds.length === 0 || 
+                 tag.categoryIds.includes(categoryId)
+        })
+        this.setData({ tags: filteredTags })
+      } else {
+        // 没有选择分类时，显示所有标签
+        this.setData({ tags: allTags })
+      }
     } catch (error) {
       console.error('加载标签失败:', error)
     }
@@ -214,22 +270,36 @@ Page({
   async loadTransactionDetail(id) {
     try {
       const transaction = await transactionService.getTransactionDetail(id)
-      
       this.setData({
         formData: {
           ...transaction,
           date: transaction.date.split('T')[0], // 格式化日期
-          amount: (transaction.amount / 100).toString() // 转换为元
+          amount: (transaction.amount / 100).toString(), // 转换为元
+          tags: transaction.tags || [] // 确保tags是数组
         }
       })
-      
       this.updateDisplayData()
     } catch (error) {
       console.error('加载交易详情失败:', error)
-      wx.showToast({
-        title: '加载失败',
-        icon: 'error'
-      })
+      // 本地回退：尝试从本地缓存中查找
+      try {
+        const list = wx.getStorageSync('transactions') || []
+        const tx = list.find(t => String(t.id || t._id) === String(id))
+        if (tx) {
+          this.setData({
+            formData: {
+              ...tx,
+              date: (tx.date || new Date().toISOString()).split('T')[0],
+              amount: ((Number(tx.amount) || 0) / 100).toString(),
+              tags: tx.tags || [] // 确保tags是数组
+            }
+          })
+          this.updateDisplayData()
+          wx.showToast({ title: '已从本地加载', icon: 'success' })
+          return
+        }
+      } catch (_) {}
+      wx.showToast({ title: '加载失败', icon: 'error' })
     }
   },
 
@@ -694,7 +764,7 @@ Page({
       // 返回上一页
       setTimeout(() => {
         wx.navigateBack()
-      }, 1500)
+      }, 800)
     } catch (error) {
       console.error('提交失败:', error)
       wx.showToast({
@@ -706,6 +776,19 @@ Page({
     }
   },
 
+  // 跳转到标签管理页面
+  onManageTagsTap() {
+    wx.navigateTo({
+      url: '/pages/tag-manage/tag-manage',
+      events: {
+        // 页面返回时重新加载标签
+        refreshTags: () => {
+          this.loadTags()
+        }
+      }
+    })
+  },
+
   // 关闭选择器
   onPickerClose() {
     this.setData({
@@ -714,5 +797,8 @@ Page({
       showTagPicker: false,
       showAddCategoryDialog: false
     })
-  }
+  },
+
+  // 阻止冒泡空函数（用于选择器/对话框容器 catchtap）
+  noop() {}
 })

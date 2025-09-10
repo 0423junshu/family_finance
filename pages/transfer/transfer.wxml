@@ -4,7 +4,7 @@
 <view class="page-container">
   <view wx:if="{{loading}}" class="loading-container">
     <view class="loading-spinner"></view>
-    <text class="loading-text">加载中...</text>
+    <text class="loading-text">加载�?..</text>
   </view>
   
   <view wx:else class="content">
@@ -32,7 +32,7 @@
       <!-- 转出账户 -->
       <view class="form-item" bindtap="onFromAccountTap">
         <view class="form-label">
-          <image class="form-icon" src="/images/icons/account-out.png" />
+          <text class="form-icon">📤</text>
           <text>转出账户</text>
         </view>
         <view class="form-value">
@@ -41,20 +41,20 @@
             <text class="account-balance">余额: {{fromAccount.balanceDisplay}}</text>
           </view>
           <text wx:else class="placeholder-text">请选择转出账户</text>
-          <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+          <text class="arrow-icon">›</text>
         </view>
       </view>
       <view wx:if="{{errors.fromAccountId}}" class="error-text">{{errors.fromAccountId}}</view>
 
       <!-- 转账箭头 -->
       <view class="transfer-arrow">
-        <image class="arrow-down-icon" src="/images/icons/arrow-down.png" />
+        <text class="arrow-down-icon">⬇️</text>
       </view>
 
       <!-- 转入账户 -->
       <view class="form-item" bindtap="onToAccountTap">
         <view class="form-label">
-          <image class="form-icon" src="/images/icons/account-in.png" />
+          <text class="form-icon">📥</text>
           <text>转入账户</text>
         </view>
         <view class="form-value">
@@ -63,7 +63,7 @@
             <text class="account-balance">余额: {{toAccount.balanceDisplay}}</text>
           </view>
           <text wx:else class="placeholder-text">请选择转入账户</text>
-          <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+          <text class="arrow-icon">›</text>
         </view>
       </view>
       <view wx:if="{{errors.toAccountId}}" class="error-text">{{errors.toAccountId}}</view>
@@ -71,7 +71,7 @@
       <!-- 日期选择 -->
       <view class="form-item">
         <view class="form-label">
-          <image class="form-icon" src="/images/icons/calendar.png" />
+          <text class="form-icon">📅</text>
           <text>转账日期</text>
         </view>
         <view class="form-value">
@@ -84,7 +84,7 @@
       <!-- 备注输入 -->
       <view class="form-item">
         <view class="form-label">
-          <image class="form-icon" src="/images/icons/note.png" />
+          <text class="form-icon">📝</text>
           <text>备注</text>
         </view>
         <view class="form-value">
@@ -106,19 +106,19 @@
         bindtap="onSubmit"
         disabled="{{submitting}}"
       >
-        <text wx:if="{{submitting}}">转账中...</text>
+        <text wx:if="{{submitting}}">转账�?..</text>
         <text wx:else>确认转账</text>
       </button>
     </view>
   </view>
 
-  <!-- 转出账户选择器 -->
+  <!-- 转出账户选择�?-->
   <view wx:if="{{showFromAccountPicker}}" class="picker-overlay" bindtap="onPickerClose">
     <view class="picker-container" catchtap="">
       <view class="picker-header">
         <text class="picker-title">选择转出账户</text>
         <view class="picker-close" bindtap="onPickerClose">
-          <image class="close-icon" src="/images/icons/close.png" />
+          <text class="close-icon">✕</text>
         </view>
       </view>
       <view class="picker-content">
@@ -133,19 +133,19 @@
             <text class="account-name">{{item.name}}</text>
             <text class="account-balance">余额: {{item.balanceDisplay}}</text>
           </view>
-          <image wx:if="{{item._id === formData.fromAccountId}}" class="check-icon" src="/images/icons/check.png" />
+          <text wx:if="{{item._id === formData.fromAccountId}}" class="check-icon">✓</text>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 转入账户选择器 -->
+  <!-- 转入账户选择�?-->
   <view wx:if="{{showToAccountPicker}}" class="picker-overlay" bindtap="onPickerClose">
     <view class="picker-container" catchtap="">
       <view class="picker-header">
         <text class="picker-title">选择转入账户</text>
         <view class="picker-close" bindtap="onPickerClose">
-          <image class="close-icon" src="/images/icons/close.png" />
+          <text class="close-icon">✕</text>
         </view>
       </view>
       <view class="picker-content">
@@ -161,7 +161,7 @@
             <text class="account-name">{{item.name}}</text>
             <text class="account-balance">余额: {{item.balanceDisplay}}</text>
           </view>
-          <image wx:if="{{item._id === formData.toAccountId}}" class="check-icon" src="/images/icons/check.png" />
+          <text wx:if="{{item._id === formData.toAccountId}}" class="check-icon">✓</text>
         </view>
       </view>
     </view>

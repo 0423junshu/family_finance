@@ -39,7 +39,7 @@
             <text class="type-icon">{{currentTypeIcon}}</text>
             <text class="type-name">{{currentTypeName}}</text>
           </view>
-          <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+          <text class="arrow-icon">›</text>
         </view>
       </view>
       <view wx:if="{{errors.type}}" class="error-text">{{errors.type}}</view>
@@ -49,11 +49,11 @@
         <!-- 每周设置 -->
         <view wx:if="{{formData.type === 'weekly'}}" class="form-item" bindtap="showDayPicker">
           <view class="form-label">
-            <text class="label-text">星期几</text>
+            <text class="label-text">星期</text>
           </view>
           <view class="form-value">
             <text class="selected-text">{{currentDayName}}</text>
-            <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+            <text class="arrow-icon">›</text>
           </view>
         </view>
 
@@ -102,7 +102,7 @@
         </view>
         <view class="form-value" bindtap="showTimePicker">
           <text class="selected-text">{{formData.time}}</text>
-          <image class="arrow-icon" src="/images/icons/arrow-right.png" />
+          <text class="arrow-icon">›</text>
         </view>
       </view>
       <view wx:if="{{errors.time}}" class="error-text">{{errors.time}}</view>
@@ -160,7 +160,7 @@
     </view>
   </view>
 
-  <!-- 周期类型选择器 -->
+  <!-- 周期类型选择 -->
   <view wx:if="{{showTypePicker}}" class="picker-overlay" bindtap="onPickerClose">
     <view class="picker-container" catchtap="">
       <view class="picker-header">
@@ -187,7 +187,7 @@
     </view>
   </view>
 
-  <!-- 星期选择器 -->
+  <!-- 星期选择 -->
   <view wx:if="{{showDayPicker}}" class="picker-overlay" bindtap="onPickerClose">
     <view class="picker-container" catchtap="">
       <view class="picker-header">
@@ -211,7 +211,7 @@
     </view>
   </view>
 
-  <!-- 时间选择器 -->
+  <!-- 时间选择 -->
   <picker 
     wx:if="{{showTimePicker}}"
     mode="time"

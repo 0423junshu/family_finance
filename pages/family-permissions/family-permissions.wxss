@@ -1,0 +1,686 @@
+/* pages/family-permissions/family-permissions.wxss */
+
+.page-container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 标签页样式 */
+.permission-tabs {
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.tab-content {
+  padding: 20rpx;
+}
+
+/* 卡片通用样式 */
+.card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx 32rpx 16rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* 成员管理 */
+.members-list {
+  padding: 0 32rpx 32rpx;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #f8f8f8;
+  transition: all 0.3s ease;
+  border-radius: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.member-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.member-item.selected {
+  background: #e6f7ff;
+  border-color: #1890ff;
+  padding-left: 16rpx;
+  padding-right: 16rpx;
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.member-details {
+  margin-left: 24rpx;
+  flex: 1;
+}
+
+.member-name {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 8rpx;
+}
+
+.member-meta {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.join-date {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.member-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.online-status {
+  font-size: 24rpx;
+  color: #52c41a;
+  padding: 4rpx 12rpx;
+  background: #f6ffed;
+  border-radius: 12rpx;
+}
+
+.offline-status {
+  font-size: 24rpx;
+  color: #999999;
+  padding: 4rpx 12rpx;
+  background: #f5f5f5;
+  border-radius: 12rpx;
+}
+
+/* 快捷权限设置 */
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 0 32rpx 32rpx;
+}
+
+.quick-action {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: #fafafa;
+  border-radius: 12rpx;
+  transition: all 0.3s ease;
+}
+
+.quick-action:active {
+  background: #f0f0f0;
+  transform: scale(0.98);
+}
+
+.action-icon {
+  font-size: 40rpx;
+  margin-right: 24rpx;
+  width: 60rpx;
+  text-align: center;
+}
+
+.action-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 4rpx;
+}
+
+.action-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.4;
+}
+
+/* 角色模板 */
+.role-list {
+  padding: 0 32rpx 32rpx;
+}
+
+.role-item {
+  padding: 24rpx;
+  border: 1rpx solid #f0f0f0;
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+  transition: all 0.3s ease;
+}
+
+.role-item:active {
+  border-color: #1890ff;
+  background: #fafafa;
+}
+
+.role-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16rpx;
+}
+
+.role-info {
+  flex: 1;
+}
+
+.role-name {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8rpx;
+}
+
+.role-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.4;
+}
+
+.role-badge {
+  background: #f0f0f0;
+  padding: 8rpx 16rpx;
+  border-radius: 16rpx;
+}
+
+.member-count {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.role-permissions-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.permission-tag {
+  font-size: 22rpx;
+  color: #1890ff;
+  background: #e6f7ff;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+}
+
+/* 权限矩阵 */
+.permissions-matrix {
+  padding: 0 32rpx 32rpx;
+}
+
+.matrix-controls {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.permission-category {
+  margin-bottom: 24rpx;
+  border: 1rpx solid #f0f0f0;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx;
+  background: #fafafa;
+  cursor: pointer;
+}
+
+.category-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.category-icon {
+  font-size: 28rpx;
+}
+
+.category-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.category-count {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.category-permissions {
+  background: #ffffff;
+}
+
+.permission-header {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  background: #f8f8f8;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.permission-name-header {
+  flex: 2;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #666666;
+}
+
+.role-header {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.permission-row {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid #f8f8f8;
+}
+
+.permission-row:last-child {
+  border-bottom: none;
+}
+
+.permission-info {
+  flex: 2;
+}
+
+.permission-name {
+  display: block;
+  font-size: 28rpx;
+  color: #1a1a1a;
+  margin-bottom: 4rpx;
+}
+
+.permission-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #999999;
+  line-height: 1.4;
+}
+
+.permission-switches {
+  flex: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+/* 权限说明 */
+.help-content {
+  padding: 0 32rpx 32rpx;
+}
+
+.help-item {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f8f8f8;
+}
+
+.help-item:last-child {
+  border-bottom: none;
+}
+
+.help-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 8rpx;
+}
+
+.help-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.5;
+}
+
+/* 成员编辑弹窗 */
+.member-edit-popup {
+  width: 100vw;
+  max-height: 80vh;
+  background: #ffffff;
+  border-radius: 24rpx 24rpx 0 0;
+  overflow: hidden;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.popup-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.edit-content {
+  padding: 32rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.edit-member-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32rpx;
+  padding: 24rpx;
+  background: #fafafa;
+  border-radius: 12rpx;
+}
+
+.edit-member-details {
+  margin-left: 24rpx;
+}
+
+.edit-member-name {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8rpx;
+}
+
+.edit-member-role {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+}
+
+.edit-section {
+  margin-bottom: 32rpx;
+}
+
+.section-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 16rpx;
+}
+
+.custom-permissions {
+  border: 1rpx solid #f0f0f0;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.edit-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-top: 32rpx;
+}
+
+/* 批量编辑弹窗 */
+.batch-edit-popup {
+  width: 600rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.batch-content {
+  padding: 32rpx;
+}
+
+.batch-desc {
+  font-size: 28rpx;
+  color: #666666;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.batch-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.batch-action-btn {
+  width: 100%;
+}
+
+.popup-actions {
+  padding: 24rpx 32rpx 32rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+/* 动画效果 */
+.member-item {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.role-item {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.permission-category {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 响应式适配 */
+@media (max-width: 375px) {
+  .permission-header {
+    padding: 12rpx 16rpx;
+  }
+  
+  .permission-name-header {
+    font-size: 24rpx;
+  }
+  
+  .role-header {
+    font-size: 22rpx;
+  }
+  
+  .permission-row {
+    padding: 16rpx;
+  }
+  
+  .permission-name {
+    font-size: 26rpx;
+  }
+  
+  .permission-desc {
+    font-size: 22rpx;
+  }
+  
+  .batch-edit-popup {
+    width: 90vw;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .page-container {
+    background-color: #1a1a1a;
+  }
+  
+  .card {
+    background: #2a2a2a;
+    box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.3);
+  }
+  
+  .card-title {
+    color: #ffffff;
+  }
+  
+  .member-name {
+    color: #ffffff;
+  }
+  
+  .role-name {
+    color: #ffffff;
+  }
+  
+  .category-name {
+    color: #ffffff;
+  }
+  
+  .permission-name {
+    color: #ffffff;
+  }
+  
+  .help-title {
+    color: #ffffff;
+  }
+  
+  .help-desc {
+    color: #cccccc;
+  }
+  
+  .member-edit-popup,
+  .batch-edit-popup {
+    background: #2a2a2a;
+  }
+  
+  .popup-title {
+    color: #ffffff;
+  }
+  
+  .edit-member-name {
+    color: #ffffff;
+  }
+  
+  .section-title {
+    color: #ffffff;
+  }
+  
+  .quick-action {
+    background: #3a3a3a;
+  }
+  
+  .quick-action:active {
+    background: #4a4a4a;
+  }
+  
+  .action-title {
+    color: #ffffff;
+  }
+  
+  .action-desc {
+    color: #cccccc;
+  }
+}
+
+/* 特殊状态 */
+.member-item:hover {
+  background: #f8f8f8;
+}
+
+.member-item.selected:hover {
+  background: #d6f3ff;
+}
+
+.role-item:hover {
+  background: #f8f8f8;
+}
+
+.category-header:hover {
+  background: #f0f0f0;
+}
+
+/* 加载状态 */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 滚动条样式 */
+.edit-content::-webkit-scrollbar {
+  width: 6rpx;
+}
+
+.edit-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3rpx;
+}
+
+.edit-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3rpx;
+}
+
+.edit-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

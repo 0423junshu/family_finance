@@ -1,0 +1,18 @@
+{
+    "usingComponents": {
+        "t-button": "tdesign-miniprogram/button/button",
+        "t-cell": "tdesign-miniprogram/cell/cell",
+        "t-cell-group": "tdesign-miniprogram/cell-group/cell-group",
+        "t-switch": "tdesign-miniprogram/switch/switch",
+        "t-tag": "tdesign-miniprogram/tag/tag",
+        "t-avatar": "tdesign-miniprogram/avatar/avatar",
+        "t-dialog": "tdesign-miniprogram/dialog/dialog",
+        "t-toast": "tdesign-miniprogram/toast/toast",
+        "t-tabs": "tdesign-miniprogram/tabs/tabs",
+        "t-tab-panel": "tdesign-miniprogram/tab-panel/tab-panel",
+        "t-popup": "tdesign-miniprogram/popup/popup",
+        "t-radio": "tdesign-miniprogram/radio/radio",
+        "t-radio-group": "tdesign-miniprogram/radio-group/radio-group",
+        "navigation-bar": "/components/navigation-bar/navigation-bar"
+    }
+}
