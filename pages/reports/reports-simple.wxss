@@ -773,12 +773,41 @@
 }
 
 .confirm-button {
+  display: block;
+  width: 100%;
   margin-top: 30rpx;
-  background-color: #007AFF;
+  background: linear-gradient(135deg, #007AFF 0%, #0056d3 100%);
   color: #fff;
-  font-size: 28rpx;
-  padding: 20rpx 0;
-  border-radius: 8rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  padding: 24rpx 0;
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 122, 255, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  text-align: center;
+}
+
+.confirm-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 140%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  transition: left 0.5s;
+}
+
+.confirm-button:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 16rpx rgba(0, 122, 255, 0.4);
+}
+
+.confirm-button:active::before {
+  left: 100%;
 }
 
 /* 禁用状态的tab样式 */

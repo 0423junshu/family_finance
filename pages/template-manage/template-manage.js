@@ -47,15 +47,31 @@ Page({
     })
 
     try {
-      // 跳转到记账页面，并传递模板数据 - 使用小程序兼容的方式
+      // 跳转到记账页面，并传递模板数据
+      console.log('使用模板数据:', template)
+      
       const params = []
-      if (template.type) params.push(`type=${encodeURIComponent(template.type)}`)
-      if (template.amount) params.push(`amount=${encodeURIComponent((template.amount / 100).toString())}`)
-      if (template.categoryId) params.push(`categoryId=${encodeURIComponent(template.categoryId)}`)
-      if (template.accountId) params.push(`accountId=${encodeURIComponent(template.accountId)}`)
-      if (template.name) params.push(`description=${encodeURIComponent(template.name)}`)
+      if (template.type) {
+        params.push(`type=${template.type}`)
+      }
+      if (template.amount) {
+        // 金额转换为元
+        const amountInYuan = (template.amount / 100).toFixed(2)
+        params.push(`amount=${amountInYuan}`)
+      }
+      if (template.categoryId) {
+        params.push(`categoryId=${template.categoryId}`)
+      }
+      if (template.accountId) {
+        params.push(`accountId=${template.accountId}`)
+      }
+      if (template.name) {
+        // 使用简单的字符串传递，避免编码问题
+        params.push(`templateName=${encodeURIComponent(template.name)}`)
+      }
       
       const queryString = params.join('&')
+      console.log('跳转参数:', queryString)
       
       wx.navigateTo({
         url: `/pages/record/record${queryString ? '?' + queryString : ''}`,

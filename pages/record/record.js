@@ -96,7 +96,8 @@ Page({
       amount,
       categoryId,
       accountId,
-      description
+      description,
+      templateName
     } = options
     const today = new Date().toISOString().split('T')[0]
     
@@ -112,20 +113,30 @@ Page({
     
     // 如果有模板参数，填充表单数据
     if (amount) {
-      updateData['formData.amount'] = amount
-      console.log('设置模板金额:', amount)
+      // 确保金额格式正确
+      const amountValue = parseFloat(amount)
+      if (!isNaN(amountValue)) {
+        updateData['formData.amount'] = amountValue.toFixed(2)
+        console.log('设置模板金额:', amountValue.toFixed(2))
+      }
     }
     if (categoryId) {
+      // 直接使用传递的categoryId，不需要解码
       updateData['formData.categoryId'] = categoryId
       console.log('设置模板分类ID:', categoryId)
     }
     if (accountId) {
+      // 直接使用传递的accountId，不需要解码
       updateData['formData.accountId'] = accountId
       console.log('设置模板账户ID:', accountId)
     }
     if (description) {
-      updateData['formData.description'] = description
-      console.log('设置模板描述:', description)
+      updateData['formData.description'] = decodeURIComponent(description)
+      console.log('设置模板描述:', decodeURIComponent(description))
+    }
+    if (templateName) {
+      updateData['formData.description'] = decodeURIComponent(templateName)
+      console.log('设置模板名称为描述:', decodeURIComponent(templateName))
     }
     
     if (id !== undefined) {
@@ -133,6 +144,11 @@ Page({
     }
     
     this.setData(updateData)
+    
+    console.log('=== 模板参数处理完成 ===')
+    console.log('原始参数:', options)
+    console.log('处理后的表单数据:', updateData)
+    console.log('当前formData状态:', this.data.formData)
 
     // 先加载数据，再更新显示
     await this.loadData()
@@ -141,7 +157,17 @@ Page({
       await this.loadTransactionDetail(id)
     } else if (mode === 'create') {
       // 创建模式下，确保模板数据正确显示
+      // 立即更新一次，然后延迟再次更新确保数据完全加载
       this.updateDisplayData()
+      
+      setTimeout(() => {
+        this.updateDisplayData()
+        console.log('模板数据应用完成，当前表单状态:', this.data.formData)
+        console.log('当前显示状态:', {
+          selectedCategory: this.data.selectedCategory,
+          selectedAccount: this.data.selectedAccount
+        })
+      }, 200)
     }
   },
 
@@ -157,7 +183,11 @@ Page({
       ]
       
       await Promise.all(promises)
-      this.updateDisplayData()
+      // 如果是创建模式且有模板参数，再次更新显示数据
+      if (this.data.mode === 'create' && (this.data.formData.categoryId || this.data.formData.accountId)) {
+        console.log('数据加载完成，重新应用模板数据')
+        this.updateDisplayData()
+      }
     } catch (error) {
       console.error('加载数据失败:', error)
       wx.showToast({
@@ -171,9 +201,19 @@ Page({
 
   // 更新显示数据
   updateDisplayData() {
-    const selectedCategory = this.data.categories.find(cat => cat._id === this.data.formData.categoryId)
-    const selectedAccount = this.data.accounts.find(acc => acc._id === this.data.formData.accountId || acc.id === this.data.formData.accountId)
-    const selectedTargetAccount = this.data.accounts.find(acc => acc._id === this.data.formData.targetAccountId || acc.id === this.data.formData.targetAccountId)
+    console.log('更新显示数据，当前表单数据:', this.data.formData)
+    console.log('可用分类:', this.data.categories)
+    console.log('可用账户:', this.data.accounts)
+    
+    const selectedCategory = this.data.categories.find(cat => 
+      cat._id === this.data.formData.categoryId || cat.id === this.data.formData.categoryId
+    )
+    const selectedAccount = this.data.accounts.find(acc => 
+      acc._id === this.data.formData.accountId || acc.id === this.data.formData.accountId
+    )
+    const selectedTargetAccount = this.data.accounts.find(acc => 
+      acc._id === this.data.formData.targetAccountId || acc.id === this.data.formData.targetAccountId
+    )
     // 确保formData.tags存在，避免TypeError: Cannot read property 'includes' of undefined
     const selectedTags = this.data.tags.filter(tag => 
       Array.isArray(this.data.formData.tags) && this.data.formData.tags.includes(tag._id)
@@ -192,17 +232,30 @@ Page({
     
     if (selectedCategory !== undefined) {
       updateData.selectedCategory = selectedCategory
-      console.log('更新显示分类:', selectedCategory.name)
+      console.log('更新显示分类:', selectedCategory?.name)
+    } else {
+      updateData.selectedCategory = null
+      console.log('未找到匹配的分类，categoryId:', this.data.formData.categoryId)
     }
+    
     if (selectedAccount !== undefined) {
       updateData.selectedAccount = selectedAccount
-      console.log('更新显示账户:', selectedAccount.name)
+      console.log('更新显示账户:', selectedAccount?.name)
+    } else {
+      updateData.selectedAccount = null
+      console.log('未找到匹配的账户，accountId:', this.data.formData.accountId)
     }
+    
     if (selectedTargetAccount !== undefined) {
       updateData.selectedTargetAccount = selectedTargetAccount
+    } else {
+      updateData.selectedTargetAccount = null
     }
+    
     if (selectedTags !== undefined) {
       updateData.selectedTags = selectedTags
+    } else {
+      updateData.selectedTags = []
     }
     
     this.setData(updateData)

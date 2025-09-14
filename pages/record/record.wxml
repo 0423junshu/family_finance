@@ -1,12 +1,12 @@
 <!-- pages/record/record.wxml -->
-<view class="safe-area-wrapper safe-area-white">
+<page-meta>
   <navigation-bar 
     title="{{mode === 'create' ? '记一笔' : '编辑记录'}}" 
     show-back="{{true}}" 
     show-hide-amount="{{true}}"
     class="transparent-navbar"
   />
-</view>
+</page-meta>
 
 <view class="page-container">
   <view wx:if="{{loading}}" class="loading">

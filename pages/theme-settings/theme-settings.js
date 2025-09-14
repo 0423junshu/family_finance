@@ -104,21 +104,50 @@ Page({
   // 立即应用主题到当前页面
   applyThemeToCurrentPage(themeId) {
     try {
-      const theme = themeService.getThemeById(themeId)
-      if (theme && theme.colors) {
-        // 更新页面根元素的CSS变量
+      // 直接设置主题并应用
+      themeService.setTheme(themeId)
+      
+      // 获取当前主题对象
+      const theme = themeService.getCurrentTheme()
+      if (theme) {
+        // 更新页面数据以触发重新渲染
         const pages = getCurrentPages()
         const currentPage = pages[pages.length - 1]
         if (currentPage) {
-          // 触发页面重新渲染
           currentPage.setData({
-            themeColors: theme.colors,
-            currentTheme: theme
+            currentTheme: theme,
+            themeId: themeId,
+            previewStyle: `
+              background-color: ${theme.backgroundColor};
+              color: ${theme.textColor};
+            `,
+            previewCardStyle: `
+              background-color: ${theme.cardBackgroundColor || '#ffffff'};
+              color: ${theme.textColor};
+              border-color: ${theme.borderColor || '#e0e0e0'};
+            `,
+            previewButtonStyle: `
+              background-color: ${theme.primaryColor};
+              color: #ffffff;
+            `
           })
         }
         
         // 触发全局主题应用
         themeService.applyTheme()
+        
+        // 更新页面背景色
+        wx.setBackgroundColor({
+          backgroundColor: theme.backgroundColor,
+          backgroundColorTop: theme.backgroundColor,
+          backgroundColorBottom: theme.backgroundColor
+        });
+        
+        // 更新全局应用数据
+        const app = getApp()
+        if (app.globalData) {
+          app.globalData.currentTheme = themeId
+        }
       }
     } catch (error) {
       console.error('应用主题到当前页面失败:', error)
@@ -176,9 +205,14 @@ Page({
       const success = themeService.setFontSize(fontSizeId)
       
       if (success) {
+        const fontSize = themeService.getCurrentFontSize()
+        
         this.setData({
           currentFontSizeId: fontSizeId
         })
+        
+        // 实时更新预览效果
+        this.updatePreviewEffect()
         
         showToast('字体大小已调整', 'success')
       } else {
@@ -187,6 +221,37 @@ Page({
     } catch (error) {
       console.error('调整字体大小失败:', error)
       showToast('调整失败', 'error')
+    }
+  },
+
+  // 更新预览效果
+  updatePreviewEffect() {
+    try {
+      const theme = themeService.getCurrentTheme()
+      const fontSize = themeService.getCurrentFontSize()
+      
+      if (theme && fontSize) {
+        this.setData({
+          previewStyle: `
+            background-color: ${theme.backgroundColor};
+            color: ${theme.textColor};
+            font-size: ${fontSize.size}px;
+          `,
+          previewCardStyle: `
+            background-color: ${theme.cardBackgroundColor || '#ffffff'};
+            color: ${theme.textColor};
+            border-color: ${theme.borderColor || '#e0e0e0'};
+            font-size: ${fontSize.size}px;
+          `,
+          previewButtonStyle: `
+            background-color: ${theme.primaryColor};
+            color: #ffffff;
+            font-size: ${fontSize.size}px;
+          `
+        })
+      }
+    } catch (error) {
+      console.error('更新预览效果失败:', error)
     }
   },
 

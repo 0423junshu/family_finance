@@ -1,7 +1,7 @@
 <!-- pages/template-manage/template-manage.wxml -->
-<view class="safe-area-wrapper safe-area-white">
+<page-meta>
   <navigation-bar title="记账模板" show-back="{{true}}" class="transparent-navbar" />
-</view>
+</page-meta>
 
 <!-- 操作指引浮层 -->
 <view wx:if="{{showGuide}}" class="guide-overlay" bindtap="hideGuide">
