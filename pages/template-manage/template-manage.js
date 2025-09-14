@@ -1,57 +1,30 @@
 // pages/template-manage/template-manage.js
 Page({
   data: {
-    templates: [
-      {
-        id: '1',
-        name: '早餐',
-        type: 'expense',
-        amount: 1500,
-        categoryId: '1',
-        categoryName: '餐饮',
-        accountId: '1',
-        accountName: '现金',
-        icon: '🍳'
-      },
-      {
-        id: '2',
-        name: '午餐',
-        type: 'expense',
-        amount: 2500,
-        categoryId: '1',
-        categoryName: '餐饮',
-        accountId: '2',
-        accountName: '支付宝',
-        icon: '🍽️'
-      },
-      {
-        id: '3',
-        name: '工资',
-        type: 'income',
-        amount: 800000,
-        categoryId: '3',
-        categoryName: '工资',
-        accountId: '2',
-        accountName: '招商银行',
-        icon: '💰'
-      }
-    ]
+    templates: [],
+    showGuide: false
   },
 
   onLoad() {
     this.loadTemplates()
+    // 检查是否需要显示指引
+    this.checkShowGuide()
   },
 
-  // 加载模板
+  onShow() {
+    // 返回本页时刷新一次，确保在编辑/新增后立即可见
+    this.loadTemplates()
+  },
+
+  // 加载模板（仅从 storage 读取，不写入默认样例，防止覆盖用户数据）
   loadTemplates() {
-    const templates = wx.getStorageSync('templates') || this.data.templates
-    
-    // 格式化显示数据
-    const formattedTemplates = templates.map(item => ({
+    const templates = wx.getStorageSync('templates') || []
+    // 空态时提供一个轻量引导（不写回存储）
+    const source = Array.isArray(templates) ? templates : []
+    const formattedTemplates = source.map(item => ({
       ...item,
       amountDisplay: (item.amount / 100).toFixed(2)
     }))
-    
     this.setData({ templates: formattedTemplates })
   },
 
@@ -60,18 +33,54 @@ Page({
     const templateId = e.currentTarget.dataset.id
     const template = this.data.templates.find(t => t.id === templateId)
     
-    if (template) {
-      // 跳转到记账页面，并传递模板数据
-      const params = new URLSearchParams({
-        type: template.type,
-        amount: (template.amount / 100).toString(),
-        categoryId: template.categoryId,
-        accountId: template.accountId,
-        description: template.name
-      }).toString()
+    if (!template) {
+      wx.showToast({
+        title: '模板不存在',
+        icon: 'error'
+      })
+      return
+    }
+
+    // 显示加载提示
+    wx.showLoading({
+      title: '正在跳转...'
+    })
+
+    try {
+      // 跳转到记账页面，并传递模板数据 - 使用小程序兼容的方式
+      const params = []
+      if (template.type) params.push(`type=${encodeURIComponent(template.type)}`)
+      if (template.amount) params.push(`amount=${encodeURIComponent((template.amount / 100).toString())}`)
+      if (template.categoryId) params.push(`categoryId=${encodeURIComponent(template.categoryId)}`)
+      if (template.accountId) params.push(`accountId=${encodeURIComponent(template.accountId)}`)
+      if (template.name) params.push(`description=${encodeURIComponent(template.name)}`)
+      
+      const queryString = params.join('&')
       
       wx.navigateTo({
-        url: `/pages/record/record?${params}`
+        url: `/pages/record/record${queryString ? '?' + queryString : ''}`,
+        success: () => {
+          wx.hideLoading()
+          wx.showToast({
+            title: '模板已应用',
+            icon: 'success'
+          })
+        },
+        fail: (error) => {
+          wx.hideLoading()
+          console.error('跳转失败:', error)
+          wx.showToast({
+            title: '跳转失败',
+            icon: 'error'
+          })
+        }
+      })
+    } catch (error) {
+      wx.hideLoading()
+      console.error('使用模板失败:', error)
+      wx.showToast({
+        title: '操作失败',
+        icon: 'error'
       })
     }
   },
@@ -79,29 +88,24 @@ Page({
   // 编辑模板
   onEditTemplate(e) {
     const templateId = e.currentTarget.dataset.id
-    wx.showToast({
-      title: '模板编辑功能开发中',
-      icon: 'none'
+    wx.navigateTo({
+      url: `/pages/template-edit/template-edit?mode=edit&id=${templateId}`
     })
   },
 
   // 删除模板
   onDeleteTemplate(e) {
     const templateId = e.currentTarget.dataset.id
-    
     wx.showModal({
       title: '提示',
       content: '确定要删除这个模板吗？',
       success: (res) => {
         if (res.confirm) {
-          const templates = this.data.templates.filter(t => t.id !== templateId)
-          this.setData({ templates })
-          wx.setStorageSync('templates', templates)
-          
-          wx.showToast({
-            title: '删除成功',
-            icon: 'success'
-          })
+          const remain = (wx.getStorageSync('templates') || []).filter(t => t.id !== templateId)
+          wx.setStorageSync('templates', remain)
+          const formatted = remain.map(item => ({ ...item, amountDisplay: (item.amount / 100).toFixed(2) }))
+          this.setData({ templates: formatted })
+          wx.showToast({ title: '删除成功', icon: 'success' })
         }
       }
     })
@@ -112,5 +116,36 @@ Page({
     wx.navigateTo({
       url: '/pages/template-edit/template-edit?mode=create'
     })
+  },
+
+  // 检查是否需要显示指引
+  checkShowGuide() {
+    const hasShownGuide = wx.getStorageSync('template_guide_shown')
+    if (!hasShownGuide && this.data.templates.length > 0) {
+      this.setData({
+        showGuide: true
+      })
+    }
+  },
+
+  // 显示指引
+  showGuide() {
+    this.setData({
+      showGuide: true
+    })
+  },
+
+  // 隐藏指引
+  hideGuide() {
+    this.setData({
+      showGuide: false
+    })
+    // 记录已显示过指引
+    wx.setStorageSync('template_guide_shown', true)
+  },
+
+  // 防止点击内容区域关闭指引
+  preventClose() {
+    // 空函数，阻止事件冒泡
   }
 })

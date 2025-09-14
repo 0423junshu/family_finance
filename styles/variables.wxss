@@ -1,5 +1,25 @@
 /* styles/variables.wxss */
 /* Material Design 设计系统变量 */
+
+/* 主题系统变量 - 支持动态切换 */
+:root {
+  /* 主题色 - 可通过 JS 动态修改 */
+  --theme-primary: #2a6ef2;
+  --theme-secondary: #34c759;
+  --theme-success: #34c759;
+  --theme-warning: #ff9500;
+  --theme-error: #ff3b30;
+  --theme-background: #ffffff;
+  --theme-surface: #ffffff;
+  --theme-text: #1f2329;
+  --theme-text-secondary: #646a73;
+  --theme-border: #e5e6eb;
+  --theme-shadow: rgba(0, 0, 0, 0.1);
+  
+  /* 字体缩放 */
+  --font-scale: 1.0;
+}
+
 :root {
   /* 主色调 - Material Design Blue */
   --color-primary: #2a6ef2;

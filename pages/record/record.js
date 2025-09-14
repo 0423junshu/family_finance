@@ -88,8 +88,19 @@ Page({
 
   // 初始化页面
   async initPage(options) {
-    const { mode = 'create', id, type = 'expense' } = options
+    const { 
+      mode = 'create', 
+      id, 
+      type = 'expense',
+      // 模板参数
+      amount,
+      categoryId,
+      accountId,
+      description
+    } = options
     const today = new Date().toISOString().split('T')[0]
+    
+    console.log('初始化页面参数:', options)
     
     // 安全设置数据，避免undefined值
     const updateData = {
@@ -99,14 +110,38 @@ Page({
       hideAmount: getApp().globalData.hideAmount || false
     }
     
+    // 如果有模板参数，填充表单数据
+    if (amount) {
+      updateData['formData.amount'] = amount
+      console.log('设置模板金额:', amount)
+    }
+    if (categoryId) {
+      updateData['formData.categoryId'] = categoryId
+      console.log('设置模板分类ID:', categoryId)
+    }
+    if (accountId) {
+      updateData['formData.accountId'] = accountId
+      console.log('设置模板账户ID:', accountId)
+    }
+    if (description) {
+      updateData['formData.description'] = description
+      console.log('设置模板描述:', description)
+    }
+    
     if (id !== undefined) {
       updateData.transactionId = id
     }
     
     this.setData(updateData)
 
+    // 先加载数据，再更新显示
+    await this.loadData()
+    
     if (mode === 'edit' && id) {
       await this.loadTransactionDetail(id)
+    } else if (mode === 'create') {
+      // 创建模式下，确保模板数据正确显示
+      this.updateDisplayData()
     }
   },
 
@@ -157,9 +192,11 @@ Page({
     
     if (selectedCategory !== undefined) {
       updateData.selectedCategory = selectedCategory
+      console.log('更新显示分类:', selectedCategory.name)
     }
     if (selectedAccount !== undefined) {
       updateData.selectedAccount = selectedAccount
+      console.log('更新显示账户:', selectedAccount.name)
     }
     if (selectedTargetAccount !== undefined) {
       updateData.selectedTargetAccount = selectedTargetAccount

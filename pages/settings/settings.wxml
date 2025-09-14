@@ -1,2 +1,180 @@
 <!--pages/settings/settings.wxml-->
-<text>pages/settings/settings.wxml</text>
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="设置" showBack="{{true}}" class="transparent-navbar" />
+</view>
+
+<view class="page-container">
+  <!-- 同步状态卡片 -->
+  <view class="sync-status-card">
+    <view class="card-header">
+      <view class="card-title">数据同步</view>
+      <view class="sync-indicator {{syncStatus.status}}">
+        <view class="indicator-dot"></view>
+        <view class="indicator-text">{{syncStatus.statusText}}</view>
+      </view>
+    </view>
+    
+    <view class="sync-details">
+      <view class="sync-item">
+        <view class="sync-label">最后同步</view>
+        <view class="sync-value">{{syncStatus.lastSyncText}}</view>
+      </view>
+      <view class="sync-item" wx:if="{{syncStatus.status === 'error'}}">
+        <view class="sync-label">错误信息</view>
+        <view class="sync-value error">{{syncStatus.error}}</view>
+      </view>
+    </view>
+
+    <view class="sync-actions">
+      <button class="sync-btn primary" bindtap="manualSync" disabled="{{syncStatus.status === 'syncing'}}">
+        <view wx:if="{{syncStatus.status === 'syncing'}}" class="loading-icon"></view>
+        {{syncStatus.status === 'syncing' ? '同步中...' : '立即同步'}}
+      </button>
+      <button class="sync-btn secondary" bindtap="showSyncHistory">同步历史</button>
+    </view>
+  </view>
+
+  <!-- 同步设置卡片 -->
+  <view class="sync-settings-card">
+    <view class="card-header">
+      <view class="card-title">同步设置</view>
+    </view>
+    
+    <view class="setting-item">
+      <view class="setting-info">
+        <view class="setting-title">启用自动同步</view>
+        <view class="setting-desc">数据变更时自动同步到云端</view>
+      </view>
+      <switch checked="{{syncSettings.autoSync}}" bindchange="onAutoSyncChange" />
+    </view>
+
+    <view class="setting-item">
+      <view class="setting-info">
+        <view class="setting-title">仅在Wi-Fi下同步</view>
+        <view class="setting-desc">避免消耗移动数据流量</view>
+      </view>
+      <switch checked="{{syncSettings.wifiOnly}}" bindchange="onWifiOnlyChange" />
+    </view>
+
+    <view class="setting-item">
+      <view class="setting-info">
+        <view class="setting-title">同步间隔</view>
+        <view class="setting-desc">自动同步的时间间隔</view>
+      </view>
+      <picker mode="selector" range="{{syncIntervalOptions}}" range-key="label" value="{{syncSettings.intervalIndex}}" bindchange="onSyncIntervalChange">
+        <view class="picker-value">{{syncIntervalOptions[syncSettings.intervalIndex].label}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 家庭管理卡片 -->
+  <view class="family-manage-card">
+    <view class="card-header">
+      <view class="card-title">家庭管理</view>
+    </view>
+    
+    <view class="family-name-setting">
+      <view class="setting-info">
+        <view class="setting-title">家庭名称</view>
+        <view class="setting-desc">点击编辑家庭名称</view>
+      </view>
+      <view class="family-name-container">
+        <input 
+          wx:if="{{editingFamilyName}}"
+          class="family-name-input"
+          value="{{tempFamilyName}}"
+          placeholder="请输入家庭名称"
+          bind:input="onFamilyNameInput"
+          bind:confirm="saveFamilyName"
+          bind:blur="cancelEditFamilyName"
+          focus="{{editingFamilyName}}"
+          maxlength="20"
+        />
+        <view wx:else class="family-name-display" bind:tap="startEditFamilyName">
+          <text class="family-name-text">{{familyInfo.name || '未设置'}}</text>
+          <text class="edit-icon">✏️</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{editingFamilyName}}" class="edit-actions">
+      <button class="action-btn cancel" bind:tap="cancelEditFamilyName">取消</button>
+      <button class="action-btn save" bind:tap="saveFamilyName">保存</button>
+    </view>
+  </view>
+
+  <!-- 管理功能卡片 -->
+  <view class="manage-functions-card">
+    <view class="card-header">
+      <view class="card-title">管理功能</view>
+    </view>
+    
+    <view class="manage-item" bindtap="onNavigate" data-url="/pages/theme-settings/theme-settings">
+      <view class="manage-icon">🎨</view>
+      <view class="manage-info">
+        <view class="manage-title">主题设置</view>
+        <view class="manage-desc">个性化界面主题</view>
+      </view>
+      <view class="manage-arrow">></view>
+    </view>
+    
+    <view class="manage-item" bindtap="onNavigate" data-url="/pages/category-manage/category-manage">
+      <view class="manage-icon">🏷️</view>
+      <view class="manage-info">
+        <view class="manage-title">分类管理</view>
+        <view class="manage-desc">管理收支分类</view>
+      </view>
+      <view class="manage-arrow">></view>
+    </view>
+    
+    <view class="manage-item" bindtap="onNavigate" data-url="/pages/template-manage/template-manage">
+      <view class="manage-icon">📝</view>
+      <view class="manage-info">
+        <view class="manage-title">模板管理</view>
+        <view class="manage-desc">管理记账模板</view>
+      </view>
+      <view class="manage-arrow">></view>
+    </view>
+    
+    <view class="manage-item" bindtap="onNavigate" data-url="/pages/data-export/data-export">
+      <view class="manage-icon">📤</view>
+      <view class="manage-info">
+        <view class="manage-title">数据导出</view>
+        <view class="manage-desc">导出Excel和PDF报表</view>
+      </view>
+      <view class="manage-arrow">></view>
+    </view>
+    
+    <view class="manage-item" bindtap="refreshAllData">
+      <view class="manage-icon">🔄</view>
+      <view class="manage-info">
+        <view class="manage-title">刷新数据</view>
+        <view class="manage-desc">重新加载所有数据</view>
+      </view>
+      <view class="manage-arrow">></view>
+    </view>
+  </view>
+
+  <!-- 系统设置卡片 -->
+  <view class="system-settings-card">
+    <view class="card-header">
+      <view class="card-title">系统设置</view>
+    </view>
+    
+    <view class="setting-item">
+      <view class="setting-info">
+        <view class="setting-title">重置同步设置</view>
+        <view class="setting-desc">恢复默认同步配置</view>
+      </view>
+      <button class="reset-btn" bindtap="confirmResetSettings">重置</button>
+    </view>
+  </view>
+
+  <!-- 关于信息 -->
+  <view class="about-card">
+    <view class="about-item" bindtap="showAbout">
+      <view class="about-title">关于</view>
+      <view class="about-desc">版本 {{appVersion}}</view>
+    </view>
+  </view>
+</view>

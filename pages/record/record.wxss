@@ -1,4 +1,5 @@
 /* pages/record/record.wxss */
+@import '/styles/safe-area.wxss';
 .page-container {
   padding-top: 40rpx; /* 统一顶部间距为40rpx */
   padding-bottom: 160rpx;

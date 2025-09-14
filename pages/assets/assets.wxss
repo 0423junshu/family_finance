@@ -1,9 +1,17 @@
 /* pages/assets/assets.wxss */
+@import '/styles/safe-area.wxss';
+.top-safe-inset {
+  height: env(safe-area-inset-top, 0px);
+  height: constant(safe-area-inset-top, 0px);
+}
 .container {
   padding: 20rpx;
-  padding-top: 30rpx; /* 轻微增加顶部间距，保持布局协调 */
+  padding-top: calc(30rpx + env(safe-area-inset-top, 0px)); /* 轻微增加顶部间距，保持布局协调 */
+  padding-top: calc(30rpx + constant(safe-area-inset-top, 0px));
   min-height: 100vh;
   background-color: #f5f5f5;
+  padding-top: calc(30rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(30rpx + constant(safe-area-inset-top, 0px));
 }
 
 /* 月份选择器样式 */

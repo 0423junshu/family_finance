@@ -1,5 +1,7 @@
 <!-- pages/me/me.wxml -->
-<navigation-bar title="我的" showBack="{{false}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="我的" showBack="{{false}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
   <!-- 用户信息区域 -->
@@ -20,28 +22,14 @@
         <text class="icon-text">👨‍👩‍👧‍👦</text>
       </view>
       <view class="card-content">
-        <text class="card-title">家庭协作</text>
-        <text class="card-subtitle">{{familyInfo.name || '我的家庭'}}</text>
+        <text class="card-title">{{familyInfo.name || '家庭管理'}}</text>
+        <text class="card-subtitle">家庭协作</text>
       </view>
       <view class="card-arrow">
         <text class="arrow-text">></text>
       </view>
     </view>
     <view class="card-body">
-      <view class="card-stats">
-        <view class="stat-item">
-          <text class="stat-number">{{totalMembers}}</text>
-          <text class="stat-label">成员</text>
-        </view>
-        <view class="stat-item">
-          <text class="stat-number">{{onlineMembers}}</text>
-          <text class="stat-label">在线</text>
-        </view>
-        <view class="stat-item">
-          <text class="stat-number">{{recentActivities}}</text>
-          <text class="stat-label">今日活动</text>
-        </view>
-      </view>
       <text class="card-desc">成员管理 · 权限设置 · 操作日志</text>
     </view>
   </view>
@@ -53,8 +41,8 @@
         <text class="icon-text">👨‍👩‍👧‍👦</text>
       </view>
       <view class="card-content">
-        <text class="card-title">家庭协作</text>
-        <text class="card-subtitle">开启协作功能</text>
+        <text class="card-title">家庭管理</text>
+        <text class="card-subtitle">开启家庭协作</text>
       </view>
       <view class="card-arrow">
         <text class="arrow-text">></text>
@@ -68,5 +56,11 @@
 
 </view>
 
-<!-- 协作状态指示器 -->
-<sync-status wx:if="{{collaborationEnabled}}" />
+<!-- 协作状态指示器（在“我的”页只显示静态指示，禁用弹窗与成员动态） -->
+<sync-status
+  wx:if="{{collaborationEnabled}}"
+  showIndicator="{{false}}"
+  showText="{{false}}"
+  showMemberActivity="{{false}}"
+  showQuickActions="{{false}}"
+/>

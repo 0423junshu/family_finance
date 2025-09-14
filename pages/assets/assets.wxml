@@ -1,5 +1,7 @@
 <!-- pages/assets/assets.wxml -->
-<navigation-bar title="家庭财务管理" show-back="{{false}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="家庭财务管理" show-back="{{false}}" class="transparent-navbar" />
+</view>
 
 <view class="container">
   <!-- 顶部统计卡片（与首页一致，紧凑版） -->

@@ -42,6 +42,9 @@ Component({
   },
 
   data: {
+    // 仅在操作日志页显示成员动态
+    inOperationLogs: false,
+
     // 同步状态
     syncStatus: 'idle', // idle, syncing, success, error, conflict
     statusClass: 'status-idle',
@@ -112,6 +115,15 @@ Component({
 
   lifetimes: {
     attached() {
+      // 计算是否在操作日志页
+      try {
+        const pages = getCurrentPages();
+        const cur = pages[pages.length - 1];
+        const inOpLogs = !!(cur && (cur.route === 'pages/operation-logs/operation-logs'));
+        this.setData({ inOperationLogs: inOpLogs });
+      } catch (_) {
+        this.setData({ inOperationLogs: false });
+      }
       this.initComponent();
     },
     

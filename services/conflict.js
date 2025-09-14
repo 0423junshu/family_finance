@@ -3,15 +3,15 @@
  * 处理多成员同时编辑时的数据冲突问题
  */
 
-const db = wx.cloud.database();
-const _ = db.command;
+const db = (wx.cloud && wx.cloud.database) ? wx.cloud.database() : null;
+const _ = db ? db.command : {};
 
 class ConflictService {
   constructor() {
-    // 使用与initDatabase云函数中一致的集合名称
-    this.conflictCollection = db.collection('data_conflicts');
-    this.lockCollection = db.collection('data_locks');
-    this.versionCollection = db.collection('data_versions');
+    // 使用与initDatabase云函数中一致的集合名称（安全获取，集合可能未创建）
+    this.conflictCollection = this.safeCollection('data_conflicts');
+    this.lockCollection = this.safeCollection('data_locks');
+    this.versionCollection = this.safeCollection('data_versions');
     
     // 冲突解决策略
     this.resolutionStrategies = {
@@ -20,6 +20,20 @@ class ConflictService {
       'manual': this.manualResolve.bind(this),
       'priority_based': this.priorityBasedResolve.bind(this)
     };
+  }
+
+  // 安全获取集合，云未初始化或集合异常时返回 null，调用处需兜底
+  safeCollection(name) {
+    try {
+      if (!db || !db.collection) {
+        console.warn('[conflict] wx.cloud 未初始化，跳过集合访问：', name);
+        return null;
+      }
+      return db.collection(name);
+    } catch (e) {
+      console.warn('[conflict] 获取集合失败（可能未创建）：', name, e);
+      return null;
+    }
   }
 
   /**
@@ -80,6 +94,10 @@ class ConflictService {
    */
   async checkActiveLocks(collection, documentId, excludeUserId) {
     try {
+      if (!this.lockCollection) {
+        console.warn('[conflict] data_locks 集合不存在，返回空锁列表');
+        return [];
+      }
       const result = await this.lockCollection
         .where({
           collection: collection,
@@ -107,6 +125,10 @@ class ConflictService {
    */
   async checkVersionConflict(collection, documentId, userVersion) {
     try {
+      if (!this.versionCollection) {
+        console.warn('[conflict] data_versions 集合不存在，认为无版本冲突');
+        return null;
+      }
       const result = await this.versionCollection
         .where({
           collection: collection,
@@ -147,6 +169,10 @@ class ConflictService {
    */
   async createLock(collection, documentId, userId, duration = 300000) { // 5分钟
     try {
+      if (!this.lockCollection) {
+        console.warn('[conflict] data_locks 集合不存在，跳过加锁逻辑');
+        return { lockId: null, expiresAt: new Date(Date.now() + duration) };
+      }
       const lockId = this.generateLockId();
       const expiresAt = new Date(Date.now() + duration);
 
@@ -187,6 +213,10 @@ class ConflictService {
    */
   async releaseLock(lockId) {
     try {
+      if (!this.lockCollection) {
+        console.warn('[conflict] data_locks 集合不存在，跳过释放锁');
+        return { success: true, skipped: true };
+      }
       await this.lockCollection
         .where({
           lockId: lockId
@@ -220,6 +250,10 @@ class ConflictService {
   startHeartbeat(lockId) {
     const heartbeatInterval = setInterval(async () => {
       try {
+        if (!this.lockCollection) {
+          clearInterval(heartbeatInterval);
+          return;
+        }
         await this.lockCollection
           .where({
             lockId: lockId,
@@ -258,6 +292,10 @@ class ConflictService {
    */
   async recordVersion(collection, documentId, data, userId, operation) {
     try {
+      if (!this.versionCollection) {
+        console.warn('[conflict] data_versions 集合不存在，跳过记录版本');
+        return 0;
+      }
       // 获取当前最新版本号
       const latestVersion = await this.getLatestVersion(collection, documentId);
       const newVersion = latestVersion + 1;
@@ -292,6 +330,10 @@ class ConflictService {
    */
   async getLatestVersion(collection, documentId) {
     try {
+      if (!this.versionCollection) {
+        console.warn('[conflict] data_versions 集合不存在，返回版本0');
+        return 0;
+      }
       const result = await this.versionCollection
         .where({
           collection: collection,
@@ -318,6 +360,10 @@ class ConflictService {
    */
   async createConflictRecord(conflictData) {
     try {
+      if (!this.conflictCollection) {
+        console.warn('[conflict] data_conflicts 集合不存在，跳过创建冲突记录');
+        return null;
+      }
       const conflictId = this.generateConflictId();
 
       await this.conflictCollection.add({
@@ -343,6 +389,10 @@ class ConflictService {
    */
   async resolveConflict(conflictId, strategy, resolution = {}) {
     try {
+      if (!this.conflictCollection) {
+        console.warn('[conflict] data_conflicts 集合不存在，无法更新冲突状态');
+        return { success: false, error: 'collection_missing' };
+      }
       const conflict = await this.getConflictById(conflictId);
       if (!conflict) {
         throw new Error('冲突记录不存在');
@@ -394,12 +444,17 @@ class ConflictService {
       if (latestVersion.data.length > 0) {
         const latest = latestVersion.data[0];
         
-        // 应用最新版本的数据
-        await db.collection(conflict.collection)
-          .doc(conflict.documentId)
-          .update({
-            data: latest.data
-          });
+        // 应用最新版本的数据（集合缺失时静默跳过）
+        const targetCol1 = this.safeCollection(conflict.collection);
+        if (targetCol1) {
+          await targetCol1
+            .doc(conflict.documentId)
+            .update({
+              data: latest.data
+            });
+        } else {
+          console.warn('[conflict] 目标集合不存在，跳过 lastWriteWins 应用：', conflict.collection);
+        }
 
         return {
           strategy: 'last_write_wins',
@@ -443,12 +498,17 @@ class ConflictService {
         version2.data
       );
 
-      // 应用合并后的数据
-      await db.collection(conflict.collection)
-        .doc(conflict.documentId)
-        .update({
-          data: mergedData
-        });
+      // 应用合并后的数据（集合缺失时静默跳过）
+      const targetCol2 = this.safeCollection(conflict.collection);
+      if (targetCol2) {
+        await targetCol2
+          .doc(conflict.documentId)
+          .update({
+            data: mergedData
+          });
+      } else {
+        console.warn('[conflict] 目标集合不存在，跳过 mergeChanges 应用：', conflict.collection);
+      }
 
       // 记录新版本
       const newVersion = await this.recordVersion(
@@ -480,12 +540,17 @@ class ConflictService {
         throw new Error('手动解决需要提供选择的数据');
       }
 
-      // 应用用户选择的数据
-      await db.collection(conflict.collection)
-        .doc(conflict.documentId)
-        .update({
-          data: resolution.selectedData
-        });
+      // 应用用户选择的数据（集合缺失时静默跳过）
+      const targetCol3 = this.safeCollection(conflict.collection);
+      if (targetCol3) {
+        await targetCol3
+          .doc(conflict.documentId)
+          .update({
+            data: resolution.selectedData
+          });
+      } else {
+        console.warn('[conflict] 目标集合不存在，跳过 manualResolve 应用：', conflict.collection);
+      }
 
       // 记录新版本
       const newVersion = await this.recordVersion(
@@ -625,6 +690,10 @@ class ConflictService {
    */
   async getConflictById(conflictId) {
     try {
+      if (!this.conflictCollection) {
+        console.warn('[conflict] data_conflicts 集合不存在，返回 null');
+        return null;
+      }
       const result = await this.conflictCollection
         .where({
           conflictId: conflictId
@@ -643,6 +712,11 @@ class ConflictService {
    */
   async getPendingConflicts(userId) {
     try {
+      if (!this.conflictCollection) {
+        console.warn('[conflict] data_conflicts 集合不存在，返回空列表');
+        // 可提示一次，但避免频繁弹 Toast
+        return [];
+      }
       const result = await this.conflictCollection
         .where({
           involvedUsers: _.in([userId]),
@@ -654,15 +728,9 @@ class ConflictService {
       return result.data;
     } catch (error) {
       console.error('获取待解决冲突失败:', error);
-      // 如果是数据库集合不存在错误，返回空数组并记录警告
+      // 如果是数据库集合不存在错误，返回空数组并记录警告（静默降级）
       if (error.errCode === -502005) {
-        console.warn('数据库集合不存在，请运行initDatabase云函数初始化');
-        // 提示用户运行数据库初始化工具
-        wx.showToast({
-          title: '请先初始化数据库',
-          icon: 'none',
-          duration: 3000
-        });
+        console.warn('数据库集合不存在（data_conflicts），已降级为空列表');
         return [];
       }
       return [];
@@ -674,6 +742,10 @@ class ConflictService {
    */
   async cleanupExpiredLocks() {
     try {
+      if (!this.lockCollection) {
+        console.warn('[conflict] data_locks 集合不存在，跳过清理过期锁');
+        return;
+      }
       await this.lockCollection
         .where({
           status: 'active',

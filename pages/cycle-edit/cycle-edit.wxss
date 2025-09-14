@@ -1,9 +1,13 @@
 /* pages/cycle-edit/cycle-edit.wxss */
+@import '/styles/safe-area.wxss';
+
 .page-container {
   padding-top: 20rpx;
   padding-bottom: 160rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
+  padding-top: calc(20rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(20rpx + constant(safe-area-inset-top, 0px));
 }
 
 .content {

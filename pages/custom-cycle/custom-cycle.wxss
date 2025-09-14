@@ -1,8 +1,15 @@
 /* pages/custom-cycle/custom-cycle.wxss */
+@import '/styles/safe-area.wxss';
+
+/* 禁用TDesign字体，避免网络加载错误 */
+.t-icon {
+  font-family: inherit !important;
+}
+
 .page-container {
   background-color: #f8f9fa;
   min-height: 100vh;
-  padding-top: 176rpx;
+  padding-top: 20rpx;
   padding-bottom: 40rpx;
 }
 

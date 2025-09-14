@@ -1,8 +1,9 @@
 <!-- pages/custom-cycle/custom-cycle.wxml -->
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="记账周期" showBack="{{true}}" class="transparent-navbar" background="transparent"></navigation-bar>
+</view>
+
 <view class="page-container">
-  <!-- 自定义导航栏 -->
-  <navigation-bar title="记账周期" showBack="{{true}}"></navigation-bar>
-  
   <!-- 当前周期显示 -->
   <view class="current-cycle-card">
     <view class="card-header">

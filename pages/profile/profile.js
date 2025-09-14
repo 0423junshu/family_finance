@@ -126,9 +126,8 @@ Page({
         this.onExportTap()
         break
       case 'theme':
-        wx.showToast({
-          title: '主题设置功能开发中',
-          icon: 'none'
+        wx.navigateTo({
+          url: '/pages/theme-settings/theme-settings'
         })
         break
     }
@@ -370,33 +369,22 @@ Page({
    * 管理家庭（点击协作卡片）
    */
   onManageFamily() {
-    console.log('[DEBUG] 点击管理家庭');
-    // 显示家庭协作功能菜单
-    wx.showActionSheet({
-      itemList: ['家庭管理', '权限设置', '操作日志', '同步设置'],
-      success: (res) => {
-        switch (res.tapIndex) {
-          case 0:
-            wx.navigateTo({
-              url: '/pages/family/family'
-            });
-            break;
-          case 1:
-            wx.navigateTo({
-              url: '/pages/family-permissions/family-permissions'
-            });
-            break;
-          case 2:
-            wx.navigateTo({
-              url: '/pages/operation-logs/operation-logs'
-            });
-            break;
-          case 3:
-            wx.navigateTo({
-              url: '/pages/settings/settings?tab=sync'
-            });
-            break;
+    console.log('[DEBUG] 点击管理家庭 - 直接跳转家庭管理页');
+    if (!this.data.isInFamily) {
+      wx.navigateTo({
+        url: '/pages/join-family/join-family',
+        fail: (err) => {
+          console.error('跳转失败:', err);
+          wx.showToast({ title: '页面跳转失败', icon: 'error' });
         }
+      });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/family/family',
+      fail: (err) => {
+        console.error('跳转失败:', err);
+        wx.showToast({ title: '页面跳转失败', icon: 'error' });
       }
     });
   },

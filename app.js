@@ -1,6 +1,8 @@
 // app.js
 const { globalData } = require('./utils/globalData')
 const fontInterceptor = require('./utils/font-interceptor')
+const themeService = require('./services/theme')
+const dataConsistencyService = require('./services/dataConsistency')
 
 App({
   globalData: globalData,
@@ -8,6 +10,12 @@ App({
   onLaunch() {
     // 立即启动字体拦截器
     fontInterceptor.init()
+    
+    // 初始化主题系统
+    themeService.init()
+    
+    // 初始化数据一致性服务
+    dataConsistencyService.init()
     
     // 快速初始化，不显示加载提示
     this.initCloudBase()

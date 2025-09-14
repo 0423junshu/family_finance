@@ -1,5 +1,7 @@
 <!-- pages/transfer/transfer.wxml -->
-<navigation-bar title="账户转账" showBack="{{true}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="账户转账" showBack="{{true}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
   <view wx:if="{{loading}}" class="loading-container">

@@ -1,5 +1,7 @@
 <!--pages/conflict-resolution/conflict-resolution.wxml-->
-<navigation-bar title="冲突解决" show-back="{{true}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="冲突解决" show-back="{{true}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
   <!-- 冲突列表为空时 -->

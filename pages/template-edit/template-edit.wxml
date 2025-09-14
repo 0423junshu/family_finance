@@ -1,0 +1,166 @@
+<!-- pages/template-edit/template-edit.wxml -->
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar 
+    title="{{mode === 'create' ? '创建模板' : '编辑模板'}}" 
+    show-back="{{true}}" 
+    class="transparent-navbar" 
+  />
+</view>
+
+<view class="page-container">
+  <scroll-view scroll-y class="form-scroll">
+    <!-- 模板基本信息 -->
+    <view class="form-section">
+      <view class="section-title">基本信息</view>
+      
+      <!-- 模板名称 -->
+      <view class="form-item {{errors.name ? 'error' : ''}}">
+        <view class="item-label">模板名称</view>
+        <input 
+          class="item-input"
+          placeholder="请输入模板名称"
+          value="{{template.name}}"
+          bindinput="onNameInput"
+          maxlength="20"
+        />
+        <view wx:if="{{errors.name}}" class="error-text">{{errors.name}}</view>
+      </view>
+      
+      <!-- 收支类型 -->
+      <view class="form-item">
+        <view class="item-label">收支类型</view>
+        <view class="type-selector">
+          <view 
+            class="type-option {{template.type === 'expense' ? 'active' : ''}}"
+            data-type="expense"
+            bindtap="onTypeChange"
+          >
+            支出
+          </view>
+          <view 
+            class="type-option {{template.type === 'income' ? 'active' : ''}}"
+            data-type="income"
+            bindtap="onTypeChange"
+          >
+            收入
+          </view>
+        </view>
+      </view>
+      
+      <!-- 图标选择 -->
+      <view class="form-item">
+        <view class="item-label">图标</view>
+        <view class="icon-selector" bindtap="showIconPicker">
+          <view class="selected-icon">{{template.icon}}</view>
+          <view class="icon-arrow">></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 分类和账户 -->
+    <view class="form-section">
+      <view class="section-title">分类和账户</view>
+      
+      <!-- 分类选择 -->
+      <view class="form-item {{errors.category ? 'error' : ''}}">
+        <view class="item-label">分类</view>
+        <picker 
+          mode="selector"
+          range="{{template.type === 'expense' ? expenseCategories : incomeCategories}}"
+          range-key="name"
+          bindchange="onCategoryChange"
+        >
+          <view class="picker-display">
+            <text class="{{template.categoryName ? '' : 'placeholder'}}">
+              {{template.categoryName || '请选择分类'}}
+            </text>
+            <view class="picker-arrow">></view>
+          </view>
+        </picker>
+        <view wx:if="{{errors.category}}" class="error-text">{{errors.category}}</view>
+      </view>
+      
+      <!-- 账户选择 -->
+      <view class="form-item {{errors.account ? 'error' : ''}}">
+        <view class="item-label">账户</view>
+        <picker 
+          mode="selector"
+          range="{{accounts}}"
+          range-key="name"
+          bindchange="onAccountChange"
+        >
+          <view class="picker-display">
+            <text class="{{template.accountName ? '' : 'placeholder'}}">
+              {{template.accountName || '请选择账户'}}
+            </text>
+            <view class="picker-arrow">></view>
+          </view>
+        </picker>
+        <view wx:if="{{errors.account}}" class="error-text">{{errors.account}}</view>
+      </view>
+    </view>
+
+    <!-- 金额和备注 -->
+    <view class="form-section">
+      <view class="section-title">金额和备注</view>
+      
+      <!-- 预设金额 -->
+      <view class="form-item {{errors.amount ? 'error' : ''}}">
+        <view class="item-label">预设金额</view>
+        <view class="amount-input-wrapper">
+          <text class="currency-symbol">¥</text>
+          <input 
+            class="amount-input"
+            type="digit"
+            placeholder="0.00"
+            value="{{template.amount}}"
+            bindinput="onAmountInput"
+          />
+        </view>
+        <view wx:if="{{errors.amount}}" class="error-text">{{errors.amount}}</view>
+      </view>
+      
+      <!-- 备注模板 -->
+      <view class="form-item">
+        <view class="item-label">备注模板</view>
+        <textarea 
+          class="item-textarea"
+          placeholder="请输入备注模板（可选）"
+          value="{{template.description}}"
+          bindinput="onDescriptionInput"
+          maxlength="100"
+          auto-height
+        />
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-actions">
+    <view class="action-btn cancel" bindtap="onCancel">取消</view>
+    <view class="action-btn save {{loading ? 'loading' : ''}}" bindtap="onSave">
+      {{loading ? '保存中...' : '保存'}}
+    </view>
+  </view>
+</view>
+
+<!-- 图标选择弹窗 -->
+<view wx:if="{{showIconPicker}}" class="icon-picker-overlay" bindtap="hideIconPicker">
+  <view class="icon-picker-modal" catchtap="noop">
+    <view class="modal-header">
+      <view class="modal-title">选择图标</view>
+      <view class="modal-close" bindtap="hideIconPicker">×</view>
+    </view>
+    <view class="icon-grid">
+      <view 
+        wx:for="{{iconList}}" 
+        wx:key="*this"
+        class="icon-item {{template.icon === item ? 'selected' : ''}}"
+        data-icon="{{item}}"
+        bindtap="onIconSelect"
+      >
+        {{item}}
+      </view>
+    </view>
+  </view>
+</view>

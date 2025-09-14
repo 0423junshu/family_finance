@@ -1,9 +1,12 @@
 /* pages/join-family/join-family.wxss */
+@import '/styles/safe-area.wxss';
 
 .page-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
+  padding-top: calc(16rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(16rpx + constant(safe-area-inset-top, 0px));
 }
 
 .step-container {

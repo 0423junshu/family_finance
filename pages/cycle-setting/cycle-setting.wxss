@@ -1,49 +1,61 @@
 /* pages/cycle-setting/cycle-setting.wxss */
-@import "../../styles/common.wxss";
+@import '/styles/safe-area.wxss';
 
 .container {
-  padding: 20rpx;
+  padding: 32rpx;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .card {
-  background-color: #fff;
-  border-radius: 12rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24rpx;
   overflow: hidden;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  margin-bottom: 32rpx;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(20rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
 
 .section {
-  padding: 20rpx;
+  padding: 40rpx 32rpx;
 }
 
 .section-header {
-  margin-bottom: 20rpx;
+  margin-bottom: 32rpx;
 }
 
 .section-title {
   font-size: 32rpx;
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: #1C1C1E;
 }
 
 .setting-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  padding: 32rpx 0;
+  border-bottom: 1rpx solid rgba(242, 242, 247, 0.8);
+  transition: all 0.3s ease;
 }
 
 .setting-item:last-child {
   border-bottom: none;
 }
 
+.setting-item:active {
+  background: rgba(102, 126, 234, 0.05);
+  margin: 0 -32rpx;
+  padding-left: 32rpx;
+  padding-right: 32rpx;
+  border-radius: 16rpx;
+}
+
 .setting-label {
   font-size: 28rpx;
-  color: #333;
+  font-weight: 500;
+  color: #1C1C1E;
 }
 
 .picker-view {
@@ -53,31 +65,35 @@
 
 .picker-text {
   font-size: 28rpx;
-  color: #007aff;
+  font-weight: 500;
+  color: #667eea;
   margin-right: 10rpx;
 }
 
 .picker-arrow {
   font-size: 24rpx;
-  color: #999;
+  color: #8E8E93;
 }
 
 .tip-box {
   margin-top: 20rpx;
-  padding: 20rpx;
-  background-color: #f0f8ff;
-  border-radius: 8rpx;
+  padding: 24rpx;
+  background-color: rgba(102, 126, 234, 0.05);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(102, 126, 234, 0.1);
   display: flex;
   align-items: flex-start;
 }
 
 .tip-icon {
   font-size: 32rpx;
-  margin-right: 10rpx;
+  margin-right: 16rpx;
+  line-height: 1;
 }
 
 .tip-text {
-  font-size: 24rpx;
-  color: #666;
-  line-height: 1.5;
+  font-size: 26rpx;
+  color: #8E8E93;
+  line-height: 1.6;
+  flex: 1;
 }

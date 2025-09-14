@@ -59,39 +59,32 @@ Component({
   },
 
   methods: {
-    // 修复：初始化导航栏 - 兼容新旧API
-    async initNavBar() {
+    // 修复：初始化导航栏 - 简化逻辑，确保显示
+    initNavBar() {
       try {
-        // 使用兼容的系统信息获取方式
-        if (wx.getDeviceInfo && wx.getWindowInfo && wx.getSystemSetting) {
-          // 新版API
-          const [deviceInfo, windowInfo, systemSetting] = await Promise.all([
-            new Promise((resolve, reject) => wx.getDeviceInfo({ success: resolve, fail: reject })),
-            new Promise((resolve, reject) => wx.getWindowInfo({ success: resolve, fail: reject })),
-            new Promise((resolve, reject) => wx.getSystemSetting({ success: resolve, fail: reject }))
-          ]);
-          
-          const statusBarHeight = windowInfo.statusBarHeight || deviceInfo.statusBarHeight || 44;
-          // 增加额外的安全区域，避免被系统UI遮挡
-          this.setData({ statusBarHeight: statusBarHeight + 15 });
-        } else {
-          // 降级到旧版API
-          const systemInfo = await new Promise((resolve, reject) => 
-            wx.getSystemInfo({ success: resolve, fail: reject })
-          );
-          const statusBarHeight = systemInfo.statusBarHeight || 44;
-          // 增加额外的安全区域，避免被系统UI遮挡
-          this.setData({ statusBarHeight: statusBarHeight + 15 });
-        }
+        const systemInfo = wx.getSystemInfoSync()
+        const statusBarHeight = systemInfo.statusBarHeight || 44
+        // 设置导航栏高度：状态栏高度 + 导航栏内容高度
+        const navBarHeight = statusBarHeight + 44
+        
+        this.setData({
+          statusBarHeight: statusBarHeight,
+          navBarHeight: navBarHeight
+        })
+        
+        console.log('Navigation bar initialized:', {
+          statusBarHeight,
+          navBarHeight,
+          title: this.properties.title
+        })
       } catch (error) {
-        console.warn('获取系统信息失败，使用默认值:', error);
-        // 使用更大的默认值确保不被遮挡
-        this.setData({ statusBarHeight: 59 });
+        console.error('Failed to init navigation bar:', error)
+        // 兜底设置
+        this.setData({
+          statusBarHeight: 44,
+          navBarHeight: 88
+        })
       }
-      
-      this.setData({
-        navBarHeight: 50  // 增加导航栏本身的高度
-      });
     },
 
     // 初始化隐藏金额状态

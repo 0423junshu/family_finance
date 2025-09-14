@@ -1,0 +1,98 @@
+/* 操作指引浮层样式 */
+.guide-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 32rpx;
+}
+
+.guide-content {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  width: 100%;
+  max-width: 600rpx;
+  overflow: hidden;
+}
+
+.guide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx 32rpx 24rpx;
+  border-bottom: 1rpx solid #F2F2F7;
+}
+
+.guide-title {
+  font-size: 32rpx;
+  color: #1C1C1E;
+  font-weight: 600;
+}
+
+.guide-close {
+  font-size: 48rpx;
+  color: #8E8E93;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide-steps {
+  padding: 24rpx 32rpx;
+}
+
+.guide-step {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 24rpx;
+}
+
+.guide-step:last-child {
+  margin-bottom: 0;
+}
+
+.step-number {
+  width: 48rpx;
+  height: 48rpx;
+  background: #007AFF;
+  color: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 600;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.step-text {
+  font-size: 28rpx;
+  color: #1C1C1E;
+  line-height: 1.5;
+  padding-top: 8rpx;
+}
+
+.guide-footer {
+  padding: 24rpx 32rpx 32rpx;
+  border-top: 1rpx solid #F2F2F7;
+}
+
+.guide-btn {
+  width: 100%;
+  background: #007AFF;
+  color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: none;
+}

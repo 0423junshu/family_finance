@@ -1,6 +1,7 @@
 /**
  * 家庭管理服务
  * 提供家庭码管理、成员邀请、权限控制等功能
+ * 集成数据管理器，实现单一数据源与联动刷新
  */
 
 let db = null;
@@ -18,6 +19,7 @@ function getDB() {
   return db;
 }
 const { getAvatarUrl, generateInitialAvatar } = require('../utils/defaultAvatar.js');
+const dataManager = require('./dataManager.js');
 
 class FamilyService {
   constructor() {
@@ -454,6 +456,92 @@ class FamilyService {
 
     return permissions[role] || permissions.member;
   }
+  /**
+   * 更新家庭名称
+   */
+  async updateFamilyName(newName) {
+    const operation = async () => {
+      const userInfo = wx.getStorageSync('userInfo');
+      if (!userInfo || !userInfo.openid) {
+        return {
+          success: false,
+          code: 'USER_NOT_LOGGED_IN',
+          message: '用户未登录'
+        };
+      }
+
+      // 获取用户的家庭信息
+      const familyResult = await this.getFamilyInfo();
+      if (!familyResult.success || !familyResult.data) {
+        return {
+          success: false,
+          code: 'FAMILY_NOT_FOUND',
+          message: '用户未加入任何家庭'
+        };
+      }
+
+      // 检查权限（只有创建者和管理员可以修改家庭名称）
+      const role = familyResult.data.role;
+      if (role !== 'owner' && role !== 'admin') {
+        return {
+          success: false,
+          code: 'PERMISSION_DENIED',
+          message: '您没有修改家庭名称的权限'
+        };
+      }
+
+      // 验证名称
+      if (!newName || newName.trim().length === 0) {
+        return {
+          success: false,
+          code: 'INVALID_NAME',
+          message: '家庭名称不能为空'
+        };
+      }
+
+      if (newName.trim().length > 20) {
+        return {
+          success: false,
+          code: 'NAME_TOO_LONG',
+          message: '家庭名称不能超过20个字符'
+        };
+      }
+
+      // 更新家庭名称
+      const updateResult = await this.familiesCollection
+        .doc(familyResult.data.id)
+        .update({
+          data: {
+            name: newName.trim(),
+            updatedAt: new Date()
+          }
+        });
+
+      if (updateResult.stats.updated === 1) {
+        // 通过数据管理器处理家庭名称变更
+        dataManager.handleFamilyNameChange(newName.trim(), familyResult.data.id);
+        
+        return {
+          success: true,
+          message: '家庭名称更新成功'
+        };
+      } else {
+        return {
+          success: false,
+          code: 'UPDATE_FAILED',
+          message: '更新失败，请重试'
+        };
+      }
+    };
+
+    try {
+      return await operation();
+    } catch (error) {
+      console.error('更新家庭名称失败:', error);
+      return await this.handleDatabaseError(error, operation);
+    }
+  }
+
   /**
    * 检查用户权限
    */

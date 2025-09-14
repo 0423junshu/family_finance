@@ -1,0 +1,267 @@
+/* pages/template-edit/template-edit.wxss */
+@import '/styles/safe-area.wxss';
+@import "../../styles/variables.wxss";
+@import "../../styles/common.wxss";
+
+.page-container {
+  padding-top: 176rpx;
+  /* 顶部安全区与下移适配 */
+  padding-top: calc(176rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(176rpx + constant(safe-area-inset-top, 0px));
+  padding-bottom: 160rpx;
+  background: #F5F5F5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-scroll {
+  flex: 1;
+  padding: 32rpx;
+}
+
+/* 表单区域 */
+.form-section {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  margin-bottom: 32rpx;
+  overflow: hidden;
+}
+
+.section-title {
+  padding: 32rpx 32rpx 16rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1C1C1E;
+}
+
+.form-item {
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #F2F2F7;
+}
+
+.form-item:last-child {
+  border-bottom: none;
+}
+
+.form-item.error {
+  background: #FFF5F5;
+}
+
+.item-label {
+  font-size: 28rpx;
+  color: #1C1C1E;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.item-input {
+  width: 100%;
+  font-size: 28rpx;
+  color: #1C1C1E;
+  padding: 16rpx 0;
+}
+
+.item-textarea {
+  width: 100%;
+  font-size: 28rpx;
+  color: #1C1C1E;
+  padding: 16rpx 0;
+  min-height: 80rpx;
+}
+
+.error-text {
+  font-size: 24rpx;
+  color: #FF3B30;
+  margin-top: 8rpx;
+}
+
+/* 收支类型选择器 */
+.type-selector {
+  display: flex;
+  background: #F2F2F7;
+  border-radius: 12rpx;
+  padding: 4rpx;
+}
+
+.type-option {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx;
+  font-size: 28rpx;
+  color: #8E8E93;
+  border-radius: 8rpx;
+  transition: all 0.3s;
+}
+
+.type-option.active {
+  background: #007AFF;
+  color: #FFFFFF;
+}
+
+/* 图标选择器 */
+.icon-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+}
+
+.selected-icon {
+  font-size: 48rpx;
+}
+
+.icon-arrow {
+  font-size: 28rpx;
+  color: #C7C7CC;
+}
+
+/* 选择器显示 */
+.picker-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+}
+
+.picker-display text {
+  font-size: 28rpx;
+  color: #1C1C1E;
+}
+
+.picker-display .placeholder {
+  color: #C7C7CC;
+}
+
+.picker-arrow {
+  font-size: 28rpx;
+  color: #C7C7CC;
+}
+
+/* 金额输入 */
+.amount-input-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+}
+
+.currency-symbol {
+  font-size: 32rpx;
+  color: #1C1C1E;
+  margin-right: 8rpx;
+  font-weight: 600;
+}
+
+.amount-input {
+  flex: 1;
+  font-size: 32rpx;
+  color: #1C1C1E;
+  font-weight: 600;
+}
+
+/* 底部按钮 */
+.bottom-actions {
+  display: flex;
+  padding: 32rpx;
+  gap: 24rpx;
+  background: #FFFFFF;
+  border-top: 1rpx solid #F2F2F7;
+}
+
+.action-btn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.action-btn.cancel {
+  background: #F2F2F7;
+  color: #8E8E93;
+}
+
+.action-btn.save {
+  background: #007AFF;
+  color: #FFFFFF;
+}
+
+.action-btn.loading {
+  opacity: 0.6;
+}
+
+/* 图标选择弹窗 */
+.icon-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-picker-modal {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  margin: 32rpx;
+  max-height: 80vh;
+  width: calc(100% - 64rpx);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #F2F2F7;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1C1C1E;
+}
+
+.modal-close {
+  font-size: 48rpx;
+  color: #8E8E93;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16rpx;
+  padding: 32rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.icon-item {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  border-radius: 12rpx;
+  background: #F2F2F7;
+  transition: all 0.3s;
+}
+
+.icon-item.selected {
+  background: #007AFF;
+  transform: scale(1.1);
+}

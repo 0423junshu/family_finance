@@ -1,32 +1,78 @@
 <!--pages/family/family.wxml-->
-<navigation-bar title="家庭管理" showBack="{{false}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="家庭管理" showBack="{{false}}" class="transparent-navbar">
+    <view slot="right" wx:if="{{familyInfo && canEditName}}" class="nav-edit-btn" bind:tap="toggleEditMode">
+      <text class="edit-icon">{{isEditingName ? '✓' : '✏️'}}</text>
+    </view>
+  </navigation-bar>
+</view>
 
 <view class="page-container">
-  <!-- 家庭信息卡片 -->
-  <view wx:if="{{familyInfo}}" class="card family-info-card">
+  <!-- 家庭信息 + 成员（合并卡片） -->
+  <view wx:if="{{familyInfo}}" class="card family-basic-info">
     <view class="family-header">
-      <view class="family-title">
-        <text class="family-name">{{familyInfo.name || '我的家庭'}}</text>
-        <t-tag wx:if="{{familyInfo.role === 'owner'}}" theme="primary" size="small">创建者</t-tag>
-        <t-tag wx:elif="{{familyInfo.role === 'admin'}}" theme="success" size="small">管理员</t-tag>
-        <t-tag wx:else theme="default" size="small">成员</t-tag>
-      </view>
-      <text class="member-count">{{familyInfo.memberCount || 0}}位成员</text>
-    </view>
-    
-    <!-- 家庭码展示 -->
-    <view class="family-code-section">
-      <view class="family-code-header">
-        <text class="section-title">家庭码</text>
-        <view class="code-actions">
-          <t-button size="small" variant="text" bind:tap="copyFamilyCode">复制</t-button>
-          <t-button size="small" variant="text" bind:tap="shareFamilyCode">分享</t-button>
+      <view class="family-title-section">
+        <view wx:if="{{!isEditingName}}" class="family-name-display">
+          <text class="family-name">{{familyInfo.name || '我的家庭'}}</text>
+          <text wx:if="{{canEditName}}" class="inline-edit-btn" bind:tap="toggleEditMode">✏️</text>
+        </view>
+        <view wx:if="{{isEditingName}}" class="family-name-edit">
+          <input 
+            class="family-name-input" 
+            value="{{editingName}}" 
+            placeholder="请输入家庭名称"
+            maxlength="20"
+            bind:input="onNameInput"
+            bind:confirm="saveFamilyName"
+            focus="{{isEditingName}}"
+          />
+          <view class="edit-actions">
+            <text class="edit-btn save" bind:tap="saveFamilyName">保存</text>
+            <text class="edit-btn cancel" bind:tap="cancelEdit">取消</text>
+          </view>
+        </view>
+        <view class="role-badge {{familyInfo.role}}">
+          {{familyInfo.role === 'owner' ? '创建者' : (familyInfo.role === 'admin' ? '管理员' : '成员')}}
         </view>
       </view>
-      <view class="family-code-display">
-        <text class="family-code">{{familyInfo.familyCode || '------'}}</text>
+
+      <view class="family-header-actions">
+        <text class="member-count">{{familyInfo.memberCount || 0}}位成员</text>
+        <view wx:if="{{canInvite}}" class="invite-member-btn" bind:tap="copyFamilyCodeForInvite">
+          <text class="invite-icon">👥</text>
+          <text class="invite-text">邀请新成员</text>
+        </view>
       </view>
-      <text class="family-code-tip">新成员可通过此家庭码加入</text>
+    </view>
+
+    <!-- 合并后的成员列表 -->
+    <view class="members-list merged">
+      <block wx:for="{{members}}" wx:key="id">
+        <view class="member-item {{canManageMemberPermissions(item) ? 'clickable' : ''}}" bind:tap="onMemberTap" data-member="{{item}}">
+          <view class="member-avatar-container">
+            <view class="member-avatar" style="background-image: url({{item.avatar}})">
+              {{!item.avatar ? item.nickname.charAt(0) : ''}}
+            </view>
+            <view wx:if="{{item.isOnline}}" class="online-indicator"></view>
+          </view>
+          <view class="member-info">
+            <view class="member-main">
+              <text class="member-name">{{item.nickname}}</text>
+              <view class="member-role-badge {{item.role}}">{{item.roleText}}</view>
+            </view>
+            <view class="member-status">
+              <text class="status-dot {{item.isOnline ? 'online' : 'offline'}}">●</text>
+              <text class="status-text">{{item.isOnline ? '在线' : '离线'}}</text>
+            </view>
+          </view>
+          <view wx:if="{{canManageMembers}}" class="member-arrow">›</view>
+        </view>
+      </block>
+      <view wx:if="{{members.length === 0}}" class="empty-members">
+        <text class="empty-icon">👥</text>
+        <text class="empty-text">暂无其他成员</text>
+        <text class="empty-hint">点击右上角"邀请新成员"按钮邀请家人加入</text>
+      </view>
     </view>
   </view>
 
@@ -43,104 +89,111 @@
     </view>
   </view>
 
-  <!-- 成员列表 -->
-  <view class="card members-card">
+  
+
+  
+
+  <!-- 数据同步状态 -->
+  <view class="card sync-status-card">
     <view class="card-header">
-      <text class="card-title">家庭成员</text>
-      <t-button wx:if="{{canInvite}}" size="small" theme="primary" bind:tap="showInviteDialog">
-        邀请成员
-      </t-button>
+      <text class="card-title">数据同步</text>
+      <view class="refresh-btn" bind:tap="refreshData">
+        <text class="refresh-icon">🔄</text>
+        <text class="refresh-text">刷新</text>
+      </view>
     </view>
     
-    <t-cell-group>
-      <t-cell 
-        wx:for="{{members}}" 
-        wx:key="id"
-        title="{{item.nickname}}"
-        description="{{item.roleText}}"
-        left-icon="{{item.avatar}}"
-        arrow="{{canManageMembers}}"
-        bind:click="onMemberClick"
-        data-member="{{item}}"
-      >
-        <view slot="left-icon" class="member-avatar">
-          <t-avatar size="small" image="{{item.avatar}}" />
-          <view wx:if="{{item.isOnline}}" class="online-indicator"></view>
-        </view>
-        <view slot="note" class="member-status">
-          <text class="status-text">{{item.isOnline ? '在线' : '离线'}}</text>
-        </view>
-      </t-cell>
-    </t-cell-group>
+    <view class="sync-info">
+      <view class="sync-status {{syncStatus}}">
+        <text class="status-dot"></text>
+        <text class="status-text">{{syncStatus === 'synced' ? '已同步' : (syncStatus === 'syncing' ? '同步中...' : '同步异常')}}</text>
+      </view>
+      <text class="last-sync-time">最后同步：刚刚</text>
+    </view>
   </view>
 
-  <!-- 管理功能 -->
-  <view wx:if="{{canManage}}" class="card management-card">
-    <view class="card-header">
-      <text class="card-title">管理功能</text>
+  <!-- 权限编辑弹窗 -->
+  <view wx:if="{{showPermModal}}" class="perm-modal-mask" catchtouchmove="true">
+    <view class="perm-modal">
+      <view class="perm-modal-header">
+        <text class="perm-modal-title">成员权限</text>
+        <text class="perm-modal-subtitle">{{selectedMember.nickname}}</text>
+      </view>
+      <view class="perm-modal-body">
+        <view class="perm-row">
+          <text class="perm-label">可编辑</text>
+          <switch checked="{{permDraft.canEdit}}" bindchange="onPermEditChange"/>
+        </view>
+        <view class="perm-row">
+          <text class="perm-label">可删除</text>
+          <switch checked="{{permDraft.canDelete}}" bindchange="onPermDeleteChange"/>
+        </view>
+        <view class="perm-row">
+          <text class="perm-label">可导出</text>
+          <switch checked="{{permDraft.canExport}}" bindchange="onPermExportChange"/>
+        </view>
+        <view class="perm-tip">所有成员默认拥有“查看”权限</view>
+      </view>
+      <view class="perm-modal-actions">
+        <button class="btn cancel" bindtap="closePermModal">取消</button>
+        <button class="btn save" bindtap="saveMemberPerms" loading="{{savingPerms}}">保存</button>
+      </view>
     </view>
-    
-    <t-cell-group>
-      <t-cell title="成员权限设置" arrow bind:click="goToPermissions" />
-      <t-cell title="成员动态与操作日志" arrow bind:click="goToLogs" />
-      <t-cell title="同步设置" arrow bind:click="goToSyncSettings" />
-      <t-cell wx:if="{{familyInfo.role === 'owner'}}" title="家庭设置" arrow bind:click="goToFamilySettings" />
-    </t-cell-group>
   </view>
 
-  <!-- 快捷操作 -->
-  <view class="card actions-card">
+  <!-- 操作日志（内嵌本页底部） -->
+  <view class="card logs-card">
     <view class="card-header">
-      <text class="card-title">快捷操作</text>
+      <text class="card-title">操作日志</text>
     </view>
-    
-    <view class="action-buttons">
-      <t-button class="action-btn" theme="light" bind:tap="refreshData">
-        刷新数据
-      </t-button>
-      <t-button class="action-btn" theme="light" bind:tap="showSyncStatus">
-        同步状态
-      </t-button>
+
+    <view class="logs-filters">
+      <picker mode="selector" range="{{logTypeOptions}}" value="{{logTypeIndex}}" bindchange="onLogTypeChange">
+        <view class="filter-item">
+          <text class="filter-label">类型</text>
+          <text class="filter-value">{{logTypeOptions[logTypeIndex]}}</text>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{memberOptions}}" value="{{memberIndex}}" bindchange="onLogMemberChange">
+        <view class="filter-item">
+          <text class="filter-label">成员</text>
+          <text class="filter-value">{{memberOptions[memberIndex]}}</text>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{timeRangeOptions}}" value="{{timeRangeIndex}}" bindchange="onLogTimeRangeChange">
+        <view class="filter-item">
+          <text class="filter-label">时间</text>
+          <text class="filter-value">{{timeRangeOptions[timeRangeIndex]}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="logs-list">
+      <block wx:for="{{filteredLogs}}" wx:key="id">
+        <view class="log-item">
+          <view class="log-top">
+            <text class="log-type">{{item.typeText}}</text>
+            <text class="log-time">{{item.timeText}}</text>
+          </view>
+          <view class="log-middle">
+            <text class="log-actor">{{item.userName || '系统'}}</text>
+            <text class="log-action">{{item.actionText}}</text>
+          </view>
+          <view wx:if="{{item.detail}}" class="log-detail">{{item.detail}}</view>
+        </view>
+      </block>
+
+      <view wx:if="{{filteredLogs.length === 0}}" class="logs-empty">
+        <text class="empty-icon">📝</text>
+        <text class="empty-text">暂无日志</text>
+      </view>
     </view>
   </view>
 </view>
 
-<!-- 邀请成员弹窗 -->
-<t-popup visible="{{showInvitePopup}}" placement="center" bind:visible-change="onInvitePopupChange">
-  <view class="invite-popup">
-    <view class="popup-header">
-      <text class="popup-title">邀请新成员</text>
-    </view>
-    
-    <view class="invite-methods">
-      <view class="invite-method" bind:tap="inviteByCode">
-        <view class="method-icon">📋</view>
-        <text class="method-title">分享家庭码</text>
-        <text class="method-desc">复制家庭码发送给对方</text>
-      </view>
-      
-      <t-divider />
-      
-      <view class="invite-method" bind:tap="inviteByQR">
-        <view class="method-icon">📱</view>
-        <text class="method-title">二维码邀请</text>
-        <text class="method-desc">生成二维码供对方扫描</text>
-      </view>
-      
-      <t-divider />
-      
-      <view class="invite-method" bind:tap="inviteByLink">
-        <view class="method-icon">🔗</view>
-        <text class="method-title">邀请链接</text>
-        <text class="method-desc">生成邀请链接分享</text>
-      </view>
-    </view>
-    
-    <view class="popup-actions">
-      <t-button theme="light" bind:tap="closeInvitePopup">取消</t-button>
-    </view>
-  </view>
-</t-popup>
+
 
 <!-- Toast 提示 -->
 <t-toast id="t-toast" />

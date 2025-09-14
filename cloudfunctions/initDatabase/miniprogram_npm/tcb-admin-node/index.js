@@ -4,7 +4,7 @@ var __DEFINE__ = function(modId, func, req) { var m = { exports: {}, _tempexport
 var __REQUIRE__ = function(modId, source) { if(!__MODS__[modId]) return require(source); if(!__MODS__[modId].status) { var m = __MODS__[modId].m; m._exports = m._tempexports; var desp = Object.getOwnPropertyDescriptor(m, "exports"); if (desp && desp.configurable) Object.defineProperty(m, "exports", { set: function (val) { if(typeof val === "object" && val !== m._exports) { m._exports.__proto__ = val.__proto__; Object.keys(val).forEach(function (k) { m._exports[k] = val[k]; }); } m._tempexports = val }, get: function () { return m._tempexports; } }); __MODS__[modId].status = 1; __MODS__[modId].func(__MODS__[modId].req, m, m.exports); } return __MODS__[modId].m.exports; };
 var __REQUIRE_WILDCARD__ = function(obj) { if(obj && obj.__esModule) { return obj; } else { var newObj = {}; if(obj != null) { for(var k in obj) { if (Object.prototype.hasOwnProperty.call(obj, k)) newObj[k] = obj[k]; } } newObj.default = obj; return newObj; } };
 var __REQUIRE_DEFAULT__ = function(obj) { return obj && obj.__esModule ? obj.default : obj; };
-__DEFINE__(1757458042242, function(require, module, exports) {
+__DEFINE__(1757806478423, function(require, module, exports) {
 const Db = require('@cloudbase/database').Db
 const storage = require('./src/storage')
 const functions = require('./src/functions')
@@ -227,8 +227,8 @@ extend(Tcb.prototype, logger)
 
 module.exports = new Tcb()
 
-}, function(modId) {var map = {"./src/storage":1757458042243,"./src/functions":1757458042252,"./src/auth":1757458042253,"./src/wx":1757458042254,"./src/utils/dbRequest":1757458042255,"./src/log":1757458042256,"./src/const/symbol":1757458042251,"./src/utils/utils":1757458042247,"./src/utils/extRequest":1757458042257}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042243, function(require, module, exports) {
+}, function(modId) {var map = {"./src/storage":1757806478424,"./src/functions":1757806478433,"./src/auth":1757806478434,"./src/wx":1757806478435,"./src/utils/dbRequest":1757806478436,"./src/log":1757806478437,"./src/const/symbol":1757806478432,"./src/utils/utils":1757806478428,"./src/utils/extRequest":1757806478438}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478424, function(require, module, exports) {
 const request = require('request')
 const fs = require('fs')
 const httpRequest = require('../utils/httpRequest')
@@ -540,8 +540,8 @@ exports.downloadFile = downloadFile
 exports.getUploadMetadata = getUploadMetadata
 exports.getFileAuthority = getFileAuthority
 
-}, function(modId) { var map = {"../utils/httpRequest":1757458042244}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042244, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/httpRequest":1757806478425}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478425, function(require, module, exports) {
 const http = require('http')
 const request = require('request')
 const auth = require('./auth.js')
@@ -803,8 +803,8 @@ async function doRequest(args) {
   }
 }
 
-}, function(modId) { var map = {"./auth.js":1757458042245,"./tracing":1757458042246,"./utils":1757458042247,"../../package.json":1757458042248,"./getWxCloudApiToken":1757458042249,"./request-timings-measurer":1757458042250,"../const/symbol":1757458042251}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042245, function(require, module, exports) {
+}, function(modId) { var map = {"./auth.js":1757806478426,"./tracing":1757806478427,"./utils":1757806478428,"../../package.json":1757806478429,"./getWxCloudApiToken":1757806478430,"./request-timings-measurer":1757806478431,"../const/symbol":1757806478432}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478426, function(require, module, exports) {
 var crypto = require('crypto')
 
 function camSafeUrlEncode(str) {
@@ -962,7 +962,7 @@ var getAuth = function(opt) {
 exports.getAuth = getAuth
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042246, function(require, module, exports) {
+__DEFINE__(1757806478427, function(require, module, exports) {
 let seqNum = 0
 
 function getSeqNum() {
@@ -990,7 +990,7 @@ exports.generateTracingInfo = function generateTracingInfo() {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042247, function(require, module, exports) {
+__DEFINE__(1757806478428, function(require, module, exports) {
 exports.filterValue = function filterValue(o, value) {
   for (let key in o) {
     if (o[key] === value) {
@@ -1052,7 +1052,7 @@ exports.getCurrentEnv = function() {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042248, function(require, module, exports) {
+__DEFINE__(1757806478429, function(require, module, exports) {
 module.exports = {
   "name": "tcb-admin-node",
   "version": "1.23.0",
@@ -1130,7 +1130,7 @@ module.exports = {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042249, function(require, module, exports) {
+__DEFINE__(1757806478430, function(require, module, exports) {
 // 由定时触发器触发时（TRIGGER_SRC=timer）：优先使用 WX_TRIGGER_API_TOKEN_V0，不存在的话，为了兼容兼容旧的开发者工具，也是使用 WX_API_TOKEN
 // 非定时触发器触发时（TRIGGER_SRC!=timer）: 使用 WX_API_TOKEN
 function getWxCloudApiToken() {
@@ -1144,7 +1144,7 @@ function getWxCloudApiToken() {
 module.exports = getWxCloudApiToken
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042250, function(require, module, exports) {
+__DEFINE__(1757806478431, function(require, module, exports) {
 const EventEmitter = require('events').EventEmitter
 
 class RequestTimgingsMeasurer extends EventEmitter {
@@ -1267,11 +1267,11 @@ class RequestTimgingsMeasurer extends EventEmitter {
 exports.RequestTimgingsMeasurer = RequestTimgingsMeasurer
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042251, function(require, module, exports) {
+__DEFINE__(1757806478432, function(require, module, exports) {
 exports.SYMBOL_CURRENT_ENV = Symbol.for('SYMBOL_CURRENT_ENV')
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042252, function(require, module, exports) {
+__DEFINE__(1757806478433, function(require, module, exports) {
 const httpRequest = require('../utils/httpRequest')
 
 /**
@@ -1330,8 +1330,8 @@ function callFunction({ name, data }) {
 
 exports.callFunction = callFunction
 
-}, function(modId) { var map = {"../utils/httpRequest":1757458042244}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042253, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/httpRequest":1757806478425}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478434, function(require, module, exports) {
 const jwt = require('jsonwebtoken')
 const { SYMBOL_CURRENT_ENV } = require('../const/symbol')
 const { getCurrentEnv } = require('../utils/utils')
@@ -1420,8 +1420,8 @@ exports.auth = function() {
   }
 }
 
-}, function(modId) { var map = {"../const/symbol":1757458042251,"../utils/utils":1757458042247}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042254, function(require, module, exports) {
+}, function(modId) { var map = {"../const/symbol":1757806478432,"../utils/utils":1757806478428}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478435, function(require, module, exports) {
 const httpRequest = require('../utils/httpRequest')
 
 exports.callWxOpenApi = function({ apiName, requestData } = {}) {
@@ -1504,8 +1504,8 @@ exports.callWxPayApi = function({ apiName, requestData } = {}) {
   })
 }
 
-}, function(modId) { var map = {"../utils/httpRequest":1757458042244}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042255, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/httpRequest":1757806478425}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478436, function(require, module, exports) {
 const httpRequest = require('./httpRequest')
 
 /**
@@ -1550,8 +1550,8 @@ class Request {
 
 module.exports = Request
 
-}, function(modId) { var map = {"./httpRequest":1757458042244}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042256, function(require, module, exports) {
+}, function(modId) { var map = {"./httpRequest":1757806478425}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478437, function(require, module, exports) {
 /**
  *
  *
@@ -1643,7 +1643,7 @@ exports.logger = () => {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042257, function(require, module, exports) {
+__DEFINE__(1757806478438, function(require, module, exports) {
 const httpRequest = require('./httpRequest')
 const requestClient = require('request')
 
@@ -1728,8 +1728,8 @@ class ExtRequest {
 
 module.exports = ExtRequest
 
-}, function(modId) { var map = {"./httpRequest":1757458042244}; return __REQUIRE__(map[modId], modId); })
-return __REQUIRE__(1757458042242);
+}, function(modId) { var map = {"./httpRequest":1757806478425}; return __REQUIRE__(map[modId], modId); })
+return __REQUIRE__(1757806478423);
 })()
 //miniprogram-npm-outsideDeps=["@cloudbase/database","request","fs","xml2js","http","url","@cloudbase/signature-nodejs","crypto","events","jsonwebtoken"]
 //# sourceMappingURL=index.js.map

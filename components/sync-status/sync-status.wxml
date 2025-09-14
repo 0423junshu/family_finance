@@ -169,8 +169,8 @@
     <t-icon name="refresh" size="48rpx" color="#0052d9" />
   </view>
 
-  <!-- 成员活动指示器 -->
-  <view class="member-activity" wx:if="{{showMemberActivity && memberActivities.length > 0}}">
+  <!-- 成员活动指示器（仅在操作日志页显示） -->
+  <view class="member-activity" wx:if="{{showMemberActivity && inOperationLogs && memberActivities.length > 0}}">
     <view class="activity-header">
       <text class="activity-title">成员动态</text>
       <t-button 

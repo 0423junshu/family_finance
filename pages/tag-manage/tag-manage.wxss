@@ -1,6 +1,10 @@
 /* pages/tag-manage/tag-manage.wxss */
+@import '/styles/safe-area.wxss';
 .page-container {
   padding: 32rpx;
+  /* 顶部安全区与下移适配 */
+  padding-top: calc(32rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(32rpx + constant(safe-area-inset-top, 0px));
   min-height: 100vh;
   background-color: #f5f5f5;
 }

@@ -1,7 +1,17 @@
 <!-- pages/budget-manage/budget-manage.wxml -->
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="预算管理" showBack="{{true}}" class="transparent-navbar"></navigation-bar>
+</view>
+
 <view class="container">
-  <!-- 自定义导航栏 -->
-  <navigation-bar title="预算管理" showBack="{{true}}"></navigation-bar>
+  <!-- 月份选择器（历史预算修改功能） -->
+  <view class="month-selector-header">
+    <view class="month-display" bindtap="showMonthPicker">
+      <text class="month-text">{{currentMonthText}}</text>
+      <text class="date-status">{{dateStatus}}</text>
+      <text class="month-arrow">📅</text>
+    </view>
+  </view>
   
   <!-- 标签页切换 -->
   <view class="tab-bar">
@@ -26,7 +36,7 @@
     <!-- 预算概览 -->
     <view class="budget-overview">
       <view class="overview-header">
-        <text class="month-title">{{currentMonth}}支出预算</text>
+        <text class="month-title">支出预算</text>
       </view>
       
       <view class="overview-stats">
@@ -154,7 +164,7 @@
     <!-- 收入概览 -->
     <view class="budget-overview income-overview">
       <view class="overview-header">
-        <text class="month-title">{{currentMonth}}收入预期</text>
+        <text class="month-title">收入预期</text>
       </view>
       
       <view class="overview-stats">
@@ -386,6 +396,64 @@
       <view class="dialog-footer">
         <button class="btn cancel" bindtap="closeDialog">取消</button>
         <button class="btn confirm" bindtap="onSave">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 月份选择器弹窗 - 优化交互体验 -->
+  <view wx:if="{{showMonthPicker}}" class="month-picker-overlay" bindtap="hideMonthPicker">
+    <view class="month-picker-container" catchtap="noop">
+      <view class="month-picker-header">
+        <text class="month-picker-title">选择查看月份</text>
+        <view class="month-picker-close" bindtap="cancelMonthPicker">×</view>
+      </view>
+      
+      <view class="month-picker-content">
+        <!-- 年月联合选择器 -->
+        <view class="picker-section">
+          <view class="picker-label">选择年月</view>
+          <picker 
+            mode="date"
+            fields="month"
+            value="{{datePickerValue}}"
+            end="{{currentDate}}"
+            bindchange="onDatePickerChange"
+          >
+            <view class="picker-display">
+              {{selectedYear}}年{{selectedMonth + 1}}月
+            </view>
+          </picker>
+        </view>
+        
+        <!-- 快速选择选项 -->
+        <view class="picker-section">
+          <view class="picker-label">快速选择</view>
+          <view class="quick-select-options">
+            <view 
+              class="quick-option {{isCurrentMonth ? 'active' : ''}}"
+              bindtap="selectCurrentMonth"
+            >
+              本月
+            </view>
+            <view 
+              class="quick-option {{isLastMonth ? 'active' : ''}}"
+              bindtap="selectLastMonth"
+            >
+              上月
+            </view>
+            <view 
+              class="quick-option {{isThreeMonthsAgo ? 'active' : ''}}"
+              bindtap="selectThreeMonthsAgo"
+            >
+              三个月前
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="month-picker-footer">
+        <button class="picker-btn cancel" bindtap="cancelMonthPicker">取消</button>
+        <button class="picker-btn confirm" bindtap="confirmMonthPicker">确定</button>
       </view>
     </view>
   </view>

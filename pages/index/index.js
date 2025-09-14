@@ -36,12 +36,20 @@ Page({
     monthPickerData: [],
     monthPickerIndex: [0, 0], // [年份索引, 月份索引]
     
-
+    // 顶部安全区 JS 兜底（默认关闭，仅问题机型开启）
+    useJsSafeTop: false,
+    paddingTopPx: 0
   },
 
   async onLoad() {
     console.log('首页加载开始')
     this.initPage()
+    // 注册窗口尺寸变化监听（节流内部处理）
+    if (wx && wx.onWindowResize) {
+      wx.onWindowResize(this.updateSafeTop)
+    }
+    // 首次尝试计算（仅当开启兜底时生效）
+    this.updateSafeTop()
   },
   
   onShow() {
@@ -56,6 +64,9 @@ Page({
       this.loadData()
       this.setData({ lastLoadTime: now })
     }
+
+    // 显示时也尝试更新一次（方向可能发生变化）
+    this.updateSafeTop()
   },
   
   // 初始化页面
@@ -488,6 +499,33 @@ Page({
     this.loadData()
     this.setData({ newTransactionCount: 0 })
   },
+
+  // ========== 顶部安全区 JS 兜底 ==========
+  // 注意：默认 useJsSafeTop=false，不会生效；仅在问题机型将其置为 true。
+  updateSafeTop: (() => {
+    let timer = null
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+    const BASE_PX = 12
+    const EXTRA_PX = 16
+    const MIN_PX = 10
+    const MAX_PX = 88
+    return function() {
+      if (!this || !this.setData) return
+      if (!this.data || !this.data.useJsSafeTop) return
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        try {
+          const info = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {}
+          const statusBar = (info && info.statusBarHeight) || 0
+          const padding = clamp(BASE_PX + EXTRA_PX + statusBar, MIN_PX, MAX_PX)
+          this.setData({ paddingTopPx: padding })
+        } catch (e) {
+          // 读取失败时给一个基础兜底
+          this.setData({ paddingTopPx: 24 })
+        }
+      }, 120)
+    }
+  })(),
   
   // 关闭提示
   onCloseTip(e) {
@@ -500,5 +538,11 @@ Page({
   // 阻止冒泡空函数（用于弹层容器 catchtap）
   noop() {},
 
+  onUnload() {
+    // 解除窗口监听
+    if (wx && wx.offWindowResize) {
+      wx.offWindowResize(this.updateSafeTop)
+    }
+  }
 
 })

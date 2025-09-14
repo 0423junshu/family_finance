@@ -1,5 +1,7 @@
 <!-- pages/stats/stats.wxml -->
-<navigation-bar title="报表统计" show-back="{{false}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="报表统计" show-back="{{false}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
   <!-- 时间范围选择 -->

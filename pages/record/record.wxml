@@ -1,9 +1,12 @@
 <!-- pages/record/record.wxml -->
-<navigation-bar 
-  title="{{mode === 'create' ? '记一笔' : '编辑记录'}}" 
-  show-back="{{true}}" 
-  show-hide-amount="{{true}}"
-/>
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar 
+    title="{{mode === 'create' ? '记一笔' : '编辑记录'}}" 
+    show-back="{{true}}" 
+    show-hide-amount="{{true}}"
+    class="transparent-navbar"
+  />
+</view>
 
 <view class="page-container">
   <view wx:if="{{loading}}" class="loading">

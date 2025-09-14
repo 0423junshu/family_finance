@@ -1,0 +1,101 @@
+/* 安全区适配通用样式 - 可在其他页面复用 */
+
+/* 全局安全区变量配置 */
+:root {
+  /* 基础安全区高度 */
+  --safe-area-base: 16rpx;
+  /* 额外顶部高度，可根据页面需求调整 */
+  --safe-area-extra: 32rpx;
+  /* 安全区背景色 - 纯白色，适配iOS和Android */
+  --safe-area-bg: #ffffff;
+  /* 安全区文字颜色 */
+  --safe-area-text: #333333;
+}
+
+/* 安全区容器 - 用于包裹导航栏 */
+.safe-area-wrapper {
+  background: var(--safe-area-bg);
+  /* 三层兜底适配方案 */
+  /* 1) 变量兜底，适配安卓/无 safe-area 端 */
+  padding-top: calc(var(--safe-area-base, 16rpx) + var(--safe-area-extra, 32rpx));
+  /* 2) iOS 旧版 constant() 兼容（iOS 11/12） */
+  padding-top: calc(var(--safe-area-base, 16rpx) + var(--safe-area-extra, 32rpx) + constant(safe-area-inset-top, 0px));
+  /* 3) 新版 env() 写法 */
+  padding-top: calc(var(--safe-area-base, 16rpx) + var(--safe-area-extra, 32rpx) + env(safe-area-inset-top, 0px));
+}
+
+/* 页面容器安全区适配 */
+.page-safe-container {
+  background: var(--safe-area-bg);
+  min-height: 100vh;
+  position: relative;
+  /* 三层兜底适配方案 */
+  padding-top: calc(var(--safe-area-base, 16rpx) + var(--safe-area-extra, 32rpx));
+  padding-top: calc(var(--safe-area-base, 16rpx) + var(--safe-area-extra, 32rpx) + constant(safe-area-inset-top, 0px));
+  padding-top: calc(var(--safe-area-base, 16rpx) + var(--safe-area-extra, 32rpx) + env(safe-area-inset-top, 0px));
+}
+
+/* 状态栏占位元素 */
+.status-bar-placeholder {
+  height: env(safe-area-inset-top, 0px);
+  height: constant(safe-area-inset-top, 0px);
+  background: var(--safe-area-bg);
+}
+
+/* 导航栏透明化 - 确保继承父层背景 */
+.transparent-navbar {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* 处理系统默认样式干扰 */
+.safe-area-reset {
+  /* 重置可能的系统默认样式 */
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  /* 确保背景色优先级 */
+  background: var(--safe-area-bg) !important;
+}
+
+/* 不同主题色彩变体 */
+.safe-area-white {
+  --safe-area-bg: #ffffff;
+  --safe-area-text: #333333;
+}
+
+.safe-area-dark {
+  --safe-area-bg: #1a1a1a;
+  --safe-area-text: #ffffff;
+}
+
+.safe-area-primary {
+  --safe-area-bg: #667eea;
+  --safe-area-text: #ffffff;
+}
+
+/* 横屏适配 */
+@media screen and (orientation: landscape) {
+  :root {
+    --safe-area-extra: 16rpx; /* 横屏时减少额外高度 */
+  }
+}
+
+/* 小屏设备适配 */
+@media screen and (max-width: 375px) {
+  :root {
+    --safe-area-base: 12rpx;
+    --safe-area-extra: 24rpx;
+  }
+}
+
+/* 大屏设备适配 */
+@media screen and (min-width: 414px) {
+  :root {
+    --safe-area-base: 20rpx;
+    --safe-area-extra: 40rpx;
+  }
+}

@@ -1,5 +1,5 @@
 <!-- components/navigation-bar/navigation-bar.wxml -->
-<view class="navigation-bar" style="height: {{navBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+<view class="navigation-bar" style="height: {{navBarHeight}}px;">
   <view class="navigation-bar-content" style="height: {{navBarHeight}}px;">
     <view wx:if="{{showBack}}" class="back-button" bindtap="onBackTap">
       <text class="back-icon">←</text>
@@ -10,6 +10,10 @@
     </view>
     <view wx:if="{{rightContent}}" class="action-button" bindtap="onRightTap">
       <text class="action-text">{{rightContent}}</text>
+    </view>
+    <!-- 支持右侧插槽内容 -->
+    <view wx:if="{{!rightContent && !showHideAmount}}" class="right-slot">
+      <slot name="right"></slot>
     </view>
   </view>
 </view>

@@ -1,5 +1,7 @@
 <!-- pages/investment-add/investment-add.wxml -->
-<navigation-bar title="{{mode === 'create' ? '添加投资' : '编辑投资'}}" showBack="{{true}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="{{mode === 'create' ? '添加投资' : '编辑投资'}}" showBack="{{true}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
   <view wx:if="{{loading}}" class="loading-container">

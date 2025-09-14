@@ -1,5 +1,7 @@
 <!-- pages/reports/reports-simple.wxml -->
-<navigation-bar title="家庭财务管理" show-back="{{false}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="家庭财务管理" show-back="{{false}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container" bindtap="onTapPage">
   <!-- 顶部日期选择器（改进：明确显示 按月/按年/自定义 三种模式） -->

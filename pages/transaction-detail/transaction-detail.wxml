@@ -1,5 +1,7 @@
 <!-- pages/transaction-detail/transaction-detail.wxml -->
-<navigation-bar title="交易详情" showBack="{{true}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="交易详情" showBack="{{true}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
   <!-- 加载中状态 -->

@@ -18,11 +18,15 @@
     "pages/investments/investments",
     "pages/profile/profile",
     "pages/template-manage/template-manage",
+    "pages/template-edit/template-edit",
+    "pages/theme-settings/theme-settings",
+    "pages/data-export/data-export",
     "pages/cycle-setting/cycle-setting",
     "pages/family/family",
     "pages/join-family/join-family",
     "pages/family-permissions/family-permissions",
     "pages/operation-logs/operation-logs",
+    "pages/settings/settings",
     "pages/db-validator/db-validator",
     "pages/font-test/font-test",
     "pages/init-db-simple/init-db-simple",
@@ -35,7 +39,7 @@
     "navigationStyle": "custom",
     "backgroundColor": "#F5F5F5"
   },
-  "style": "v2",
+
   "useExtendedLib": {
     "weui": true
   },

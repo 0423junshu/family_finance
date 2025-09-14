@@ -634,6 +634,60 @@ class SyncService {
   }
 
   /**
+   * 获取同步设置
+   */
+  async getSyncSettings() {
+    try {
+      const settings = wx.getStorageSync('syncSettings') || {
+        autoSync: true,
+        wifiOnly: false,
+        syncInterval: 30000,
+        strategy: 'hybrid'
+      };
+      
+      return {
+        success: true,
+        data: settings
+      };
+    } catch (error) {
+      console.error('获取同步设置失败:', error);
+      return {
+        success: false,
+        error: error.message,
+        data: {
+          autoSync: true,
+          wifiOnly: false,
+          syncInterval: 30000,
+          strategy: 'hybrid'
+        }
+      };
+    }
+  }
+
+  /**
+   * 更新同步设置
+   */
+  async updateSyncSettings(settings) {
+    try {
+      wx.setStorageSync('syncSettings', settings);
+      
+      // 应用新的同步策略
+      this.setSyncStrategy(settings.strategy);
+      
+      return {
+        success: true,
+        message: '同步设置已更新'
+      };
+    } catch (error) {
+      console.error('更新同步设置失败:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
    * 清理资源
    */
   destroy() {

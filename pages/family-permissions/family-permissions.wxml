@@ -1,341 +1,199 @@
 <!--pages/family-permissions/family-permissions.wxml-->
-<navigation-bar title="成员权限管理" showBack="{{true}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="{{currentMember ? currentMember.nickname + '的权限' : '权限管理'}}" showBack="{{true}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
-  <!-- 标签页切换 -->
-  <t-tabs value="{{activeTab}}" bind:change="onTabChange" class="permission-tabs">
-    <t-tab-panel label="成员管理" value="members" />
-    <t-tab-panel label="角色模板" value="roles" />
-    <t-tab-panel label="权限详情" value="permissions" />
-  </t-tabs>
-
-  <!-- 成员管理标签页 -->
-  <view wx:if="{{activeTab === 'members'}}" class="tab-content">
-    <!-- 成员列表 -->
-    <view class="card members-management-card">
-      <view class="card-header">
-        <text class="card-title">家庭成员 ({{members.length}})</text>
-        <t-button size="small" theme="primary" bind:tap="showBatchEdit">
-          批量设置
-        </t-button>
+  <!-- 单个成员权限管理模式 -->
+  <view wx:if="{{mode === 'simple' && currentMember}}" class="simple-permission-mode">
+    <!-- 成员信息 -->
+    <view class="card member-info-card">
+      <view class="member-header">
+        <view class="member-avatar-large">
+          <image wx:if="{{currentMember.avatar}}" src="{{currentMember.avatar}}" mode="aspectFill" />
+          <text wx:else class="avatar-text-large">{{currentMember.nickname.charAt(0)}}</text>
+        </view>
+        <view class="member-details">
+          <text class="member-name-large">{{currentMember.nickname}}</text>
+          <view class="member-role-badge {{currentMember.role}}">{{currentMember.roleText}}</view>
+          <text class="member-join-time">加入时间：{{currentMember.joinedAtText}}</text>
+        </view>
       </view>
+    </view>
 
-      <view class="members-list">
+    <!-- 基础权限设置 -->
+    <view class="card basic-permissions-card">
+      <view class="card-header">
+        <text class="card-title">基础权限</text>
+        <text class="permission-note">所有成员默认拥有查看权限</text>
+      </view>
+      
+      <view class="basic-permissions-list">
+        <view class="permission-item">
+          <view class="permission-info">
+            <view class="permission-icon">✏️</view>
+            <view class="permission-details">
+              <text class="permission-name">可编辑</text>
+              <text class="permission-desc">可以添加、修改财务记录</text>
+            </view>
+          </view>
+          <switch 
+            checked="{{currentMember.permissions.canEdit}}" 
+            bind:change="onPermissionChange" 
+            data-permission="canEdit"
+            color="#667eea"
+          />
+        </view>
+
+        <view class="permission-item">
+          <view class="permission-info">
+            <view class="permission-icon">🗑️</view>
+            <view class="permission-details">
+              <text class="permission-name">可删除</text>
+              <text class="permission-desc">可以删除财务记录</text>
+            </view>
+          </view>
+          <switch 
+            checked="{{currentMember.permissions.canDelete}}" 
+            bind:change="onPermissionChange" 
+            data-permission="canDelete"
+            color="#667eea"
+          />
+        </view>
+
+        <view class="permission-item">
+          <view class="permission-info">
+            <view class="permission-icon">📤</view>
+            <view class="permission-details">
+              <text class="permission-name">可导出</text>
+              <text class="permission-desc">可以导出家庭财务数据</text>
+            </view>
+          </view>
+          <switch 
+            checked="{{currentMember.permissions.canExport}}" 
+            bind:change="onPermissionChange" 
+            data-permission="canExport"
+            color="#667eea"
+          />
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <button class="save-btn" bind:tap="savePermissions" disabled="{{saving}}">
+        {{saving ? '保存中...' : '保存权限'}}
+      </button>
+      <button wx:if="{{canRemoveMember}}" class="remove-btn" bind:tap="removeMember">
+        移除成员
+      </button>
+    </view>
+  </view>
+
+  <!-- 批量权限管理模式（保留原有功能但简化） -->
+  <view wx:else class="batch-permission-mode">
+    <!-- 成员选择 -->
+    <view class="card member-selector-card">
+      <view class="card-header">
+        <text class="card-title">选择成员</text>
+        <text class="select-all-btn" bind:tap="toggleSelectAll">
+          {{isAllSelected ? '取消全选' : '全选'}}
+        </text>
+      </view>
+      
+      <view class="member-list">
         <view 
           wx:for="{{members}}" 
           wx:key="id"
-          class="member-item {{selectedMembers.includes(item.id) ? 'selected' : ''}}"
-          bind:tap="selectMember"
-          data-member="{{item}}"
+          class="member-selector-item {{selectedMembers.includes(item.id) ? 'selected' : ''}}"
+          bind:tap="toggleMemberSelection"
+          data-member-id="{{item.id}}"
         >
+          <view class="member-checkbox">
+            <text class="checkbox-icon">{{selectedMembers.includes(item.id) ? '✓' : '○'}}</text>
+          </view>
+          <view class="member-avatar">
+            <image wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" />
+            <text wx:else class="avatar-text">{{item.nickname.charAt(0)}}</text>
+          </view>
           <view class="member-info">
-            <t-avatar size="medium" image="{{item.avatar}}" />
-            <view class="member-details">
-              <text class="member-name">{{item.nickname}}</text>
-              <view class="member-meta">
-                <t-tag 
-                  theme="{{item.role === 'owner' ? 'primary' : item.role === 'admin' ? 'success' : 'default'}}" 
-                  size="small"
-                >
-                  {{item.roleText}}
-                </t-tag>
-                <text class="join-date">{{item.joinedAtText}}</text>
-              </view>
-            </view>
-          </view>
-          
-          <view class="member-actions">
-            <view wx:if="{{item.isOnline}}" class="online-status">在线</view>
-            <view wx:else class="offline-status">离线</view>
-            <t-button 
-              wx:if="{{canEditMember(item)}}"
-              size="small" 
-              variant="text" 
-              bind:tap="editMember"
-              data-member="{{item}}"
-            >
-              编辑
-            </t-button>
+            <text class="member-name">{{item.nickname}}</text>
+            <view class="member-role-badge {{item.role}}">{{item.roleText}}</view>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 快捷权限设置 -->
-    <view class="card quick-permissions-card">
+    <!-- 批量权限设置 -->
+    <view wx:if="{{selectedMembers.length > 0}}" class="card batch-permissions-card">
       <view class="card-header">
-        <text class="card-title">快捷权限设置</text>
+        <text class="card-title">批量权限设置</text>
+        <text class="selected-hint">将应用到所选 {{selectedMembers.length}} 位成员</text>
       </view>
       
-      <view class="quick-actions">
-        <view class="quick-action" bind:tap="setQuickPermission" data-type="viewOnly">
-          <view class="action-icon">👁️</view>
-          <text class="action-title">仅查看</text>
-          <text class="action-desc">只能查看数据，不能修改</text>
-        </view>
-        
-        <view class="quick-action" bind:tap="setQuickPermission" data-type="basicEdit">
-          <view class="action-icon">✏️</view>
-          <text class="action-title">基础编辑</text>
-          <text class="action-desc">可以记账和查看报表</text>
-        </view>
-        
-        <view class="quick-action" bind:tap="setQuickPermission" data-type="fullAccess">
-          <view class="action-icon">🔧</view>
-          <text class="action-title">完全访问</text>
-          <text class="action-desc">除删除外的所有权限</text>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 角色模板标签页 -->
-  <view wx:if="{{activeTab === 'roles'}}" class="tab-content">
-    <view class="card role-templates-card">
-      <view class="card-header">
-        <text class="card-title">预设角色模板</text>
-        <t-button size="small" theme="primary" bind:tap="createCustomRole">
-          自定义角色
-        </t-button>
-      </view>
-
-      <view class="role-list">
-        <view 
-          wx:for="{{roleTemplates}}" 
-          wx:key="id"
-          class="role-item"
-          bind:tap="selectRole"
-          data-role="{{item}}"
-        >
-          <view class="role-header">
-            <view class="role-info">
-              <text class="role-name">{{item.name}}</text>
-              <text class="role-desc">{{item.description}}</text>
-            </view>
-            <view class="role-badge">
-              <text class="member-count">{{item.memberCount}}人</text>
+      <view class="batch-permissions-list">
+        <view class="permission-item">
+          <view class="permission-info">
+            <view class="permission-icon">✏️</view>
+            <view class="permission-details">
+              <text class="permission-name">可编辑</text>
+              <text class="permission-desc">可以添加、修改财务记录</text>
             </view>
           </view>
-          
-          <view class="role-permissions-preview">
-            <view 
-              wx:for="{{item.keyPermissions}}" 
-              wx:for-item="permission"
-              wx:key="*this"
-              class="permission-tag"
-            >
-              {{permission}}
+          <switch 
+            checked="{{batchPermissions.canEdit}}" 
+            bind:change="onBatchPermissionChange" 
+            data-permission="canEdit"
+            color="#667eea"
+          />
+        </view>
+
+        <view class="permission-item">
+          <view class="permission-info">
+            <view class="permission-icon">🗑️</view>
+            <view class="permission-details">
+              <text class="permission-name">可删除</text>
+              <text class="permission-desc">可以删除财务记录</text>
             </view>
           </view>
+          <switch 
+            checked="{{batchPermissions.canDelete}}" 
+            bind:change="onBatchPermissionChange" 
+            data-permission="canDelete"
+            color="#667eea"
+          />
         </view>
-      </view>
-    </view>
-  </view>
 
-  <!-- 权限详情标签页 -->
-  <view wx:if="{{activeTab === 'permissions'}}" class="tab-content">
-    <view class="card permissions-matrix-card">
-      <view class="card-header">
-        <text class="card-title">权限矩阵</text>
-        <view class="matrix-controls">
-          <t-button size="small" variant="text" bind:tap="expandAll">
-            {{allExpanded ? '收起' : '展开'}}全部
-          </t-button>
-        </view>
-      </view>
-
-      <!-- 权限分类 -->
-      <view class="permissions-matrix">
-        <view 
-          wx:for="{{permissionCategories}}" 
-          wx:key="category"
-          class="permission-category"
-        >
-          <view 
-            class="category-header"
-            bind:tap="toggleCategory"
-            data-category="{{item.category}}"
-          >
-            <view class="category-title">
-              <text class="category-icon">{{item.expanded ? '📂' : '📁'}}</text>
-              <text class="category-name">{{item.name}}</text>
-            </view>
-            <text class="category-count">{{item.permissions.length}}项权限</text>
-          </view>
-
-          <view wx:if="{{item.expanded}}" class="category-permissions">
-            <view class="permission-header">
-              <text class="permission-name-header">权限名称</text>
-              <text class="role-header" wx:for="{{roles}}" wx:key="*this">{{item}}</text>
-            </view>
-
-            <view 
-              wx:for="{{item.permissions}}" 
-              wx:for-item="permission"
-              wx:key="key"
-              class="permission-row"
-            >
-              <view class="permission-info">
-                <text class="permission-name">{{permission.name}}</text>
-                <text class="permission-desc">{{permission.description}}</text>
-              </view>
-              
-              <view class="permission-switches">
-                <t-switch 
-                  wx:for="{{roles}}" 
-                  wx:for-item="role"
-                  wx:key="*this"
-                  value="{{getPermissionValue(permission.key, role)}}"
-                  disabled="{{!canEditRole(role)}}"
-                  bind:change="onPermissionChange"
-                  data-permission="{{permission.key}}"
-                  data-role="{{role}}"
-                  size="small"
-                />
-              </view>
+        <view class="permission-item">
+          <view class="permission-info">
+            <view class="permission-icon">📤</view>
+            <view class="permission-details">
+              <text class="permission-name">可导出</text>
+              <text class="permission-desc">可以导出家庭财务数据</text>
             </view>
           </view>
+          <switch 
+            checked="{{batchPermissions.canExport}}" 
+            bind:change="onBatchPermissionChange" 
+            data-permission="canExport"
+            color="#667eea"
+          />
         </view>
       </view>
-    </view>
 
-    <!-- 权限说明 -->
-    <view class="card permission-help-card">
-      <view class="card-header">
-        <text class="card-title">权限说明</text>
-      </view>
-      
-      <view class="help-content">
-        <view class="help-item">
-          <text class="help-title">🔒 数据权限</text>
-          <text class="help-desc">控制成员对财务数据的访问和修改权限</text>
-        </view>
-        
-        <view class="help-item">
-          <text class="help-title">👥 成员管理</text>
-          <text class="help-desc">管理家庭成员的邀请、移除和权限设置</text>
-        </view>
-        
-        <view class="help-item">
-          <text class="help-title">⚙️ 家庭管理</text>
-          <text class="help-desc">家庭设置、删除等高级管理功能</text>
-        </view>
-        
-        <view class="help-item">
-          <text class="help-title">📊 功能权限</text>
-          <text class="help-desc">各个功能模块的使用权限控制</text>
-        </view>
+      <!-- 批量操作按钮 -->
+      <view class="batch-action-buttons">
+        <button class="apply-btn" bind:tap="applyBatchPermissions" disabled="{{saving}}">
+          {{saving ? '应用中...' : '应用到所选成员'}}
+        </button>
       </view>
     </view>
   </view>
 </view>
 
-<!-- 成员编辑弹窗 -->
-<t-popup visible="{{showMemberEdit}}" placement="bottom" bind:visible-change="onMemberEditChange">
-  <view class="member-edit-popup">
-    <view class="popup-header">
-      <text class="popup-title">编辑成员权限</text>
-      <t-button size="small" variant="text" bind:tap="closeMemberEdit">关闭</t-button>
-    </view>
-
-    <view wx:if="{{editingMember}}" class="edit-content">
-      <!-- 成员信息 -->
-      <view class="edit-member-info">
-        <t-avatar size="large" image="{{editingMember.avatar}}" />
-        <view class="edit-member-details">
-          <text class="edit-member-name">{{editingMember.nickname}}</text>
-          <text class="edit-member-role">当前角色：{{editingMember.roleText}}</text>
-        </view>
-      </view>
-
-      <!-- 角色选择 -->
-      <view class="edit-section">
-        <text class="section-title">选择角色</text>
-        <t-radio-group value="{{editingMember.role}}" bind:change="onRoleChange">
-          <t-radio 
-            wx:for="{{availableRoles}}" 
-            wx:key="value"
-            value="{{item.value}}" 
-            label="{{item.label}}"
-            disabled="{{item.disabled}}"
-          />
-        </t-radio-group>
-      </view>
-
-      <!-- 自定义权限 -->
-      <view class="edit-section">
-        <text class="section-title">自定义权限</text>
-        <view class="custom-permissions">
-          <t-cell-group>
-            <t-cell 
-              wx:for="{{editPermissions}}" 
-              wx:key="key"
-              title="{{item.name}}"
-              description="{{item.description}}"
-            >
-              <t-switch 
-                slot="note"
-                value="{{item.enabled}}"
-                bind:change="onCustomPermissionChange"
-                data-key="{{item.key}}"
-                size="small"
-              />
-            </t-cell>
-          </t-cell-group>
-        </view>
-      </view>
-
-      <!-- 操作按钮 -->
-      <view class="edit-actions">
-        <t-button theme="primary" bind:tap="saveMemberPermissions">
-          保存更改
-        </t-button>
-        <t-button 
-          wx:if="{{canRemoveMember(editingMember)}}"
-          theme="danger" 
-          variant="outline" 
-          bind:tap="removeMember"
-        >
-          移除成员
-        </t-button>
-      </view>
-    </view>
-  </view>
-</t-popup>
-
-<!-- 批量编辑弹窗 -->
-<t-popup visible="{{showBatchEdit}}" placement="center" bind:visible-change="onBatchEditChange">
-  <view class="batch-edit-popup">
-    <view class="popup-header">
-      <text class="popup-title">批量权限设置</text>
-    </view>
-
-    <view class="batch-content">
-      <text class="batch-desc">已选择 {{selectedMembers.length}} 位成员</text>
-      
-      <view class="batch-actions">
-        <t-button 
-          wx:for="{{batchActions}}" 
-          wx:key="type"
-          theme="{{item.theme}}" 
-          size="large"
-          bind:tap="executeBatchAction"
-          data-action="{{item.type}}"
-          class="batch-action-btn"
-        >
-          {{item.label}}
-        </t-button>
-      </view>
-    </view>
-
-    <view class="popup-actions">
-      <t-button theme="light" bind:tap="closeBatchEdit">取消</t-button>
-    </view>
-  </view>
-</t-popup>
-
 <!-- Toast 提示 -->
-<t-toast id="t-toast" />
-
-<!-- Dialog 对话框 -->
-<t-dialog id="t-dialog" />
+<view class="toast-container" wx:if="{{showToast}}">
+  <view class="toast {{toastType}}">
+    <text class="toast-text">{{toastMessage}}</text>
+  </view>
+</view>

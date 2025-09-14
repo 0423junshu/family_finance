@@ -1,1 +1,447 @@
 /* pages/settings/settings.wxss */
+@import '/styles/safe-area.wxss';
+
+.page-container {
+  padding: 20rpx;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 家庭信息卡片 */
+.family-info-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+  color: white;
+}
+
+.family-header {
+  margin-bottom: 24rpx;
+}
+
+.family-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.family-code {
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+.family-stats {
+  display: flex;
+  gap: 40rpx;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 4rpx;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  opacity: 0.8;
+}
+
+/* 同步状态卡片 */
+.sync-status-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.indicator-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background-color: #ccc;
+}
+
+.sync-indicator.synced .indicator-dot {
+  background-color: #52c41a;
+}
+
+.sync-indicator.syncing .indicator-dot {
+  background-color: #1890ff;
+  animation: pulse 1.5s infinite;
+}
+
+.sync-indicator.error .indicator-dot {
+  background-color: #ff4d4f;
+}
+
+.indicator-text {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.sync-details {
+  margin-bottom: 24rpx;
+}
+
+.sync-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.sync-item:last-child {
+  border-bottom: none;
+}
+
+.sync-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.sync-value {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.sync-value.error {
+  color: #ff4d4f;
+}
+
+.sync-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.sync-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.sync-btn.primary {
+  background-color: #1890ff;
+  color: white;
+}
+
+.sync-btn.primary:disabled {
+  background-color: #d9d9d9;
+  color: #999;
+}
+
+.sync-btn.secondary {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.loading-icon {
+  width: 24rpx;
+  height: 24rpx;
+  border: 2rpx solid transparent;
+  border-top: 2rpx solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* 同步设置卡片 */
+.sync-settings-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-info {
+  flex: 1;
+}
+
+.setting-title {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 4rpx;
+}
+
+.setting-desc {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.picker-value {
+  font-size: 28rpx;
+  color: #1890ff;
+  padding: 8rpx 16rpx;
+  background-color: #f0f8ff;
+  border-radius: 8rpx;
+}
+
+/* 家庭管理卡片 */
+.family-manage-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+/* 家庭名称设置 */
+.family-name-setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.family-name-container {
+  flex: 1;
+  margin-left: 20rpx;
+}
+
+.family-name-display {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12rpx;
+  padding: 16rpx 20rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  border: 1rpx solid transparent;
+  transition: all 0.2s ease;
+}
+
+.family-name-display:active {
+  background: #e4e7ed;
+  border-color: #409eff;
+}
+
+.family-name-text {
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.edit-icon {
+  font-size: 24rpx;
+  opacity: 0.6;
+}
+
+.family-name-input {
+  width: 100%;
+  padding: 16rpx 20rpx;
+  background: #ffffff;
+  border: 2rpx solid #409eff;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 16rpx;
+  justify-content: flex-end;
+  margin-top: 20rpx;
+}
+
+.action-btn {
+  padding: 12rpx 32rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.action-btn.cancel {
+  background: #f5f7fa;
+  color: #666666;
+}
+
+.action-btn.save {
+  background: #409eff;
+  color: #ffffff;
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.manage-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+  cursor: pointer;
+}
+
+.manage-item:last-child {
+  border-bottom: none;
+}
+
+.manage-item:active {
+  background-color: #f5f5f5;
+  border-radius: 8rpx;
+}
+
+.manage-icon {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.manage-info {
+  flex: 1;
+}
+
+.manage-title {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 4rpx;
+}
+
+.manage-desc {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.manage-arrow {
+  font-size: 28rpx;
+  color: #ccc;
+}
+
+/* 高级设置卡片 */
+.advanced-settings-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.setting-item.danger {
+  color: #ff4d4f;
+}
+
+.setting-item.danger .setting-title {
+  color: #ff4d4f;
+}
+
+.setting-arrow {
+  font-size: 28rpx;
+  color: #ccc;
+}
+
+/* 关于卡片 */
+.about-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.about-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.about-item:active {
+  opacity: 0.7;
+}
+
+.about-title {
+  font-size: 30rpx;
+  color: #333;
+}
+
+.about-desc {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 动画效果 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 响应式适配 */
+@media (max-width: 375px) {
+  .page-container {
+    padding: 16rpx;
+  }
+  
+  .family-info-card,
+  .sync-status-card,
+  .sync-settings-card,
+  .family-manage-card,
+  .advanced-settings-card,
+  .about-card {
+    padding: 24rpx;
+  }
+  
+  .family-name {
+    font-size: 32rpx;
+  }
+  
+  .family-code {
+    font-size: 24rpx;
+  }
+}

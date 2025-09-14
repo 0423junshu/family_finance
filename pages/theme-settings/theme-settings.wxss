@@ -1,0 +1,356 @@
+/* pages/theme-settings/theme-settings.wxss */
+@import '/styles/safe-area.wxss';
+@import "../../styles/variables.wxss";
+@import "../../styles/common.wxss";
+
+.page-container {
+  padding-top: 120rpx;
+  /* 顶部安全区与下移适配 */
+  padding-top: calc(120rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(120rpx + constant(safe-area-inset-top, 0px));
+  padding-bottom: 40rpx;
+  background: #F5F5F5;
+  min-height: 100vh;
+}
+
+/* 预览提示 */
+.preview-tip {
+  position: fixed;
+  top: 176rpx;
+  top: calc(176rpx + env(safe-area-inset-top, 0px));
+  top: calc(176rpx + constant(safe-area-inset-top, 0px));
+  left: 32rpx;
+  right: 32rpx;
+  z-index: 100;
+  animation: slideDown 0.3s ease-out;
+}
+
+.tip-content {
+  background: #FF9500;
+  color: #FFFFFF;
+  padding: 24rpx 32rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4rpx 20rpx rgba(255, 149, 0, 0.3);
+}
+
+.tip-text {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.tip-action {
+  font-size: 26rpx;
+  padding: 8rpx 16rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6rpx;
+}
+
+/* 设置区域 */
+.settings-section {
+  margin: 32rpx;
+  margin-bottom: 48rpx;
+}
+
+/* 主题选择区域特殊间距 */
+.theme-section {
+  margin-top: 16rpx;
+}
+
+.section-header {
+  margin-bottom: 32rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1C1C1E;
+  margin-bottom: 8rpx;
+}
+
+.section-desc {
+  font-size: 26rpx;
+  color: #8E8E93;
+}
+
+/* 主题网格 */
+.theme-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24rpx;
+}
+
+.theme-item {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  position: relative;
+  transition: all 0.3s ease;
+  border: 2rpx solid transparent;
+}
+
+.theme-item.active {
+  border-color: #007AFF;
+  box-shadow: 0 4rpx 20rpx rgba(0, 122, 255, 0.2);
+}
+
+.theme-item.preview {
+  border-color: #FF9500;
+  box-shadow: 0 4rpx 20rpx rgba(255, 149, 0, 0.2);
+}
+
+.theme-preview {
+  width: 100%;
+  height: 120rpx;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  margin-bottom: 16rpx;
+  overflow: hidden;
+}
+
+.preview-surface {
+  width: 100%;
+  height: 100%;
+  border-radius: 8rpx;
+  padding: 12rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.preview-header {
+  height: 20rpx;
+  border-radius: 4rpx;
+}
+
+.preview-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.preview-text {
+  height: 12rpx;
+  border-radius: 2rpx;
+}
+
+.preview-text:first-child {
+  width: 80%;
+}
+
+.preview-text:last-child {
+  width: 60%;
+}
+
+.theme-info {
+  text-align: center;
+}
+
+.theme-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1C1C1E;
+  margin-bottom: 4rpx;
+}
+
+.theme-desc {
+  font-size: 24rpx;
+  color: #8E8E93;
+}
+
+.theme-check {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  width: 32rpx;
+  height: 32rpx;
+  background: #007AFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-icon {
+  color: #FFFFFF;
+  font-size: 20rpx;
+  font-weight: bold;
+}
+
+.preview-badge {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  background: #FF9500;
+  color: #FFFFFF;
+  font-size: 20rpx;
+  padding: 4rpx 8rpx;
+  border-radius: 6rpx;
+}
+
+/* 字体大小列表 */
+.font-size-list {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.font-size-item {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #F2F2F7;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.font-size-item:last-child {
+  border-bottom: none;
+}
+
+.font-size-item.active {
+  background: #F0F8FF;
+}
+
+.font-size-preview {
+  width: 120rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+}
+
+.preview-text-sample {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #1C1C1E;
+  transform-origin: center;
+  transition: transform 0.2s ease;
+}
+
+.font-size-info {
+  flex: 1;
+}
+
+.font-size-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1C1C1E;
+  margin-bottom: 4rpx;
+}
+
+.font-size-scale {
+  font-size: 24rpx;
+  color: #8E8E93;
+}
+
+.font-size-check {
+  width: 32rpx;
+  height: 32rpx;
+  background: #007AFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 高级设置 */
+.advanced-settings {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  transition: background-color 0.2s ease;
+}
+
+.setting-item:active {
+  background: #F2F2F7;
+}
+
+.setting-icon {
+  font-size: 40rpx;
+  margin-right: 24rpx;
+}
+
+.setting-info {
+  flex: 1;
+}
+
+.setting-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1C1C1E;
+  margin-bottom: 4rpx;
+}
+
+.setting-desc {
+  font-size: 24rpx;
+  color: #8E8E93;
+}
+
+.setting-arrow {
+  font-size: 28rpx;
+  color: #C7C7CC;
+}
+
+/* 使用说明 */
+.usage-tips {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 32rpx;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 24rpx;
+}
+
+.tip-item:last-child {
+  margin-bottom: 0;
+}
+
+.tip-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+  margin-top: 4rpx;
+}
+
+.tip-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #1C1C1E;
+  line-height: 1.5;
+}
+
+/* 动画效果 */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 响应式适配 */
+@media (max-width: 375px) {
+  .theme-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .theme-preview {
+    height: 100rpx;
+  }
+}

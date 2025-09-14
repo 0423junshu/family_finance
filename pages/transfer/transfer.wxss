@@ -1,4 +1,6 @@
 /* pages/transfer/transfer.wxss */
+@import '/styles/safe-area.wxss';
+
 .page-container {
   padding-top: 40rpx;
   padding-bottom: 160rpx;

@@ -1,5 +1,7 @@
 <!-- pages/category-manage/category-manage.wxml -->
-<navigation-bar title="分类管理" showBack="{{true}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="分类管理" showBack="{{true}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
   <view wx:if="{{loading}}" class="loading-container">

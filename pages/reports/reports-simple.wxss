@@ -1,5 +1,8 @@
 /* pages/reports/reports-simple.wxss */
+@import '/styles/safe-area.wxss';
 .page-container {
+  padding-top: calc(16rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(16rpx + constant(safe-area-inset-top, 0px));
   padding: 0 0 120rpx;
   background-color: #f5f5f5;
   min-height: 100vh;

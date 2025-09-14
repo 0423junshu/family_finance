@@ -46,15 +46,37 @@ Page({
       period: 'monthly' // monthly, yearly
     },
     
-    // 当前月份
-    currentMonth: '',
+    // 历史预算修改功能
+    currentYear: new Date().getFullYear(),
+    currentMonth: new Date().getMonth(),
+    showMonthPicker: false,
+    selectedYear: new Date().getFullYear(),
+    selectedMonth: new Date().getMonth(),
+    startYear: 2020,
+    yearRange: [],
+    dateStatus: '当前月份',
+    
+    // 当前月份显示文本
+    currentMonthText: '',
+    
+    // 日期选择器相关
+    currentDate: '',
+    datePickerValue: '',
+    isCurrentMonth: true,
+    isLastMonth: false,
+    isThreeMonthsAgo: false,
     
     // 验证错误
     errors: {}
   },
 
-  onLoad() {
-    this.initCurrentMonth()
+  onLoad(options) {
+    // 检查是否有传入的年月参数（用于历史预算修改）
+    const year = options.year ? parseInt(options.year) : new Date().getFullYear()
+    const month = options.month !== undefined ? parseInt(options.month) : new Date().getMonth()
+    
+    this.initCurrentMonth(year, month)
+    this.initYearRange()
     this.loadCategories()
     this.loadBudgets()
   },
@@ -63,11 +85,230 @@ Page({
     this.loadBudgets()
   },
 
-  // 初始化当前月份
-  initCurrentMonth() {
-    const now = new Date()
-    const currentMonth = `${now.getFullYear()}年${now.getMonth() + 1}月`
-    this.setData({ currentMonth })
+  // 初始化当前月份（支持历史月份）
+  initCurrentMonth(year, month) {
+    const targetYear = year || new Date().getFullYear()
+    const targetMonth = month !== undefined ? month : new Date().getMonth()
+    
+    const currentDate = new Date()
+    const currentYmKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
+    const targetYmKey = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`
+    const isCurrentMonth = targetYmKey === currentYmKey
+    
+    // 修复月份显示文本格式
+    const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+    const currentMonthText = `${targetYear}年${monthNames[targetMonth]}`
+    
+    this.setData({ 
+      currentYear: targetYear,
+      currentMonth: targetMonth,
+      selectedYear: targetYear,
+      selectedMonth: targetMonth,
+      currentMonthText: currentMonthText,
+      dateStatus: isCurrentMonth ? '当前月份' : '历史月份'
+    })
+    
+    // 保存当前查看的月份到存储
+    wx.setStorageSync('lastViewedMonth', targetYmKey)
+    
+    console.log(`初始化月份: ${currentMonthText}, 是否当前月份: ${isCurrentMonth}`)
+  },
+
+  // 初始化年份范围和日期相关数据
+  initYearRange() {
+    const currentYear = new Date().getFullYear()
+    const currentMonth = new Date().getMonth()
+    const yearRange = []
+    for (let year = this.data.startYear; year <= currentYear + 1; year++) {
+      yearRange.push(year)
+    }
+    
+    // 设置当前日期字符串（用于日期选择器的end属性）
+    const currentDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+    
+    // 初始化日期选择器的值
+    const datePickerValue = `${this.data.selectedYear}-${String(this.data.selectedMonth + 1).padStart(2, '0')}`
+    
+    this.setData({ 
+      yearRange,
+      currentDate,
+      datePickerValue
+    })
+    
+    // 初始化快速选择状态
+    this.updateQuickSelectStatus()
+  },
+
+  // 显示月份选择器
+  showMonthPicker() {
+    this.setData({ showMonthPicker: true })
+  },
+
+  // 隐藏月份选择器
+  hideMonthPicker() {
+    this.setData({ showMonthPicker: false })
+  },
+
+  // 年份选择
+  onYearChange(e) {
+    const yearIndex = parseInt(e.detail.value)
+    const selectedYear = this.data.yearRange[yearIndex]
+    this.setData({ selectedYear })
+  },
+
+  // 月份选择
+  onMonthChange(e) {
+    const selectedMonth = parseInt(e.detail.value)
+    this.setData({ selectedMonth })
+  },
+
+  // 确认月份选择
+  confirmMonthPicker() {
+    const { selectedYear, selectedMonth } = this.data
+    
+    // 验证选择的年月是否有效
+    if (!selectedYear || selectedMonth < 0 || selectedMonth > 11) {
+      wx.showToast({
+        title: '请选择有效的年月',
+        icon: 'error'
+      })
+      return
+    }
+    
+    // 检查是否选择了未来的月份
+    const currentDate = new Date()
+    const selectedDate = new Date(selectedYear, selectedMonth)
+    const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth())
+    
+    if (selectedDate > currentMonthStart) {
+      wx.showToast({
+        title: '不能选择未来月份',
+        icon: 'error'
+      })
+      return
+    }
+    
+    this.initCurrentMonth(selectedYear, selectedMonth)
+    this.hideMonthPicker()
+    this.loadBudgets() // 重新加载对应月份的预算数据
+    
+    wx.showToast({
+      title: `已切换到${selectedYear}年${selectedMonth + 1}月`,
+      icon: 'success'
+    })
+  },
+
+  // 取消月份选择
+  cancelMonthPicker() {
+    const { currentYear, currentMonth } = this.data
+    this.setData({
+      selectedYear: currentYear,
+      selectedMonth: currentMonth,
+      showMonthPicker: false
+    })
+    this.updateQuickSelectStatus()
+  },
+
+  // 日期选择器变化处理
+  onDatePickerChange(e) {
+    const dateValue = e.detail.value // 格式: YYYY-MM
+    const [year, month] = dateValue.split('-')
+    const selectedYear = parseInt(year)
+    const selectedMonth = parseInt(month) - 1 // 转换为0-11的月份索引
+    
+    this.setData({
+      selectedYear,
+      selectedMonth,
+      datePickerValue: dateValue
+    })
+    
+    this.updateQuickSelectStatus()
+    
+    // 立即切换到选择的月份
+    this.initCurrentMonth(selectedYear, selectedMonth)
+    this.loadBudgets()
+    
+    wx.showToast({
+      title: `已切换到${selectedYear}年${selectedMonth + 1}月`,
+      icon: 'success'
+    })
+  },
+
+  // 更新快速选择状态
+  updateQuickSelectStatus() {
+    const { selectedYear, selectedMonth } = this.data
+    const currentDate = new Date()
+    const currentYear = currentDate.getFullYear()
+    const currentMonthIndex = currentDate.getMonth()
+    
+    // 计算上个月
+    const lastMonth = new Date(currentYear, currentMonthIndex - 1)
+    const lastMonthYear = lastMonth.getFullYear()
+    const lastMonthIndex = lastMonth.getMonth()
+    
+    // 计算三个月前
+    const threeMonthsAgo = new Date(currentYear, currentMonthIndex - 3)
+    const threeMonthsAgoYear = threeMonthsAgo.getFullYear()
+    const threeMonthsAgoIndex = threeMonthsAgo.getMonth()
+    
+    this.setData({
+      isCurrentMonth: selectedYear === currentYear && selectedMonth === currentMonthIndex,
+      isLastMonth: selectedYear === lastMonthYear && selectedMonth === lastMonthIndex,
+      isThreeMonthsAgo: selectedYear === threeMonthsAgoYear && selectedMonth === threeMonthsAgoIndex
+    })
+  },
+
+  // 快速选择当前月份
+  selectCurrentMonth() {
+    const currentDate = new Date()
+    const selectedYear = currentDate.getFullYear()
+    const selectedMonth = currentDate.getMonth()
+    const datePickerValue = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`
+    
+    this.setData({
+      selectedYear,
+      selectedMonth,
+      datePickerValue
+    })
+    this.updateQuickSelectStatus()
+    this.initCurrentMonth(selectedYear, selectedMonth)
+    this.loadBudgets()
+  },
+
+  // 快速选择上个月
+  selectLastMonth() {
+    const currentDate = new Date()
+    const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1)
+    const selectedYear = lastMonth.getFullYear()
+    const selectedMonth = lastMonth.getMonth()
+    const datePickerValue = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`
+    
+    this.setData({
+      selectedYear,
+      selectedMonth,
+      datePickerValue
+    })
+    this.updateQuickSelectStatus()
+    this.initCurrentMonth(selectedYear, selectedMonth)
+    this.loadBudgets()
+  },
+
+  // 快速选择三个月前
+  selectThreeMonthsAgo() {
+    const currentDate = new Date()
+    const threeMonthsAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 3)
+    const selectedYear = threeMonthsAgo.getFullYear()
+    const selectedMonth = threeMonthsAgo.getMonth()
+    const datePickerValue = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`
+    
+    this.setData({
+      selectedYear,
+      selectedMonth,
+      datePickerValue
+    })
+    this.updateQuickSelectStatus()
+    this.initCurrentMonth(selectedYear, selectedMonth)
+    this.loadBudgets()
   },
 
   // 加载分类数据
@@ -118,19 +359,55 @@ Page({
     }
   },
 
-  // 加载预算数据 - 直接使用本地存储
+  // 加载预算数据 - 支持历史预算修改
   async loadBudgets() {
     try {
       this.setData({ loading: true })
       
-      // 直接从本地存储获取预算数据（兼容历史数据：规范 id 字段）
-      const rawBudgets = wx.getStorageSync('budgets') || []
-      const rawIncomeExpectations = wx.getStorageSync('incomeExpectations') || []
-      const budgets = rawBudgets.map(b => ({ ...b, id: b.id || b._id }))
-      const incomeExpectations = rawIncomeExpectations.map(e => ({ ...e, id: e.id || e._id }))
+      const { currentYear, currentMonth } = this.data
+      const ymKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+      
+      // 判断是否为当前月份
+      const currentDate = new Date()
+      const currentYmKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
+      const isCurrentMonth = ymKey === currentYmKey
+      
+      let budgets, incomeExpectations
+      
+      if (isCurrentMonth) {
+        // 当前月份：从主存储加载
+        budgets = wx.getStorageSync('budgets') || []
+        incomeExpectations = wx.getStorageSync('incomeExpectations') || []
+      } else {
+        // 历史月份：从历史存储加载，确保基于历史数据修改
+        budgets = wx.getStorageSync(`budgets:${ymKey}`) || []
+        incomeExpectations = wx.getStorageSync(`incomeExpectations:${ymKey}`) || []
+        
+        // 如果历史存储为空，从主存储初始化（仅一次）
+        if (budgets.length === 0 && incomeExpectations.length === 0) {
+          const mainBudgets = wx.getStorageSync('budgets') || []
+          const mainIncomeExpectations = wx.getStorageSync('incomeExpectations') || []
+          budgets = JSON.parse(JSON.stringify(mainBudgets))
+          incomeExpectations = JSON.parse(JSON.stringify(mainIncomeExpectations))
+          
+          // 保存到历史存储
+          wx.setStorageSync(`budgets:${ymKey}`, budgets)
+          wx.setStorageSync(`incomeExpectations:${ymKey}`, incomeExpectations)
+          console.log(`初始化历史月份预算数据: ${ymKey}`)
+        }
+      }
+      
+      // 规范 id 字段
+      budgets = budgets.map(b => ({ ...b, id: b.id || b._id }))
+      incomeExpectations = incomeExpectations.map(e => ({ ...e, id: e.id || e._id }))
+      
+      // 获取对应月份的交易数据
       const transactions = wx.getStorageSync('transactions') || []
       
-      console.log('加载预算数据:', { budgets: budgets.length, incomeExpectations: incomeExpectations.length })
+      console.log(`加载${isCurrentMonth ? '当前' : '历史'}月份预算数据 (${ymKey}):`, { 
+        budgets: budgets.length, 
+        incomeExpectations: incomeExpectations.length 
+      })
       
       // 使用统一的周期计算工具
       CycleCalculator.fixCycleSetting() // 确保周期设置有效
@@ -393,7 +670,7 @@ Page({
   // 阻止冒泡空函数（用于对话框容器 catchtap）
   noop() {},
 
-  // 保存预算/预期 - 直接使用本地存储
+  // 保存预算/预期 - 支持历史预算修改
   async onSave() {
     if (!this.validateForm()) {
       showToast(Object.values(this.data.errors)[0], 'error')
@@ -405,6 +682,13 @@ Page({
       
       const amount = Math.round(parseFloat(this.data.formData.amount) * 100) // 转换为分
       const isExpense = this.data.formData.type === 'expense'
+      const { currentYear, currentMonth } = this.data
+      const ymKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+      
+      // 判断是否为当前月份
+      const currentDate = new Date()
+      const currentYmKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
+      const isCurrentMonth = ymKey === currentYmKey
       
       const budgetData = {
         id: this.data.editingItem?.id || Date.now().toString(),
@@ -414,40 +698,81 @@ Page({
         period: this.data.formData.period,
         type: this.data.formData.type,
         createTime: this.data.editingItem?.createTime || new Date().toISOString(),
-        updateTime: new Date().toISOString()
+        updateTime: new Date().toISOString(),
+        yearMonth: ymKey // 添加年月标识
       }
       
       if (this.data.showAddDialog) {
         // 添加新预算
         if (isExpense) {
-          const budgets = wx.getStorageSync('budgets') || []
-          budgets.push(budgetData)
-          wx.setStorageSync('budgets', budgets)
+          if (isCurrentMonth) {
+            // 当前月份：更新主存储和当前月份存储
+            const budgets = wx.getStorageSync('budgets') || []
+            budgets.push(budgetData)
+            wx.setStorageSync('budgets', budgets)
+            wx.setStorageSync(`budgets:${ymKey}`, budgets)
+          } else {
+            // 历史月份：仅更新该月份存储
+            const budgets = wx.getStorageSync(`budgets:${ymKey}`) || []
+            budgets.push(budgetData)
+            wx.setStorageSync(`budgets:${ymKey}`, budgets)
+          }
         } else {
-          const incomeExpectations = wx.getStorageSync('incomeExpectations') || []
-          incomeExpectations.push(budgetData)
-          wx.setStorageSync('incomeExpectations', incomeExpectations)
+          if (isCurrentMonth) {
+            const incomeExpectations = wx.getStorageSync('incomeExpectations') || []
+            incomeExpectations.push(budgetData)
+            wx.setStorageSync('incomeExpectations', incomeExpectations)
+            wx.setStorageSync(`incomeExpectations:${ymKey}`, incomeExpectations)
+          } else {
+            const incomeExpectations = wx.getStorageSync(`incomeExpectations:${ymKey}`) || []
+            incomeExpectations.push(budgetData)
+            wx.setStorageSync(`incomeExpectations:${ymKey}`, incomeExpectations)
+          }
         }
         showToast(isExpense ? '预算添加成功' : '收入预期添加成功', 'success')
       } else {
         // 更新现有预算
         if (isExpense) {
-          const budgets = wx.getStorageSync('budgets') || []
-          const index = budgets.findIndex(b => String(b.id || b._id) === String(budgetData.id))
-          if (index !== -1) {
-            budgets[index] = budgetData
-            wx.setStorageSync('budgets', budgets)
+          if (isCurrentMonth) {
+            // 当前月份：更新主存储和当前月份存储
+            const budgets = wx.getStorageSync('budgets') || []
+            const index = budgets.findIndex(b => String(b.id || b._id) === String(budgetData.id))
+            if (index !== -1) {
+              budgets[index] = budgetData
+              wx.setStorageSync('budgets', budgets)
+              wx.setStorageSync(`budgets:${ymKey}`, budgets)
+            }
+          } else {
+            // 历史月份：仅更新该月份存储
+            const budgets = wx.getStorageSync(`budgets:${ymKey}`) || []
+            const index = budgets.findIndex(b => String(b.id || b._id) === String(budgetData.id))
+            if (index !== -1) {
+              budgets[index] = budgetData
+              wx.setStorageSync(`budgets:${ymKey}`, budgets)
+            }
           }
         } else {
-          const incomeExpectations = wx.getStorageSync('incomeExpectations') || []
-          const index = incomeExpectations.findIndex(e => String(e.id || e._id) === String(budgetData.id))
-          if (index !== -1) {
-            incomeExpectations[index] = budgetData
-            wx.setStorageSync('incomeExpectations', incomeExpectations)
+          if (isCurrentMonth) {
+            const incomeExpectations = wx.getStorageSync('incomeExpectations') || []
+            const index = incomeExpectations.findIndex(e => String(e.id || e._id) === String(budgetData.id))
+            if (index !== -1) {
+              incomeExpectations[index] = budgetData
+              wx.setStorageSync('incomeExpectations', incomeExpectations)
+              wx.setStorageSync(`incomeExpectations:${ymKey}`, incomeExpectations)
+            }
+          } else {
+            const incomeExpectations = wx.getStorageSync(`incomeExpectations:${ymKey}`) || []
+            const index = incomeExpectations.findIndex(e => String(e.id || e._id) === String(budgetData.id))
+            if (index !== -1) {
+              incomeExpectations[index] = budgetData
+              wx.setStorageSync(`incomeExpectations:${ymKey}`, incomeExpectations)
+            }
           }
         }
         showToast(isExpense ? '预算更新成功' : '收入预期更新成功', 'success')
       }
+      
+      console.log(`保存${isCurrentMonth ? '当前' : '历史'}月份预算数据 (${ymKey}):`, budgetData)
       
       wx.hideLoading()
       this.closeDialog()
@@ -491,20 +816,46 @@ Page({
     })
   },
 
-  // 执行删除 - 直接使用本地存储
+  // 执行删除 - 支持历史预算修改
   async deleteItem(itemId, isExpense) {
     try {
       wx.showLoading({ title: '删除中...' })
       
+      const { currentYear, currentMonth } = this.data
+      const ymKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+      
+      // 判断是否为当前月份
+      const currentDate = new Date()
+      const currentYmKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
+      const isCurrentMonth = ymKey === currentYmKey
+      
       if (isExpense) {
-        const budgets = wx.getStorageSync('budgets') || []
-        const filteredBudgets = budgets.filter(b => String(b.id || b._id) !== String(itemId))
-        wx.setStorageSync('budgets', filteredBudgets)
+        if (isCurrentMonth) {
+          // 当前月份：更新主存储和当前月份存储
+          const budgets = wx.getStorageSync('budgets') || []
+          const filteredBudgets = budgets.filter(b => String(b.id || b._id) !== String(itemId))
+          wx.setStorageSync('budgets', filteredBudgets)
+          wx.setStorageSync(`budgets:${ymKey}`, filteredBudgets)
+        } else {
+          // 历史月份：仅更新该月份存储
+          const budgets = wx.getStorageSync(`budgets:${ymKey}`) || []
+          const filteredBudgets = budgets.filter(b => String(b.id || b._id) !== String(itemId))
+          wx.setStorageSync(`budgets:${ymKey}`, filteredBudgets)
+        }
       } else {
-        const incomeExpectations = wx.getStorageSync('incomeExpectations') || []
-        const filteredExpectations = incomeExpectations.filter(e => String(e.id || e._id) !== String(itemId))
-        wx.setStorageSync('incomeExpectations', filteredExpectations)
+        if (isCurrentMonth) {
+          const incomeExpectations = wx.getStorageSync('incomeExpectations') || []
+          const filteredExpectations = incomeExpectations.filter(e => String(e.id || e._id) !== String(itemId))
+          wx.setStorageSync('incomeExpectations', filteredExpectations)
+          wx.setStorageSync(`incomeExpectations:${ymKey}`, filteredExpectations)
+        } else {
+          const incomeExpectations = wx.getStorageSync(`incomeExpectations:${ymKey}`) || []
+          const filteredExpectations = incomeExpectations.filter(e => String(e.id || e._id) !== String(itemId))
+          wx.setStorageSync(`incomeExpectations:${ymKey}`, filteredExpectations)
+        }
       }
+      
+      console.log(`删除${isCurrentMonth ? '当前' : '历史'}月份预算数据 (${ymKey}):`, itemId)
       
       showToast(isExpense ? '预算删除成功' : '收入预期删除成功', 'success')
       this.loadBudgets()

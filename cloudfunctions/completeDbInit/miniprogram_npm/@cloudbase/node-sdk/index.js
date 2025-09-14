@@ -4,7 +4,7 @@ var __DEFINE__ = function(modId, func, req) { var m = { exports: {}, _tempexport
 var __REQUIRE__ = function(modId, source) { if(!__MODS__[modId]) return require(source); if(!__MODS__[modId].status) { var m = __MODS__[modId].m; m._exports = m._tempexports; var desp = Object.getOwnPropertyDescriptor(m, "exports"); if (desp && desp.configurable) Object.defineProperty(m, "exports", { set: function (val) { if(typeof val === "object" && val !== m._exports) { m._exports.__proto__ = val.__proto__; Object.keys(val).forEach(function (k) { m._exports[k] = val[k]; }); } m._tempexports = val }, get: function () { return m._tempexports; } }); __MODS__[modId].status = 1; __MODS__[modId].func(__MODS__[modId].req, m, m.exports); } return __MODS__[modId].m.exports; };
 var __REQUIRE_WILDCARD__ = function(obj) { if(obj && obj.__esModule) { return obj; } else { var newObj = {}; if(obj != null) { for(var k in obj) { if (Object.prototype.hasOwnProperty.call(obj, k)) newObj[k] = obj[k]; } } newObj.default = obj; return newObj; } };
 var __REQUIRE_DEFAULT__ = function(obj) { return obj && obj.__esModule ? obj.default : obj; };
-__DEFINE__(1757458041131, function(require, module, exports) {
+__DEFINE__(1757806477312, function(require, module, exports) {
 
 const cloudbase_1 = require("./cloudbase");
 const symbol_1 = require("./const/symbol");
@@ -29,8 +29,8 @@ module.exports = {
     SYMBOL_CURRENT_ENV: symbol_1.SYMBOL_CURRENT_ENV
 };
 
-}, function(modId) {var map = {"./cloudbase":1757458041132,"./const/symbol":1757458041139,"./utils/request":1757458041140,"../package.json":1757458041146}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041132, function(require, module, exports) {
+}, function(modId) {var map = {"./cloudbase":1757806477313,"./const/symbol":1757806477320,"./utils/request":1757806477321,"../package.json":1757806477327}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477313, function(require, module, exports) {
 
 var __rest = (this && this.__rest) || function (s, e) {
     var t = {};
@@ -318,8 +318,8 @@ class CloudBase {
 }
 exports.CloudBase = CloudBase;
 
-}, function(modId) { var map = {"./functions":1757458041133,"./auth":1757458041147,"./wx":1757458041148,"./storage":1757458041149,"./analytics":1757458041150,"./utils/dbRequest":1757458041151,"./log":1757458041152,"./const/code":1757458041138,"./utils/utils":1757458041136}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041133, function(require, module, exports) {
+}, function(modId) { var map = {"./functions":1757806477314,"./auth":1757806477328,"./wx":1757806477329,"./storage":1757806477330,"./analytics":1757806477331,"./utils/dbRequest":1757806477332,"./log":1757806477333,"./const/code":1757806477319,"./utils/utils":1757806477317}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477314, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -379,8 +379,8 @@ async function callFunction(cloudbase, { name, qualifier, data }, opts) {
 }
 exports.callFunction = callFunction;
 
-}, function(modId) { var map = {"../utils/httpRequest":1757458041134,"../utils/utils":1757458041136,"../const/code":1757458041138,"../cloudbase":1757458041132}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041134, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/httpRequest":1757806477315,"../utils/utils":1757806477317,"../const/code":1757806477319,"../cloudbase":1757806477313}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477315, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -766,8 +766,8 @@ exports.default = async (args) => {
     }
 };
 
-}, function(modId) { var map = {"./tracing":1757458041135,"./utils":1757458041136,"../const/code":1757458041138,"../const/symbol":1757458041139,"../cloudbase":1757458041132,"./request":1757458041140,"./requestHook":1757458041143,"./wxCloudToken":1757458041144,"./secretManager":1757458041145,"../../package.json":1757458041146}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041135, function(require, module, exports) {
+}, function(modId) { var map = {"./tracing":1757806477316,"./utils":1757806477317,"../const/code":1757806477319,"../const/symbol":1757806477320,"../cloudbase":1757806477313,"./request":1757806477321,"./requestHook":1757806477324,"./wxCloudToken":1757806477325,"./secretManager":1757806477326,"../../package.json":1757806477327}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477316, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const cloudbase_1 = require("../cloudbase");
@@ -786,8 +786,8 @@ exports.generateTracingInfo = () => {
     return { eventId, seqId, trace: TCB_TRACELOG };
 };
 
-}, function(modId) { var map = {"../cloudbase":1757458041132}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041136, function(require, module, exports) {
+}, function(modId) { var map = {"../cloudbase":1757806477313}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477317, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const cloudbase_1 = require("../cloudbase");
@@ -932,8 +932,8 @@ function isValidEnvFormat(env = '') {
 }
 exports.isValidEnvFormat = isValidEnvFormat;
 
-}, function(modId) { var map = {"../cloudbase":1757458041132,"./metadata":1757458041137}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041137, function(require, module, exports) {
+}, function(modId) { var map = {"../cloudbase":1757806477313,"./metadata":1757806477318}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477318, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -989,7 +989,7 @@ async function lookupAppId() {
 exports.lookupAppId = lookupAppId;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041138, function(require, module, exports) {
+__DEFINE__(1757806477319, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ERROR = {
@@ -1020,13 +1020,13 @@ exports.ERROR = {
 };
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041139, function(require, module, exports) {
+__DEFINE__(1757806477320, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SYMBOL_CURRENT_ENV = Symbol.for("SYMBOL_CURRENT_ENV");
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041140, function(require, module, exports) {
+__DEFINE__(1757806477321, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1146,8 +1146,8 @@ function extraRequest(opts, extraOptions) {
 }
 exports.extraRequest = extraRequest;
 
-}, function(modId) { var map = {"request":1757458041140,"./retry":1757458041141,"./request-timings-measurer":1757458041142}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041141, function(require, module, exports) {
+}, function(modId) { var map = {"request":1757806477321,"./retry":1757806477322,"./request-timings-measurer":1757806477323}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477322, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1236,8 +1236,8 @@ function withRetry(fn, retryOptions) {
 }
 exports.withRetry = withRetry;
 
-}, function(modId) { var map = {"retry":1757458041141}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041142, function(require, module, exports) {
+}, function(modId) { var map = {"retry":1757806477322}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477323, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const EventEmitter = require('events').EventEmitter;
@@ -1366,7 +1366,7 @@ class RequestTimgingsMeasurer extends EventEmitter {
 exports.RequestTimgingsMeasurer = RequestTimgingsMeasurer;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041143, function(require, module, exports) {
+__DEFINE__(1757806477324, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
@@ -1387,7 +1387,7 @@ exports.handleWxOpenApiData = (res, err, response, body) => {
 };
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041144, function(require, module, exports) {
+__DEFINE__(1757806477325, function(require, module, exports) {
 
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
@@ -1439,8 +1439,8 @@ function loadWxCloudbaseAccesstoken() {
 }
 exports.loadWxCloudbaseAccesstoken = loadWxCloudbaseAccesstoken;
 
-}, function(modId) { var map = {"../cloudbase":1757458041132,"./utils":1757458041136}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041145, function(require, module, exports) {
+}, function(modId) { var map = {"../cloudbase":1757806477313,"./utils":1757806477317}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477326, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1503,8 +1503,8 @@ class SecretManager {
 }
 exports.default = SecretManager;
 
-}, function(modId) { var map = {"request":1757458041140,"./metadata":1757458041137}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041146, function(require, module, exports) {
+}, function(modId) { var map = {"request":1757806477321,"./metadata":1757806477318}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477327, function(require, module, exports) {
 module.exports = {
     "name": "@cloudbase/node-sdk",
     "version": "2.9.1",
@@ -1589,7 +1589,7 @@ module.exports = {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041147, function(require, module, exports) {
+__DEFINE__(1757806477328, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1740,8 +1740,8 @@ function auth(cloudbase) {
 }
 exports.auth = auth;
 
-}, function(modId) { var map = {"../utils/utils":1757458041136,"../const/code":1757458041138,"../cloudbase":1757458041132,"../const/symbol":1757458041139,"../utils/httpRequest":1757458041134}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041148, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/utils":1757806477317,"../const/code":1757806477319,"../cloudbase":1757806477313,"../const/symbol":1757806477320,"../utils/httpRequest":1757806477315}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477329, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1875,8 +1875,8 @@ async function wxCallContainerApi(cloudbase, { apiName, apiOptions, cgiName, req
 }
 exports.wxCallContainerApi = wxCallContainerApi;
 
-}, function(modId) { var map = {"../utils/httpRequest":1757458041134,"../utils/utils":1757458041136,"../const/code":1757458041138}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041149, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/httpRequest":1757806477315,"../utils/utils":1757806477317,"../const/code":1757806477319}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477330, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -2159,8 +2159,8 @@ async function getFileAuthority(cloudbase, { fileList }, opts) {
 }
 exports.getFileAuthority = getFileAuthority;
 
-}, function(modId) { var map = {"../utils/httpRequest":1757458041134,"../utils/utils":1757458041136,"../const/code":1757458041138,"../cloudbase":1757458041132}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041150, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/httpRequest":1757806477315,"../utils/utils":1757806477317,"../const/code":1757806477319,"../cloudbase":1757806477313}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477331, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -2216,8 +2216,8 @@ async function analytics(cloudbase, requestData) {
 }
 exports.analytics = analytics;
 
-}, function(modId) { var map = {"../utils/httpRequest":1757458041134,"../utils/utils":1757458041136,"../const/code":1757458041138,"../cloudbase":1757458041132}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041151, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/httpRequest":1757806477315,"../utils/utils":1757806477317,"../const/code":1757806477319,"../cloudbase":1757806477313}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477332, function(require, module, exports) {
 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -2261,8 +2261,8 @@ class DBRequest {
 }
 exports.DBRequest = DBRequest;
 
-}, function(modId) { var map = {"./httpRequest":1757458041134}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458041152, function(require, module, exports) {
+}, function(modId) { var map = {"./httpRequest":1757806477315}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806477333, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("../utils/utils");
@@ -2369,8 +2369,8 @@ function logger() {
 }
 exports.logger = logger;
 
-}, function(modId) { var map = {"../utils/utils":1757458041136,"../const/code":1757458041138,"../cloudbase":1757458041132}; return __REQUIRE__(map[modId], modId); })
-return __REQUIRE__(1757458041131);
+}, function(modId) { var map = {"../utils/utils":1757806477317,"../const/code":1757806477319,"../cloudbase":1757806477313}; return __REQUIRE__(map[modId], modId); })
+return __REQUIRE__(1757806477312);
 })()
 //miniprogram-npm-outsideDeps=["@cloudbase/database","axios","http","@cloudbase/signature-nodejs","url","agentkeepalive","retry/lib/retry_operation","events","fs","jsonwebtoken","request","xml2js"]
 //# sourceMappingURL=index.js.map

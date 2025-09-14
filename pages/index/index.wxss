@@ -1,6 +1,16 @@
 /* pages/index/index.wxss */
+@import "/styles/safe-area.wxss";
+
+/* 页面特定的安全区配置 */
+:root {
+  --safe-area-bg: #ffffff; /* 纯白色背景，适配iOS和Android平台 */
+  --safe-area-text: #333333; /* 深色文字 */
+  --safe-area-base: 16rpx;
+  --safe-area-extra: 32rpx;
+}
+
+/* 使用通用安全区样式 */
 .page-container {
-  padding-top: 20rpx;
   padding-bottom: 160rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
@@ -590,4 +600,13 @@
   100% { opacity: 1; }
 }
 
-
+/* 顶部安全区通用容器：用于包裹自定义 navigation-bar 下移避让状态栏 */
+.safe-top-wrapper {
+  background: var(--top-bg);
+  /* 兜底基础 + 额外高度 */
+  padding-top: calc(var(--index-top-base, 24rpx) + var(--top-extra-height, 32rpx));
+  /* 旧 constant 兼容 */
+  padding-top: calc(var(--index-top-base, 24rpx) + var(--top-extra-height, 32rpx) + constant(safe-area-inset-top, 0px));
+  /* 新 env 写法 */
+  padding-top: calc(var(--index-top-base, 24rpx) + var(--top-extra-height, 32rpx) + env(safe-area-inset-top, 0px));
+}

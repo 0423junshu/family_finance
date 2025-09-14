@@ -1,5 +1,7 @@
 <!-- pages/transaction-list/transaction-list-simple.wxml -->
-<navigation-bar title="交易记录" showBack="{{true}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="交易记录" showBack="{{true}}" class="transparent-navbar" />
+</view>
 
 <view class="container">
   <!-- 日期选择 -->

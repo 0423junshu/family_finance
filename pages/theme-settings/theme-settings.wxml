@@ -1,0 +1,100 @@
+<!-- pages/theme-settings/theme-settings.wxml -->
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="主题设置" show-back="{{true}}" />
+</view>
+
+<view class="page-container" style="{{themeColors ? 'background-color: ' + themeColors.background + ';' : ''}}">
+  <!-- 主题选择 -->
+  <view class="settings-section">
+    <view class="section-title">主题模式</view>
+    <view class="section-subtitle">选择您喜欢的界面风格</view>
+    <view class="theme-grid">
+      <view 
+        wx:for="{{themes}}" 
+        wx:key="id"
+        class="theme-item {{currentThemeId === item.id ? 'active' : ''}} {{previewThemeId === item.id ? 'preview' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="onThemeSelect"
+        bindlongpress="onThemePreview"
+      >
+        <view class="theme-preview" style="background: {{item.colors.background}}; border-color: {{item.colors.divider}};">
+          <view class="preview-header" style="background: {{item.colors.surface}};">
+            <view class="preview-dot" style="background: {{item.colors.primary}};"></view>
+            <view class="preview-line" style="background: {{item.colors.textSecondary}};"></view>
+            <view class="preview-line short" style="background: {{item.colors.textSecondary}};"></view>
+          </view>
+          <view class="preview-content">
+            <view class="preview-card" style="background: {{item.colors.surface}}; border-color: {{item.colors.divider}};">
+              <view class="preview-text primary" style="background: {{item.colors.text}};"></view>
+              <view class="preview-text secondary" style="background: {{item.colors.textSecondary}};"></view>
+            </view>
+            <view class="preview-button" style="background: {{item.colors.primary}};"></view>
+          </view>
+        </view>
+        <view class="theme-info">
+          <text class="theme-name" style="{{themeColors ? 'color: ' + themeColors.text + ';' : ''}}">{{item.name}}</text>
+          <text class="theme-desc" style="{{themeColors ? 'color: ' + themeColors.textSecondary + ';' : ''}}">{{item.description}}</text>
+        </view>
+        <view wx:if="{{currentThemeId === item.id}}" class="theme-check">
+          <text class="check-icon">✓</text>
+        </view>
+        <view wx:if="{{previewThemeId === item.id}}" class="preview-badge">
+          <text class="preview-text">预览中</text>
+        </view>
+      </view>
+    </view>
+    <view wx:if="{{previewThemeId}}" class="preview-tip">
+      <text>正在预览主题，3秒后自动恢复</text>
+      <button class="cancel-preview-btn" bindtap="cancelPreview">取消预览</button>
+    </view>
+  </view>
+
+  <!-- 字体大小 -->
+  <view class="settings-section">
+    <view class="section-title">字体大小</view>
+    <view class="section-subtitle">调整应用内文字显示大小</view>
+    <view class="font-size-list">
+      <view 
+        wx:for="{{fontSizes}}" 
+        wx:key="id"
+        class="font-size-item {{currentFontSizeId === item.id ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="onFontSizeSelect"
+        style="{{themeColors ? 'background-color: ' + themeColors.surface + '; border-color: ' + themeColors.divider + ';' : ''}}"
+      >
+        <view class="font-size-content">
+          <text class="font-size-name" style="font-size: {{item.scale}}em; {{themeColors ? 'color: ' + themeColors.text + ';' : ''}}">{{item.name}}</text>
+          <text class="font-size-preview" style="font-size: {{item.scale * 0.9}}em; {{themeColors ? 'color: ' + themeColors.textSecondary + ';' : ''}}">示例文字 Aa</text>
+        </view>
+        <view wx:if="{{currentFontSizeId === item.id}}" class="font-size-check">
+          <text class="check-icon">✓</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 主题效果预览 -->
+  <view class="settings-section">
+    <view class="section-title">效果预览</view>
+    <view class="preview-demo" style="{{themeColors ? 'background-color: ' + themeColors.surface + '; border-color: ' + themeColors.divider + ';' : ''}}">
+      <view class="demo-header">
+        <text class="demo-title" style="{{themeColors ? 'color: ' + themeColors.text + ';' : ''}}">记账应用</text>
+        <view class="demo-amount" style="{{themeColors ? 'color: ' + themeColors.primary + ';' : ''}}">¥1,234.56</view>
+      </view>
+      <view class="demo-item">
+        <text class="demo-category" style="{{themeColors ? 'color: ' + themeColors.text + ';' : ''}}">🍽️ 餐饮</text>
+        <text class="demo-desc" style="{{themeColors ? 'color: ' + themeColors.textSecondary + ';' : ''}}">午餐</text>
+      </view>
+      <view class="demo-button" style="{{themeColors ? 'background-color: ' + themeColors.primary + ';' : ''}}">
+        <text class="demo-button-text">记一笔</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 重置按钮 -->
+  <view class="settings-section">
+    <button class="btn btn-secondary btn-large" bindtap="onReset" style="{{themeColors ? 'border-color: ' + themeColors.divider + '; color: ' + themeColors.text + ';' : ''}}">
+      重置为默认设置
+    </button>
+  </view>
+</view>

@@ -1,5 +1,7 @@
 <!--pages/join-family/join-family.wxml-->
-<navigation-bar title="加入家庭" showBack="{{true}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="加入家庭" showBack="{{true}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
   <!-- 加入方式选择 -->

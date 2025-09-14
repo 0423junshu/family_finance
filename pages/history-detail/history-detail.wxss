@@ -1,8 +1,12 @@
 /* pages/history-detail/history-detail.wxss */
+@import '/styles/safe-area.wxss';
+
 .page-container {
   padding: 0 0 30rpx;
   background-color: #f5f5f5;
   min-height: 100vh;
+  padding-top: calc(16rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(16rpx + constant(safe-area-inset-top, 0px));
 }
 
 .loading-container {

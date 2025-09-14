@@ -1,17 +1,83 @@
 /* pages/template-manage/template-manage.wxss */
+@import '/styles/safe-area.wxss';
 @import "../../styles/variables.wxss";
 @import "../../styles/common.wxss";
+@import "./guide-styles.wxss";
 
 .page-container {
-  padding-top: 176rpx;
+  padding-top: 120rpx;
+  /* 顶部安全区与下移适配 */
+  padding-top: calc(120rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(120rpx + constant(safe-area-inset-top, 0px));
   padding-bottom: 160rpx;
   background: #F5F5F5;
   min-height: 100vh;
 }
 
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 32rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 32rpx;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  color: #1C1C1E;
+  font-weight: 500;
+  margin-bottom: 16rpx;
+}
+
+.empty-desc {
+  font-size: 28rpx;
+  color: #8E8E93;
+  margin-bottom: 48rpx;
+  line-height: 1.5;
+}
+
+.empty-btn {
+  background: #007AFF;
+  color: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx 48rpx;
+  font-size: 28rpx;
+  border: none;
+}
+
 /* 模板列表 */
 .template-list {
   margin: 32rpx;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+  padding: 0 8rpx;
+}
+
+.list-title {
+  font-size: 32rpx;
+  color: #1C1C1E;
+  font-weight: 600;
+}
+
+.guide-trigger {
+  font-size: 24rpx;
+  color: #007AFF;
+  padding: 8rpx 16rpx;
+  border-radius: 16rpx;
+  background: rgba(0, 122, 255, 0.1);
 }
 
 .template-item {
@@ -82,6 +148,8 @@
   font-size: 22rpx;
   text-align: center;
   min-width: 80rpx;
+  border: none;
+  transition: all 0.2s ease;
 }
 
 .action-btn.use {
@@ -97,6 +165,11 @@
 .action-btn.delete {
   background: #FF3B30;
   color: #FFFFFF;
+}
+
+.btn-hover {
+  opacity: 0.8;
+  transform: scale(0.95);
 }
 
 /* 添加按钮 */

@@ -2,6 +2,8 @@
 const app = getApp();
 const familyService = require('../../services/family.js');
 const collaborationHelper = require('../../utils/collaborationHelper.js');
+const eventBus = require('../../utils/eventBus.js');
+const dataManager = require('../../services/dataManager.js');
 
 Page({
   /**
@@ -11,9 +13,7 @@ Page({
     userInfo: {},
     collaborationEnabled: true, // 默认启用协作功能
     isInFamily: false,
-    familyInfo: null,
-    totalMembers: 0,
-    onlineMembers: 0
+    familyInfo: null
   },
 
   /**
@@ -23,6 +23,14 @@ Page({
     console.log('[DEBUG] 页面加载');
     this.loadUserInfo();
     this.initCollaboration();
+    
+    // 注册数据管理器刷新回调
+    dataManager.registerRefreshCallback('me', (data) => {
+      console.log('[ME] 收到数据刷新通知:', data);
+      if (data.type === 'familyNameChange') {
+        this.refreshFamilyInfo();
+      }
+    });
     
     // 确保初始状态正确
     this.setData({
@@ -55,6 +63,9 @@ Page({
       this.loadFamilyInfo();
       this.setData({ lastLoadTime: now })
     }
+
+    // 监听家庭信息更新事件
+    this.bindFamilyUpdateEvent();
   },
 
   /**
@@ -156,17 +167,16 @@ Page({
       const result = await familyService.getFamilyInfo();
       console.log('[DEBUG] 家庭信息加载结果:', result);
       
-      if (result.success && result.family) {
-        console.log('[DEBUG] 用户已加入家庭:', result.family);
+      if (result.success && result.data) {
+        console.log('[DEBUG] 用户已加入家庭:', result.data);
         // 用户在家庭中
         this.setData({
           collaborationEnabled: true,
           isInFamily: true,
-          familyInfo: result.family
+          familyInfo: result.data
         });
 
-        // 加载家庭成员信息
-        await this.loadFamilyMembers();
+
 
       } else {
         console.log('[DEBUG] 用户未加入家庭');
@@ -194,28 +204,7 @@ Page({
     });
   },
 
-  /**
-   * 加载家庭成员信息
-   */
-  async loadFamilyMembers() {
-    try {
-      const result = await familyService.getFamilyMembers();
-      
-      if (result.success) {
-        const members = result.members || [];
-        const onlineMembers = members.filter(m => m.isOnline);
 
-        this.setData({
-          totalMembers: members.length,
-          onlineMembers: onlineMembers.length,
-          recentActivities: await this.getRecentActivitiesCount()
-        });
-      }
-
-    } catch (error) {
-      console.error('加载家庭成员失败:', error);
-    }
-  },
 
   /**
    * 刷新协作状态
@@ -240,74 +229,66 @@ Page({
    * 管理家庭（点击协作卡片）
    */
   onManageFamily() {
-    // 显示家庭协作功能菜单
-    wx.showActionSheet({
-      itemList: ['家庭管理', '权限设置', '操作日志', '同步设置'],
-      success: (res) => {
-        switch (res.tapIndex) {
-          case 0:
-            wx.navigateTo({
-              url: '/pages/family/family'
-            });
-            break;
-          case 1:
-            wx.navigateTo({
-              url: '/pages/family-permissions/family-permissions'
-            });
-            break;
-          case 2:
-            wx.navigateTo({
-              url: '/pages/operation-logs/operation-logs'
-            });
-            break;
-          case 3:
-            wx.navigateTo({
-              url: '/pages/settings/settings?tab=sync'
-            });
-            break;
+    console.log('[DEBUG] 点击管理家庭');
+
+    if (!this.data.isInFamily) {
+      wx.navigateTo({ 
+        url: '/pages/join-family/join-family',
+        fail: (err) => {
+          console.error('跳转失败:', err);
+          wx.showToast({ title: '页面跳转失败', icon: 'error' });
         }
+      });
+      return;
+    }
+
+    // 直接进入家庭管理页
+    wx.navigateTo({ 
+      url: '/pages/family/family',
+      fail: (err) => {
+        console.error('跳转失败:', err);
+        wx.showToast({ title: '页面跳转失败', icon: 'error' });
       }
     });
   },
+
 
   /**
    * 创建或加入家庭
    */
   onCreateOrJoinFamily() {
-    wx.showActionSheet({
-      itemList: ['创建家庭', '加入家庭'],
-      success: (res) => {
-        if (res.tapIndex === 0) {
-          // 创建家庭
-          wx.navigateTo({
-            url: '/pages/family/family?action=create'
-          });
-        } else if (res.tapIndex === 1) {
-          // 加入家庭
-          wx.navigateTo({
-            url: '/pages/join-family/join-family'
-          });
-        }
-      }
-    });
+    console.log('[DEBUG] 点击创建或加入家庭');
+    wx.navigateTo({ url: '/pages/family/family?action=create' });
   },
 
   /**
-   * 获取最近活动数量
+   * 绑定家庭信息更新事件
    */
-  async getRecentActivitiesCount() {
-    try {
-      // 获取今日操作日志数量
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      // 这里应该调用操作日志服务获取今日活动数量
-      // 暂时返回模拟数据
-      return Math.floor(Math.random() * 20) + 1;
-    } catch (error) {
-      console.error('获取最近活动数量失败:', error);
-      return 0;
+  bindFamilyUpdateEvent() {
+    // 监听全局家庭信息更新事件
+    if (wx.$on) {
+      wx.$on('familyInfoUpdated', (data) => {
+        console.log('[DEBUG] 收到家庭信息更新事件:', data);
+        if (data && data.name && this.data.familyInfo) {
+          this.setData({
+            'familyInfo.name': data.name
+          });
+        }
+      });
     }
+  },
+
+  /**
+   * 页面卸载时清理事件监听
+   */
+  onUnload() {
+    if (wx.$off) {
+      wx.$off('familyInfoUpdated');
+    }
+    
+    // 注销数据管理器刷新回调
+    dataManager.unregisterRefreshCallback('me');
+    console.log('[ME] onUnload - 已注销数据管理器回调');
   }
 
 })

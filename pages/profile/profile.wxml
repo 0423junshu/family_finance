@@ -1,5 +1,7 @@
 <!-- pages/profile/profile.wxml -->
-<navigation-bar title="家庭财务管理" showBack="{{false}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="家庭财务管理" showBack="{{false}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
   <!-- 用户信息卡片 -->
@@ -20,8 +22,8 @@
           <text class="icon-text">👨‍👩‍👧‍👦</text>
         </view>
         <view class="card-content">
-          <text class="card-title">家庭协作</text>
-          <text class="card-subtitle">{{familyInfo.name || '我的家庭'}}</text>
+          <text class="card-title">家庭管理</text>
+          <text class="card-subtitle">家庭协作</text>
         </view>
         <view class="card-status">
           <text class="status-text">{{totalMembers}}人</text>
@@ -40,8 +42,8 @@
           <text class="icon-text">👨‍👩‍👧‍👦</text>
         </view>
         <view class="card-content">
-          <text class="card-title">家庭协作</text>
-          <text class="card-subtitle">开启协作功能</text>
+          <text class="card-title">家庭管理</text>
+          <text class="card-subtitle">开启家庭协作</text>
         </view>
         <view class="card-arrow">
           <text class="arrow-text">></text>

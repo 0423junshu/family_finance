@@ -1,1 +1,6 @@
 /* pages/budget/budget.wxss */
+/* 顶部安全区与下移适配 */
+.page-container {
+  padding-top: calc(16rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(16rpx + constant(safe-area-inset-top, 0px));
+}

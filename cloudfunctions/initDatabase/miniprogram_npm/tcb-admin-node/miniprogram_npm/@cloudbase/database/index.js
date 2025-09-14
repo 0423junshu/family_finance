@@ -4,7 +4,7 @@ var __DEFINE__ = function(modId, func, req) { var m = { exports: {}, _tempexport
 var __REQUIRE__ = function(modId, source) { if(!__MODS__[modId]) return require(source); if(!__MODS__[modId].status) { var m = __MODS__[modId].m; m._exports = m._tempexports; var desp = Object.getOwnPropertyDescriptor(m, "exports"); if (desp && desp.configurable) Object.defineProperty(m, "exports", { set: function (val) { if(typeof val === "object" && val !== m._exports) { m._exports.__proto__ = val.__proto__; Object.keys(val).forEach(function (k) { m._exports[k] = val[k]; }); } m._tempexports = val }, get: function () { return m._tempexports; } }); __MODS__[modId].status = 1; __MODS__[modId].func(__MODS__[modId].req, m, m.exports); } return __MODS__[modId].m.exports; };
 var __REQUIRE_WILDCARD__ = function(obj) { if(obj && obj.__esModule) { return obj; } else { var newObj = {}; if(obj != null) { for(var k in obj) { if (Object.prototype.hasOwnProperty.call(obj, k)) newObj[k] = obj[k]; } } newObj.default = obj; return newObj; } };
 var __REQUIRE_DEFAULT__ = function(obj) { return obj && obj.__esModule ? obj.default : obj; };
-__DEFINE__(1757458042197, function(require, module, exports) {
+__DEFINE__(1757806478378, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const Geo = require("./geo/index");
@@ -51,8 +51,8 @@ class Db {
 }
 exports.Db = Db;
 
-}, function(modId) {var map = {"./geo/index":1757458042198,"./collection":1757458042212,"./command":1757458042235,"./serverDate/index":1757458042203,"./regexp/index":1757458042236,"./transaction/index":1757458042237,"./commands/logic":1757458042219,"./commands/query":1757458042218,"./commands/update":1757458042216,"./query":1757458042232,"./document":1757458042213}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042198, function(require, module, exports) {
+}, function(modId) {var map = {"./geo/index":1757806478379,"./collection":1757806478393,"./command":1757806478416,"./serverDate/index":1757806478384,"./regexp/index":1757806478417,"./transaction/index":1757806478418,"./commands/logic":1757806478400,"./commands/query":1757806478399,"./commands/update":1757806478397,"./query":1757806478413,"./document":1757806478394}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478379, function(require, module, exports) {
 
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -65,8 +65,8 @@ __export(require("./multiPoint"));
 __export(require("./multiLineString"));
 __export(require("./multiPolygon"));
 
-}, function(modId) { var map = {"./point":1757458042199,"./lineString":1757458042207,"./polygon":1757458042208,"./multiPoint":1757458042209,"./multiLineString":1757458042210,"./multiPolygon":1757458042211}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042199, function(require, module, exports) {
+}, function(modId) { var map = {"./point":1757806478380,"./lineString":1757806478388,"./polygon":1757806478389,"./multiPoint":1757806478390,"./multiLineString":1757806478391,"./multiPolygon":1757806478392}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478380, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const validate_1 = require("../validate");
@@ -111,8 +111,8 @@ class Point {
 }
 exports.Point = Point;
 
-}, function(modId) { var map = {"../validate":1757458042200,"../helper/symbol":1757458042204,"../utils/type":1757458042206}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042200, function(require, module, exports) {
+}, function(modId) { var map = {"../validate":1757806478381,"../helper/symbol":1757806478385,"../utils/type":1757806478387}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478381, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const constant_1 = require("./constant");
@@ -170,8 +170,8 @@ class Validate {
 }
 exports.Validate = Validate;
 
-}, function(modId) { var map = {"./constant":1757458042201,"./util":1757458042202}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042201, function(require, module, exports) {
+}, function(modId) { var map = {"./constant":1757806478382,"./util":1757806478383}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478382, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var ErrorCode;
@@ -247,7 +247,7 @@ var QueryType;
 exports.QueryType = QueryType;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042202, function(require, module, exports) {
+__DEFINE__(1757806478383, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const constant_1 = require("./constant");
@@ -363,8 +363,8 @@ Util.generateDocId = () => {
     return autoId;
 };
 
-}, function(modId) { var map = {"./constant":1757458042201,"./geo/index":1757458042198,"./serverDate/index":1757458042203}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042203, function(require, module, exports) {
+}, function(modId) { var map = {"./constant":1757806478382,"./geo/index":1757806478379,"./serverDate/index":1757806478384}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478384, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("../helper/symbol");
@@ -389,8 +389,8 @@ function ServerDateConstructor(opt) {
 }
 exports.ServerDateConstructor = ServerDateConstructor;
 
-}, function(modId) { var map = {"../helper/symbol":1757458042204}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042204, function(require, module, exports) {
+}, function(modId) { var map = {"../helper/symbol":1757806478385}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478385, function(require, module, exports) {
 
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -411,8 +411,8 @@ exports.SYMBOL_GEO_MULTI_POLYGON = symbol_1.default.for('SYMBOL_GEO_MULTI_POLYGO
 exports.SYMBOL_SERVER_DATE = symbol_1.default.for('SERVER_DATE');
 exports.SYMBOL_REGEXP = symbol_1.default.for('REGEXP');
 
-}, function(modId) { var map = {"../utils/symbol":1757458042205}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042205, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/symbol":1757806478386}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478386, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const _symbols = [];
@@ -454,7 +454,7 @@ exports.InternalSymbol = InternalSymbol;
 exports.default = InternalSymbol;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042206, function(require, module, exports) {
+__DEFINE__(1757806478387, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("./symbol");
@@ -478,8 +478,8 @@ exports.isPlainObject = (obj) => {
     return Object.getPrototypeOf(obj) === proto;
 };
 
-}, function(modId) { var map = {"./symbol":1757458042205}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042207, function(require, module, exports) {
+}, function(modId) { var map = {"./symbol":1757806478386}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478388, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("../helper/symbol");
@@ -538,8 +538,8 @@ class LineString {
 }
 exports.LineString = LineString;
 
-}, function(modId) { var map = {"../helper/symbol":1757458042204,"./point":1757458042199,"../utils/type":1757458042206}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042208, function(require, module, exports) {
+}, function(modId) { var map = {"../helper/symbol":1757806478385,"./point":1757806478380,"../utils/type":1757806478387}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478389, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("../helper/symbol");
@@ -611,8 +611,8 @@ class Polygon {
 }
 exports.Polygon = Polygon;
 
-}, function(modId) { var map = {"../helper/symbol":1757458042204,"../utils/type":1757458042206,"./lineString":1757458042207}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042209, function(require, module, exports) {
+}, function(modId) { var map = {"../helper/symbol":1757806478385,"../utils/type":1757806478387,"./lineString":1757806478388}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478390, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("../helper/symbol");
@@ -664,8 +664,8 @@ class MultiPoint {
 }
 exports.MultiPoint = MultiPoint;
 
-}, function(modId) { var map = {"../helper/symbol":1757458042204,"./point":1757458042199,"../utils/type":1757458042206}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042210, function(require, module, exports) {
+}, function(modId) { var map = {"../helper/symbol":1757806478385,"./point":1757806478380,"../utils/type":1757806478387}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478391, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("../helper/symbol");
@@ -723,8 +723,8 @@ class MultiLineString {
 }
 exports.MultiLineString = MultiLineString;
 
-}, function(modId) { var map = {"../helper/symbol":1757458042204,"../utils/type":1757458042206,"./lineString":1757458042207}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042211, function(require, module, exports) {
+}, function(modId) { var map = {"../helper/symbol":1757806478385,"../utils/type":1757806478387,"./lineString":1757806478388}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478392, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("../helper/symbol");
@@ -788,8 +788,8 @@ class MultiPolygon {
 }
 exports.MultiPolygon = MultiPolygon;
 
-}, function(modId) { var map = {"../helper/symbol":1757458042204,"../utils/type":1757458042206,"./polygon":1757458042208}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042212, function(require, module, exports) {
+}, function(modId) { var map = {"../helper/symbol":1757806478385,"../utils/type":1757806478387,"./polygon":1757806478389}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478393, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const document_1 = require("./document");
@@ -818,8 +818,8 @@ class CollectionReference extends query_1.Query {
 }
 exports.CollectionReference = CollectionReference;
 
-}, function(modId) { var map = {"./document":1757458042213,"./query":1757458042232,"./aggregate":1757458042234}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042213, function(require, module, exports) {
+}, function(modId) { var map = {"./document":1757806478394,"./query":1757806478413,"./aggregate":1757806478415}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478394, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("./lib/util");
@@ -1070,8 +1070,8 @@ class DocumentReference {
 }
 exports.DocumentReference = DocumentReference;
 
-}, function(modId) { var map = {"./lib/util":1757458042214,"./index":1757458042197,"./util":1757458042202,"./serializer/update":1757458042215,"./serializer/datatype":1757458042221,"./commands/update":1757458042216,"./realtime/websocket-client":1757458042222,"./constant":1757458042201}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042214, function(require, module, exports) {
+}, function(modId) { var map = {"./lib/util":1757806478395,"./index":1757806478378,"./util":1757806478383,"./serializer/update":1757806478396,"./serializer/datatype":1757806478402,"./commands/update":1757806478397,"./realtime/websocket-client":1757806478403,"./constant":1757806478382}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478395, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createPromiseCallback = () => {
@@ -1099,7 +1099,7 @@ exports.createPromiseCallback = () => {
 };
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042215, function(require, module, exports) {
+__DEFINE__(1757806478396, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const update_1 = require("../commands/update");
@@ -1238,8 +1238,8 @@ class UpdateSerializer {
 }
 exports.UpdateSerializer = UpdateSerializer;
 
-}, function(modId) { var map = {"../commands/update":1757458042216,"../helper/symbol":1757458042204,"../utils/type":1757458042206,"../operator-map":1757458042217,"./common":1757458042220}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042216, function(require, module, exports) {
+}, function(modId) { var map = {"../commands/update":1757806478397,"../helper/symbol":1757806478385,"../utils/type":1757806478387,"../operator-map":1757806478398,"./common":1757806478401}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478397, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("../helper/symbol");
@@ -1290,8 +1290,8 @@ function isKnownUpdateCommand(object) {
 exports.isKnownUpdateCommand = isKnownUpdateCommand;
 exports.default = UpdateCommand;
 
-}, function(modId) { var map = {"../helper/symbol":1757458042204}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042217, function(require, module, exports) {
+}, function(modId) { var map = {"../helper/symbol":1757806478385}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478398, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const query_1 = require("./commands/query");
@@ -1316,8 +1316,8 @@ function operatorToString(operator) {
 }
 exports.operatorToString = operatorToString;
 
-}, function(modId) { var map = {"./commands/query":1757458042218,"./commands/logic":1757458042219,"./commands/update":1757458042216}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042218, function(require, module, exports) {
+}, function(modId) { var map = {"./commands/query":1757806478399,"./commands/logic":1757806478400,"./commands/update":1757806478397}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478399, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const logic_1 = require("./logic");
@@ -1459,8 +1459,8 @@ function isComparisonCommand(object) {
 exports.isComparisonCommand = isComparisonCommand;
 exports.default = QueryCommand;
 
-}, function(modId) { var map = {"./logic":1757458042219,"../helper/symbol":1757458042204,"../geo/index":1757458042198,"../utils/type":1757458042206}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042219, function(require, module, exports) {
+}, function(modId) { var map = {"./logic":1757806478400,"../helper/symbol":1757806478385,"../geo/index":1757806478379,"../utils/type":1757806478387}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478400, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("../helper/symbol");
@@ -1541,8 +1541,8 @@ function isKnownLogicCommand(object) {
 exports.isKnownLogicCommand = isKnownLogicCommand;
 exports.default = LogicCommand;
 
-}, function(modId) { var map = {"../helper/symbol":1757458042204,"./query":1757458042218}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042220, function(require, module, exports) {
+}, function(modId) { var map = {"../helper/symbol":1757806478385,"./query":1757806478399}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478401, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const type_1 = require("../utils/type");
@@ -1636,8 +1636,8 @@ function decodeInternalDataType(object) {
 }
 exports.decodeInternalDataType = decodeInternalDataType;
 
-}, function(modId) { var map = {"../utils/type":1757458042206,"./datatype":1757458042221}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042221, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/type":1757806478387,"./datatype":1757806478402}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478402, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("../helper/symbol");
@@ -1736,8 +1736,8 @@ function deserialize(object) {
 }
 exports.deserialize = deserialize;
 
-}, function(modId) { var map = {"../helper/symbol":1757458042204,"../utils/type":1757458042206,"../geo/index":1757458042198,"../serverDate/index":1757458042203}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042222, function(require, module, exports) {
+}, function(modId) { var map = {"../helper/symbol":1757806478385,"../utils/type":1757806478387,"../geo/index":1757806478379,"../serverDate/index":1757806478384}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478403, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const virtual_websocket_client_1 = require("./virtual-websocket-client");
@@ -2306,8 +2306,8 @@ class RealtimeWebSocketClient {
 }
 exports.RealtimeWebSocketClient = RealtimeWebSocketClient;
 
-}, function(modId) { var map = {"./virtual-websocket-client":1757458042223,"../utils/utils":1757458042227,"./message":1757458042224,"./ws-event":1757458042231,"../utils/error":1757458042225,"./error":1757458042230,"../config/error.config":1757458042226,"../":1757458042197}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042223, function(require, module, exports) {
+}, function(modId) { var map = {"./virtual-websocket-client":1757806478404,"../utils/utils":1757806478408,"./message":1757806478405,"./ws-event":1757806478412,"../utils/error":1757806478406,"./error":1757806478411,"../config/error.config":1757806478407,"../":1757806478378}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478404, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const lodash_set_1 = require("lodash.set");
@@ -3045,8 +3045,8 @@ function getPublicEvent(event) {
     return e;
 }
 
-}, function(modId) { var map = {"./message":1757458042224,"../utils/error":1757458042225,"../config/error.config":1757458042226,"../utils/utils":1757458042227,"./listener":1757458042228,"./snapshot":1757458042229,"./error":1757458042230}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042224, function(require, module, exports) {
+}, function(modId) { var map = {"./message":1757806478405,"../utils/error":1757806478406,"../config/error.config":1757806478407,"../utils/utils":1757806478408,"./listener":1757806478409,"./snapshot":1757806478410,"./error":1757806478411}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478405, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 function genRequestId(prefix = '') {
@@ -3059,7 +3059,7 @@ function isInitEventMessage(msg) {
 exports.isInitEventMessage = isInitEventMessage;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042225, function(require, module, exports) {
+__DEFINE__(1757806478406, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const type_1 = require("./type");
@@ -3116,8 +3116,8 @@ class CancelledError extends Error {
 exports.CancelledError = CancelledError;
 exports.isCancelledError = (e) => e.type === 'cancelled';
 
-}, function(modId) { var map = {"./type":1757458042206,"../config/error.config":1757458042226}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042226, function(require, module, exports) {
+}, function(modId) { var map = {"./type":1757806478387,"../config/error.config":1757806478407}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478407, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ERR_CODE = {
@@ -3135,7 +3135,7 @@ exports.ERR_CODE = {
 };
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042227, function(require, module, exports) {
+__DEFINE__(1757806478408, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sleep = (ms = 0) => new Promise(r => setTimeout(r, ms));
@@ -3148,7 +3148,7 @@ exports.autoCount = (domain = 'any') => {
 };
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042228, function(require, module, exports) {
+__DEFINE__(1757806478409, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 class RealtimeListener {
@@ -3168,7 +3168,7 @@ class RealtimeListener {
 exports.RealtimeListener = RealtimeListener;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042229, function(require, module, exports) {
+__DEFINE__(1757806478410, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 class Snapshot {
@@ -3213,7 +3213,7 @@ class Snapshot {
 exports.Snapshot = Snapshot;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042230, function(require, module, exports) {
+__DEFINE__(1757806478411, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 class RealtimeErrorMessageError extends Error {
@@ -3227,7 +3227,7 @@ exports.RealtimeErrorMessageError = RealtimeErrorMessageError;
 exports.isRealtimeErrorMessageError = (e) => e && e.isRealtimeErrorMessageError;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042231, function(require, module, exports) {
+__DEFINE__(1757806478412, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const error_1 = require("../utils/error");
@@ -3368,8 +3368,8 @@ exports.getWSCloseError = (code, reason) => {
     });
 };
 
-}, function(modId) { var map = {"../utils/error":1757458042225,"../config/error.config":1757458042226}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042232, function(require, module, exports) {
+}, function(modId) { var map = {"../utils/error":1757806478406,"../config/error.config":1757806478407}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478413, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("./lib/util");
@@ -3605,8 +3605,8 @@ class Query {
 }
 exports.Query = Query;
 
-}, function(modId) { var map = {"./lib/util":1757458042214,"./constant":1757458042201,"./index":1757458042197,"./validate":1757458042200,"./util":1757458042202,"./serializer/query":1757458042233,"./serializer/update":1757458042215,"./realtime/websocket-client":1757458042222}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042233, function(require, module, exports) {
+}, function(modId) { var map = {"./lib/util":1757806478395,"./constant":1757806478382,"./index":1757806478378,"./validate":1757806478381,"./util":1757806478383,"./serializer/query":1757806478414,"./serializer/update":1757806478396,"./realtime/websocket-client":1757806478403}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478414, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const query_1 = require("../commands/query");
@@ -3828,8 +3828,8 @@ class QueryEncoder {
     }
 }
 
-}, function(modId) { var map = {"../commands/query":1757458042218,"../commands/logic":1757458042219,"../helper/symbol":1757458042204,"../utils/type":1757458042206,"../operator-map":1757458042217,"./common":1757458042220}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042234, function(require, module, exports) {
+}, function(modId) { var map = {"../commands/query":1757806478399,"../commands/logic":1757806478400,"../helper/symbol":1757806478385,"../utils/type":1757806478387,"../operator-map":1757806478398,"./common":1757806478401}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478415, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("./index");
@@ -3928,8 +3928,8 @@ class Aggregation {
 }
 exports.default = Aggregation;
 
-}, function(modId) { var map = {"./index":1757458042197,"./serializer/query":1757458042233}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042235, function(require, module, exports) {
+}, function(modId) { var map = {"./index":1757806478378,"./serializer/query":1757806478414}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478416, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const query_1 = require("./commands/query");
@@ -4203,8 +4203,8 @@ class ProjectionOperator {
 }
 exports.default = exports.Command;
 
-}, function(modId) { var map = {"./commands/query":1757458042218,"./commands/logic":1757458042219,"./commands/update":1757458042216,"./utils/type":1757458042206,"./aggregate":1757458042234}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042236, function(require, module, exports) {
+}, function(modId) { var map = {"./commands/query":1757806478399,"./commands/logic":1757806478400,"./commands/update":1757806478397,"./utils/type":1757806478387,"./aggregate":1757806478415}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478417, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const symbol_1 = require("../helper/symbol");
@@ -4232,8 +4232,8 @@ function RegExpConstructor(param) {
 }
 exports.RegExpConstructor = RegExpConstructor;
 
-}, function(modId) { var map = {"../helper/symbol":1757458042204}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042237, function(require, module, exports) {
+}, function(modId) { var map = {"../helper/symbol":1757806478385}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478418, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../index");
@@ -4340,8 +4340,8 @@ async function runTransaction(callback, times = 3) {
 }
 exports.runTransaction = runTransaction;
 
-}, function(modId) { var map = {"../index":1757458042197,"./collection":1757458042238,"../const/code":1757458042240}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042238, function(require, module, exports) {
+}, function(modId) { var map = {"../index":1757806478378,"./collection":1757806478419,"../const/code":1757806478421}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478419, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const document_1 = require("./document");
@@ -4370,8 +4370,8 @@ class CollectionReference extends query_1.Query {
 }
 exports.CollectionReference = CollectionReference;
 
-}, function(modId) { var map = {"./document":1757458042239,"./query":1757458042241}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042239, function(require, module, exports) {
+}, function(modId) { var map = {"./document":1757806478420,"./query":1757806478422}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478420, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const bson_1 = require("bson");
@@ -4479,8 +4479,8 @@ class DocumentReference {
 }
 exports.DocumentReference = DocumentReference;
 
-}, function(modId) { var map = {"../const/code":1757458042240,"../serializer/update":1757458042215,"../serializer/datatype":1757458042221,"../util":1757458042202}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042240, function(require, module, exports) {
+}, function(modId) { var map = {"../const/code":1757806478421,"../serializer/update":1757806478396,"../serializer/datatype":1757806478402,"../util":1757806478383}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1757806478421, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ERRORS = {
@@ -4515,7 +4515,7 @@ exports.ERRORS = {
 };
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1757458042241, function(require, module, exports) {
+__DEFINE__(1757806478422, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 class Query {
@@ -4527,7 +4527,7 @@ class Query {
 exports.Query = Query;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-return __REQUIRE__(1757458042197);
+return __REQUIRE__(1757806478378);
 })()
 //miniprogram-npm-outsideDeps=["lodash.set","lodash.unset","lodash.clonedeep","bson"]
 //# sourceMappingURL=index.js.map

@@ -6,48 +6,99 @@ Page({
    * 页面的初始数据
    */
   data: {
-    activeTab: 'members',
+    // 页面模式：simple（单个成员）或 batch（批量管理）
+    mode: 'batch',
+    
+    // 当前管理的成员（单个成员模式）
+    currentMember: null,
+    currentMemberId: '',
+    
+    // 批量管理相关
     members: [],
     selectedMembers: [],
-    showMemberEdit: false,
-    showBatchEdit: false,
-    editingMember: null,
-    allExpanded: false,
+    isAllSelected: false,
+    batchPermissions: {
+      canEdit: false,
+      canDelete: false,
+      canExport: false
+    },
     
-    // 角色模板
-    roleTemplates: [
+    // UI状态
+    saving: false,
+    showToast: false,
+    toastMessage: '',
+    toastType: 'success',
+    canRemoveMember: false,
+    
+    // 权限模板
+    permissionTemplates: [
       {
-        id: 'owner',
-        name: '家庭创建者',
-        description: '拥有所有权限，包括删除家庭',
-        memberCount: 0,
-        keyPermissions: ['完全控制', '成员管理', '数据管理']
-      },
-      {
-        id: 'admin',
-        name: '家庭管理员',
-        description: '可以管理数据和邀请成员',
-        memberCount: 0,
-        keyPermissions: ['数据管理', '成员邀请', '报表查看']
+        id: 'viewer',
+        name: '查看者',
+        description: '只能查看数据，不能修改',
+        icon: '👁️',
+        permissions: {
+          canViewAllData: true,
+          canEditAllData: false,
+          canDeleteAllData: false,
+          canViewReports: true,
+          canInviteMembers: false,
+          canRemoveMembers: false,
+          canEditPermissions: false,
+          canEditFamilySettings: false,
+          canDeleteFamily: false,
+          canTransferOwnership: false,
+          canManageCategories: false,
+          canManageBudgets: false,
+          canExportData: false
+        }
       },
       {
         id: 'member',
         name: '普通成员',
         description: '可以记账和查看报表',
-        memberCount: 0,
-        keyPermissions: ['记账', '查看报表', '个人数据']
+        icon: '✏️',
+        permissions: {
+          canViewAllData: true,
+          canEditAllData: false,
+          canDeleteAllData: false,
+          canViewReports: true,
+          canInviteMembers: false,
+          canRemoveMembers: false,
+          canEditPermissions: false,
+          canEditFamilySettings: false,
+          canDeleteFamily: false,
+          canTransferOwnership: false,
+          canManageCategories: false,
+          canManageBudgets: false,
+          canExportData: false
+        }
       },
       {
-        id: 'viewer',
-        name: '查看者',
-        description: '只能查看数据，不能修改',
-        memberCount: 0,
-        keyPermissions: ['查看数据']
+        id: 'admin',
+        name: '管理员',
+        description: '可以管理数据和邀请成员',
+        icon: '🔧',
+        permissions: {
+          canViewAllData: true,
+          canEditAllData: true,
+          canDeleteAllData: false,
+          canViewReports: true,
+          canInviteMembers: true,
+          canRemoveMembers: false,
+          canEditPermissions: false,
+          canEditFamilySettings: false,
+          canDeleteFamily: false,
+          canTransferOwnership: false,
+          canManageCategories: true,
+          canManageBudgets: true,
+          canExportData: true
+        }
       }
     ],
 
-    // 权限分类
-    permissionCategories: [
+    // 权限分组
+    permissionGroups: [
       {
         category: 'data',
         name: '数据权限',
@@ -143,26 +194,24 @@ Page({
       }
     ],
 
-    roles: ['owner', 'admin', 'member'],
-    currentUserRole: '',
-    
-    // 编辑相关
-    editPermissions: [],
-    availableRoles: [],
-    
-    // 批量操作
-    batchActions: [
-      { type: 'setViewer', label: '设为查看者', theme: 'light' },
-      { type: 'setMember', label: '设为普通成员', theme: 'primary' },
-      { type: 'setAdmin', label: '设为管理员', theme: 'success' },
-      { type: 'removeSelected', label: '移除选中成员', theme: 'danger' }
-    ]
+    currentUserRole: ''
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
+    console.log('权限设置页面加载，参数:', options);
+    
+    // 检查页面模式
+    const mode = options.mode || 'batch';
+    const memberId = options.memberId || '';
+    
+    this.setData({
+      mode,
+      currentMemberId: memberId
+    });
+    
     this.initPage();
   },
 
@@ -178,15 +227,8 @@ Page({
    */
   async initPage() {
     try {
-      // 检查权限 - 添加安全检查
-      let hasPermission = false;
-      try {
-        hasPermission = await familyService.checkPermission('canEditPermissions');
-      } catch (permissionError) {
-        console.warn('权限检查失败，使用默认权限:', permissionError);
-        // 如果权限检查失败，假设有权限但记录错误
-        hasPermission = true;
-      }
+      // 检查权限
+      const hasPermission = await this.checkManagePermission();
       
       if (!hasPermission) {
         wx.showModal({
@@ -208,58 +250,68 @@ Page({
   },
 
   /**
+   * 检查管理权限
+   */
+  async checkManagePermission() {
+    try {
+      const info = await familyService.getFamilyInfo();
+      const role = (info && info.role) || (info?.data?.role) || 'member';
+      
+      // 创建者和管理员有权限
+      return role === 'owner' || role === 'admin';
+    } catch (error) {
+      console.error('检查权限失败:', error);
+      return false;
+    }
+  },
+
+  /**
    * 加载数据
    */
   async loadData() {
     try {
       wx.showLoading({ title: '加载中...' });
 
-      // 获取家庭信息和成员列表 - 添加错误处理
-      let familyInfo = { role: 'member' }; // 默认角色
+      // 获取家庭信息和成员列表
+      const [familyInfo, membersResult] = await Promise.allSettled([
+        familyService.getFamilyInfo(),
+        familyService.getFamilyMembers()
+      ]);
+
+      let currentUserRole = 'member';
+      if (familyInfo.status === 'fulfilled') {
+        const info = familyInfo.value;
+        currentUserRole = (info && info.role) || (info?.data?.role) || 'member';
+      }
+
       let members = [];
-      
-      try {
-        const results = await Promise.allSettled([
-          familyService.getFamilyInfo(),
-          familyService.getFamilyMembers()
-        ]);
-        
-        if (results[0].status === 'fulfilled') {
-          familyInfo = results[0].value;
-        } else {
-          console.error('获取家庭信息失败:', results[0].reason);
-        }
-        
-        if (results[1].status === 'fulfilled') {
-          members = results[1].value || [];
-        } else {
-          console.error('获取成员列表失败:', results[1].reason);
-        }
-      } catch (dataError) {
-        console.error('数据加载异常:', dataError);
-        // 继续使用默认值
+      if (membersResult.status === 'fulfilled') {
+        const result = membersResult.value;
+        members = Array.isArray(result) ? result : (Array.isArray(result?.members) ? result.members : []);
       }
 
       // 处理成员数据
       const processedMembers = members.map(member => ({
-        ...member,
+        id: member.id || '',
+        nickname: member.nickname || '未知用户',
+        role: member.role || 'member',
+        permissions: this.normalizePermissions(member.permissions),
         roleText: this.getRoleText(member.role || 'member'),
         joinedAtText: this.formatDate(member.joinedAt || Date.now()),
         isOnline: member.lastActiveTime && 
-                 (Date.now() - member.lastActiveTime < 5 * 60 * 1000)
-      }));
-
-      // 更新角色模板的成员数量
-      const updatedRoleTemplates = this.data.roleTemplates.map(template => ({
-        ...template,
-        memberCount: processedMembers.filter(m => m.role === template.id).length
+                 (Date.now() - member.lastActiveTime < 5 * 60 * 1000),
+        avatarUrl: member.avatarUrl || ''
       }));
 
       this.setData({
         members: processedMembers,
-        currentUserRole: familyInfo.role || 'member',
-        roleTemplates: updatedRoleTemplates
+        currentUserRole
       });
+
+      // 如果是单个成员模式，加载特定成员数据
+      if (this.data.mode === 'simple' && this.data.currentMemberId) {
+        await this.loadCurrentMember();
+      }
 
       wx.hideLoading();
     } catch (error) {
@@ -270,16 +322,249 @@ Page({
   },
 
   /**
-   * 标签页切换
+   * 标准化权限对象
    */
-  onTabChange(e) {
+  normalizePermissions(permissions) {
+    const defaultPermissions = {
+      canEdit: false,
+      canDelete: false,
+      canExport: false
+    };
+
+    if (!permissions || typeof permissions !== 'object') {
+      return defaultPermissions;
+    }
+
+    return {
+      canEdit: !!permissions.canEdit || !!permissions.canEditAllData,
+      canDelete: !!permissions.canDelete || !!permissions.canDeleteAllData,
+      canExport: !!permissions.canExport || !!permissions.canExportData
+    };
+  },
+
+  /**
+   * 加载当前成员数据
+   */
+  async loadCurrentMember() {
+    const member = this.data.members.find(m => m.id === this.data.currentMemberId);
+    
+    if (!member) {
+      this.showToast('成员不存在', 'error');
+      wx.navigateBack();
+      return;
+    }
+
+    // 检查是否可以移除该成员
+    const canRemove = this.canRemoveThisMember(member);
+
     this.setData({
-      activeTab: e.detail.value
+      currentMember: member,
+      canRemoveMember: canRemove
     });
   },
 
   /**
-   * 选择成员
+   * 检查是否可以移除指定成员
+   */
+  canRemoveThisMember(member) {
+    const currentRole = this.data.currentUserRole;
+    
+    // 只有创建者可以移除成员，且不能移除自己
+    if (currentRole === 'owner') {
+      return member.role !== 'owner';
+    }
+    
+    return false;
+  },
+
+  /**
+   * 权限开关变更（单个成员模式）
+   */
+  onPermissionChange(e) {
+    const permission = e.currentTarget.dataset.permission;
+    const value = e.detail.value;
+    
+    this.setData({
+      [`currentMember.permissions.${permission}`]: value
+    });
+  },
+
+  /**
+   * 批量权限开关变更
+   */
+  onBatchPermissionChange(e) {
+    const permission = e.currentTarget.dataset.permission;
+    const value = e.detail.value;
+    
+    this.setData({
+      [`batchPermissions.${permission}`]: value
+    });
+  },
+
+  /**
+   * 保存权限（单个成员模式）
+   */
+  async savePermissions() {
+    if (!this.data.currentMember) {
+      this.showToast('成员信息不存在', 'error');
+      return;
+    }
+
+    try {
+      this.setData({ saving: true });
+      
+      const permissions = this.data.currentMember.permissions;
+      
+      // 调用服务更新权限
+      await familyService.updateMemberPermissions(this.data.currentMember.id, permissions);
+      
+      this.showToast('权限保存成功', 'success');
+      
+      // 延迟返回，让用户看到成功提示
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 1500);
+      
+    } catch (error) {
+      console.error('保存权限失败:', error);
+      this.showToast('保存失败，请重试', 'error');
+    } finally {
+      this.setData({ saving: false });
+    }
+  },
+
+  /**
+   * 应用批量权限
+   */
+  async applyBatchPermissions() {
+    if (this.data.selectedMembers.length === 0) {
+      this.showToast('请先选择成员', 'warning');
+      return;
+    }
+
+    try {
+      this.setData({ saving: true });
+      
+      const permissions = this.data.batchPermissions;
+      const selectedMembers = this.data.selectedMembers;
+      
+      // 过滤掉创建者，避免误操作
+      const validMembers = selectedMembers.filter(memberId => {
+        const member = this.data.members.find(m => m.id === memberId);
+        return member && member.role !== 'owner';
+      });
+      
+      if (validMembers.length === 0) {
+        this.showToast('无可设置的成员（已过滤创建者）', 'info');
+        return;
+      }
+      
+      // 并行更新所有选中成员的权限
+      const promises = validMembers.map(memberId => 
+        familyService.updateMemberPermissions(memberId, permissions)
+      );
+      
+      await Promise.all(promises);
+      
+      this.showToast('批量权限设置成功', 'success');
+      
+      // 清空选择状态
+      this.setData({
+        selectedMembers: [],
+        isAllSelected: false,
+        batchPermissions: {
+          canEdit: false,
+          canDelete: false,
+          canExport: false
+        }
+      });
+      
+      // 重新加载数据
+      this.loadData();
+      
+    } catch (error) {
+      console.error('批量设置权限失败:', error);
+      this.showToast('设置失败，请重试', 'error');
+    } finally {
+      this.setData({ saving: false });
+    }
+  },
+
+  /**
+   * 移除成员
+   */
+  removeMember() {
+    if (!this.data.currentMember) {
+      return;
+    }
+
+    const member = this.data.currentMember;
+    
+    wx.showModal({
+      title: '确认移除',
+      content: `确定要移除成员"${member.nickname}"吗？此操作不可撤销。`,
+      confirmText: '移除',
+      confirmColor: '#ff4757',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            wx.showLoading({ title: '移除中...' });
+            
+            await familyService.removeMember(member.id);
+            
+            wx.hideLoading();
+            this.showToast('成员已移除', 'success');
+            
+            // 延迟返回
+            setTimeout(() => {
+              wx.navigateBack();
+            }, 1500);
+            
+          } catch (error) {
+            wx.hideLoading();
+            console.error('移除成员失败:', error);
+            this.showToast('移除失败，请重试', 'error');
+          }
+        }
+      }
+    });
+  },
+
+  /**
+   * 切换成员选择
+   */
+  toggleMemberSelection(e) {
+    const memberId = e.currentTarget.dataset.memberId;
+    const selectedMembers = [...this.data.selectedMembers];
+    
+    const index = selectedMembers.indexOf(memberId);
+    if (index > -1) {
+      selectedMembers.splice(index, 1);
+    } else {
+      selectedMembers.push(memberId);
+    }
+    
+    this.setData({
+      selectedMembers,
+      isAllSelected: selectedMembers.length === this.data.members.length
+    });
+  },
+
+  /**
+   * 全选/取消全选
+   */
+  toggleSelectAll() {
+    const isAllSelected = !this.data.isAllSelected;
+    const selectedMembers = isAllSelected ? this.data.members.map(m => m.id) : [];
+    
+    this.setData({
+      selectedMembers,
+      isAllSelected
+    });
+  },
+
+  /**
+   * 选择成员（兼容旧方法）
    */
   selectMember(e) {
     const member = e.currentTarget.dataset.member;
@@ -348,11 +633,13 @@ Page({
   getEditablePermissions(member) {
     const permissions = [];
     
-    this.data.permissionCategories.forEach(category => {
-      category.permissions.forEach(permission => {
+    const safePerm = (member && typeof member.permissions === 'object' && member.permissions) ? member.permissions : {};
+    // 使用 permissionGroups 而不是 permissionCategories
+    this.data.permissionGroups.forEach(group => {
+      group.permissions.forEach(permission => {
         permissions.push({
           ...permission,
-          enabled: member.permissions[permission.key] || false
+          enabled: !!safePerm[permission.key]
         });
       });
     });
@@ -409,8 +696,18 @@ Page({
    */
   async saveMemberPermissions() {
     try {
-      const { editingMember, editPermissions } = this.data;
-      
+      const { editingMember, editPermissions, currentUserRole } = this.data;
+
+      // 本地前置校验：禁止对 owner 自身进行修改；owner 放行编辑他人
+      if (!editingMember) {
+        this.showToast('无有效成员', 'warning');
+        return;
+      }
+      if (editingMember.role === 'owner') {
+        this.showToast('不能修改创建者权限', 'warning');
+        return;
+      }
+
       wx.showLoading({ title: '保存中...' });
 
       // 构建权限对象
@@ -419,7 +716,7 @@ Page({
         permissions[permission.key] = permission.enabled;
       });
 
-      // 更新成员权限
+      // 更新成员权限（owner 默认应有权限；admin 依后端鉴权）
       await familyService.updateMemberPermissions(editingMember.id, permissions);
 
       wx.hideLoading();
@@ -575,11 +872,22 @@ Page({
     try {
       wx.showLoading({ title: '设置中...' });
       
-      const { selectedMembers } = this.data;
+      const { selectedMembers, members, currentUserRole } = this.data;
       const defaultPermissions = familyService.getDefaultPermissions(role);
+
+      // 过滤掉 owner 成员，避免误操作
+      const validTargets = (selectedMembers || []).filter(id => {
+        const m = (members || []).find(x => x.id === id);
+        return m && m.role !== 'owner';
+      });
+      if (validTargets.length === 0) {
+        wx.hideLoading();
+        this.showToast('无可设置的成员（已过滤创建者）', 'info');
+        return;
+      }
       
-      // 并行更新所有选中成员
-      const promises = selectedMembers.map(memberId => 
+      // 并行更新所有有效成员
+      const promises = validTargets.map(memberId => 
         familyService.updateMemberPermissions(memberId, defaultPermissions)
       );
       
@@ -606,10 +914,21 @@ Page({
     try {
       wx.showLoading({ title: '移除中...' });
       
-      const { selectedMembers } = this.data;
+      const { selectedMembers, members } = this.data;
       
+      // 过滤掉 owner 成员，避免误操作
+      const validTargets = (selectedMembers || []).filter(id => {
+        const m = (members || []).find(x => x.id === id);
+        return m && m.role !== 'owner';
+      });
+      if (validTargets.length === 0) {
+        wx.hideLoading();
+        this.showToast('无可移除的成员（已过滤创建者）', 'info');
+        return;
+      }
+
       // 并行移除所有选中成员
-      const promises = selectedMembers.map(memberId => 
+      const promises = validTargets.map(memberId => 
         familyService.removeMember(memberId)
       );
       
@@ -719,16 +1038,155 @@ Page({
   },
 
   /**
-   * 切换权限分类展开状态
+   * 切换权限分组展开状态
+   */
+  togglePermissionGroup(e) {
+    const category = e.currentTarget.dataset.category;
+    const permissionGroups = this.data.permissionGroups.map(group => {
+      if (group.category === category) {
+        return { ...group, expanded: !group.expanded };
+      }
+      return group;
+    });
+
+    this.setData({
+      permissionGroups
+    });
+  },
+
+  /**
+   * 切换分组展开状态（WXML中使用的方法名）
+   */
+  toggleGroup(e) {
+    const category = e.currentTarget.dataset.category;
+    const permissionGroups = this.data.permissionGroups.map(group => {
+      if (group.category === category) {
+        return { ...group, expanded: !group.expanded };
+      }
+      return group;
+    });
+
+    this.setData({
+      permissionGroups
+    });
+  },
+
+  /**
+   * 切换权限选择
+   */
+  togglePermission(e) {
+    const permissionKey = e.currentTarget.dataset.permission;
+    const selectedPermissions = { ...this.data.selectedPermissions };
+    
+    selectedPermissions[permissionKey] = !selectedPermissions[permissionKey];
+    
+    this.setData({
+      selectedPermissions
+    });
+  },
+
+  /**
+   * 应用权限模板
+   */
+  applyTemplate(e) {
+    const templateId = e.currentTarget.dataset.templateId;
+    const template = this.data.permissionTemplates.find(t => t.id === templateId);
+    
+    if (!template) return;
+    
+    this.setData({
+      selectedPermissions: { ...template.permissions }
+    });
+    
+    this.showToast(`已应用${template.name}模板`, 'success');
+  },
+
+  /**
+   * 应用到所选成员
+   */
+  async applyToSelected() {
+    const { selectedMembers, selectedPermissions } = this.data;
+    
+    if (selectedMembers.length === 0) {
+      this.showToast('请先选择要应用权限的成员', 'warning');
+      return;
+    }
+    
+    const hasSelectedPermissions = Object.values(selectedPermissions).some(Boolean);
+    if (!hasSelectedPermissions) {
+      this.showToast('请先选择要应用的权限', 'warning');
+      return;
+    }
+    
+    wx.showModal({
+      title: '确认应用权限',
+      content: `将选中的权限应用到 ${selectedMembers.length} 位成员？`,
+      success: async (res) => {
+        if (res.confirm) {
+          await this.batchApplyPermissions();
+        }
+      }
+    });
+  },
+
+  /**
+   * 批量应用权限
+   */
+  async batchApplyPermissions() {
+    try {
+      wx.showLoading({ title: '应用中...' });
+      
+      const { selectedMembers, selectedPermissions, members } = this.data;
+      
+      // 过滤掉 owner 成员
+      const validTargets = selectedMembers.filter(id => {
+        const member = members.find(m => m.id === id);
+        return member && member.role !== 'owner';
+      });
+      
+      if (validTargets.length === 0) {
+        wx.hideLoading();
+        this.showToast('无可应用的成员（已过滤创建者）', 'info');
+        return;
+      }
+      
+      // 并行更新所有选中成员的权限
+      const promises = validTargets.map(memberId => 
+        familyService.updateMemberPermissions(memberId, selectedPermissions)
+      );
+      
+      await Promise.all(promises);
+      
+      wx.hideLoading();
+      this.showToast('权限应用成功', 'success');
+      
+      // 清空选择状态并刷新数据
+      this.setData({
+        selectedMembers: [],
+        selectedPermissions: {},
+        isAllSelected: false
+      });
+      
+      this.loadData();
+      
+    } catch (error) {
+      wx.hideLoading();
+      console.error('批量应用权限失败:', error);
+      this.showToast('应用失败，请重试', 'error');
+    }
+  },
+
+  /**
+   * 切换权限分类展开状态（兼容旧方法）
    */
   toggleCategory(e) {
     const category = e.currentTarget.dataset.category;
-    const categories = this.data.permissionCategories.map(cat => {
+    const categories = this.data.permissionCategories?.map(cat => {
       if (cat.category === category) {
         return { ...cat, expanded: !cat.expanded };
       }
       return cat;
-    });
+    }) || [];
 
     this.setData({
       permissionCategories: categories
@@ -849,20 +1307,17 @@ Page({
    * 显示提示
    */
   showToast(message, type = 'success') {
-    const toast = this.selectComponent('#t-toast');
-    if (toast) {
-      toast.showToast({
-        title: message,
-        icon: type === 'success' ? 'check-circle' : 
-              type === 'error' ? 'close-circle' : 
-              type === 'warning' ? 'error-circle' : 'info-circle',
-        theme: type
+    this.setData({
+      showToast: true,
+      toastMessage: message,
+      toastType: type
+    });
+    
+    // 自动隐藏
+    setTimeout(() => {
+      this.setData({
+        showToast: false
       });
-    } else {
-      wx.showToast({
-        title: message,
-        icon: type === 'success' ? 'success' : 'none'
-      });
-    }
+    }, 2000);
   }
 });

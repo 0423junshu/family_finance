@@ -1,12 +1,15 @@
 /* components/navigation-bar/navigation-bar.wxss */
 .navigation-bar {
   width: 100%;
-  background-color: #fff;
+  background: transparent !important;
+  background-color: transparent !important;
   position: relative;
   z-index: 99;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
-  /* 增加导航栏整体高度，确保内容不被系统UI遮挡 */
-  padding-bottom: 10rpx;
+  /* 完全移除阴影，确保无视觉差异 */
+  box-shadow: none !important;
+  border: none !important;
+  /* 确保导航栏可见 */
+  min-height: 88rpx;
 }
 
 .navigation-bar-content {
@@ -14,6 +17,8 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .back-button {
@@ -58,4 +63,16 @@
 .action-text {
   font-size: 30rpx;
   color: #007AFF;
+}
+
+.right-slot {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30rpx;
+  z-index: 1;
 }

@@ -1,5 +1,7 @@
 <!-- pages/cycle-setting/cycle-setting.wxml -->
-<navigation-bar title="周期设置" showBack="{{true}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="周期设置" showBack="{{true}}" class="transparent-navbar" />
+</view>
 
 <view class="container">
   <view class="card">

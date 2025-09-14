@@ -1,5 +1,7 @@
 <!-- pages/account-manage/account-manage.wxml -->
-<navigation-bar title="{{mode === 'create' ? '新增账户' : '编辑账户'}}" showBack="{{true}}" />
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="{{mode === 'create' ? '新增账户' : '编辑账户'}}" showBack="{{true}}" class="transparent-navbar" />
+</view>
 
 <view class="page-container">
   <view wx:if="{{loading}}" class="loading-container">

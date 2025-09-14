@@ -3,7 +3,7 @@
 /**
  * 格式化日期
  * @param {Date|string} date 日期对象或日期字符串
- * @param {string} format 格式类型：'date', 'datetime', 'time', 'month'
+ * @param {string} format 格式类型：'date', 'datetime', 'time', 'month', 'YYYY-MM-DD'
  * @returns {string} 格式化后的日期字符串
  */
 function formatDate(date, format = 'date') {
@@ -36,6 +36,8 @@ function formatDate(date, format = 'date') {
       return `${month}月${day}日`
     case 'relative':
       return formatRelativeDate(d)
+    case 'YYYY-MM-DD':
+      return `${year}-${month}-${day}`
     default:
       return `${year}-${month}-${day}`
   }
@@ -116,6 +118,16 @@ function formatAmount(amount, options = {}) {
   }
   
   return formatted
+}
+
+/**
+ * 格式化货币（兼容性别名）
+ * @param {number} amount 金额（分为单位）
+ * @param {object} options 格式化选项
+ * @returns {string} 格式化后的金额字符串
+ */
+function formatCurrency(amount, options = {}) {
+  return formatAmount(amount, { ...options, showSymbol: true })
 }
 
 /**
@@ -230,6 +242,7 @@ module.exports = {
   formatDate,
   formatRelativeDate,
   formatAmount,
+  formatCurrency,
   formatPercent,
   formatNumber,
   formatFileSize,

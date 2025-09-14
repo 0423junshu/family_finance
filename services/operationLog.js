@@ -3,12 +3,13 @@
  * 记录和管理家庭成员的所有操作历史
  */
 
-const db = wx.cloud.database();
-const _ = db.command;
+const db = wx.cloud && wx.cloud.database ? wx.cloud.database() : null;
+const _ = db ? db.command : {};
 
 class OperationLogService {
   constructor() {
-    this.logCollection = db.collection('operation_logs');
+    // 集合安全获取（容错：集合不存在/云未初始化时不抛错）
+    this.logCollection = this.safeCollection('operation_logs');
     this.batchLogs = []; // 批量日志缓存
     this.batchTimer = null;
     this.batchInterval = 5000; // 5秒批量提交
@@ -87,6 +88,20 @@ class OperationLogService {
     }, this.batchInterval);
   }
 
+  // 安全获取集合
+  safeCollection(name) {
+    try {
+      if (!db || !db.collection) {
+        console.warn('[operationLog] wx.cloud 未初始化，跳过集合访问：', name);
+        return null;
+      }
+      return db.collection(name);
+    } catch (e) {
+      console.warn('[operationLog] 获取集合失败，可能未创建：', name, e);
+      return null;
+    }
+  }
+
   /**
    * 记录操作日志
    */
@@ -142,6 +157,10 @@ class OperationLogService {
    */
   async writeLogImmediately(logEntry) {
     try {
+      if (!this.logCollection) {
+        console.warn('[operationLog] 集合缺失，跳过写入（立即）');
+        return { success: false, skipped: true };
+      }
       const result = await this.logCollection.add({
         data: logEntry
       });
@@ -164,6 +183,10 @@ class OperationLogService {
    * 添加到批量队列
    */
   addToBatch(logEntry) {
+    // 若集合缺失，直接标记已队列但不写入，避免异常
+    if (!this.logCollection) {
+      return { success: false, skipped: true, logId: logEntry.id };
+    }
     this.batchLogs.push(logEntry);
     
     // 队列满时立即提交
@@ -183,11 +206,15 @@ class OperationLogService {
    */
   async flushBatchLogs() {
     if (this.batchLogs.length === 0) return;
+    if (!this.logCollection) {
+      console.warn('[operationLog] 集合缺失，清空临时队列避免堆积');
+      this.batchLogs = [];
+      return;
+    }
 
     const logsToProcess = this.batchLogs.splice(0, this.maxBatchSize);
     
     try {
-      // 批量写入
       const promises = logsToProcess.map(log => 
         this.logCollection.add({ data: log })
       );
@@ -208,10 +235,77 @@ class OperationLogService {
   }
 
   /**
+   * 页面兼容：获取日志（对齐 pages/operation-logs 调用）
+   * params: { page, pageSize, keyword, type, level, userId, timeRange, sortOrder, showMemberActivity, activeTab }
+   * 返回: { data, hasMore }
+   */
+  async getLogs(params = {}) {
+    const {
+      page = 0,
+      pageSize = 20,
+      keyword = '',
+      type = '',
+      level = '',
+      userId = '',
+      timeRange = '',
+      sortOrder = 'desc',
+    } = params;
+
+    // 解析时间范围
+    let startTime, endTime;
+    const now = Date.now();
+    if (timeRange === 'today') {
+      const d = new Date(); d.setHours(0,0,0,0); startTime = d.getTime(); endTime = now;
+    } else if (timeRange === 'yesterday') {
+      const d1 = new Date(); d1.setHours(0,0,0,0); const d0 = new Date(d1.getTime() - 24*60*60*1000);
+      startTime = d0.getTime(); endTime = d1.getTime();
+    } else if (timeRange === 'week') {
+      startTime = now - 7*24*60*60*1000; endTime = now;
+    } else if (timeRange === 'month') {
+      startTime = now - 30*24*60*60*1000; endTime = now;
+    }
+
+    // 基础过滤
+    const filters = {
+      userId: userId || undefined,
+      operationType: type || undefined,
+      level: level || undefined,
+      startTime,
+      endTime,
+      limit: pageSize,
+      offset: page * pageSize,
+      orderBy: 'createdAt',
+      order: sortOrder === 'asc' ? 'asc' : 'desc'
+    };
+
+    // 查询
+    const res = await this.queryLogs(filters, { includeDetails: true, includeMetadata: false });
+
+    // 关键字过滤（云端不一定支持模糊检索，前端兜底）
+    let data = res.data || [];
+    if (keyword) {
+      const kw = String(keyword).toLowerCase();
+      data = data.filter(log => {
+        const txt = `${log.operationName||''} ${log.operationType||''} ${log.levelName||''} ${JSON.stringify(log.details||{})}`.toLowerCase();
+        return txt.includes(kw);
+      });
+    }
+
+    return {
+      data,
+      hasMore: res.hasMore === true
+    };
+  }
+
+  /**
    * 查询操作日志
    */
   async queryLogs(filters = {}, options = {}) {
     try {
+      if (!this.logCollection) {
+        console.warn('[operationLog] 集合不存在，返回空日志');
+        return { success: true, data: [], total: 0, hasMore: false };
+      }
       const {
         familyId = wx.getStorageSync('currentFamily')?.familyId,
         userId,
@@ -278,7 +372,13 @@ class OperationLogService {
       // 排序和分页
       query = query.orderBy(orderBy, order).skip(offset).limit(limit);
 
-      const result = await query.get();
+      let result;
+      try {
+        result = await query.get();
+      } catch (e) {
+        console.warn('[operationLog] 查询失败，可能集合未创建：', e);
+        return { success: true, data: [], total: 0, hasMore: false };
+      }
       
       // 处理返回数据
       const logs = result.data.map(log => {
@@ -314,10 +414,55 @@ class OperationLogService {
   }
 
   /**
+   * 页面兼容：获取统计（对齐 pages/operation-logs 调用）
+   * 返回: 直接返回汇总对象，页面用 setData({ stats })
+   */
+  async getStats(params = {}) {
+    const result = await this.getLogStats(params);
+    if (!result || !result.success) {
+      return { total: 0, todayCount: 0, activeUsers: 0, byLevel: [] };
+    }
+
+    const { stats } = result;
+    // 组装页面期望的结构
+    const byLevelArr = Object.keys(stats.byLevel || {}).map(k => ({
+      level: k,
+      name: this.operationLevels[k] || k,
+      count: stats.byLevel[k],
+      theme: k === 'error' ? 'danger' : (k === 'warning' ? 'warning' : (k === 'critical' ? 'danger' : 'default'))
+    }));
+
+    // todayCount/activeUsers 简化估算：再次查询近一天与用户数
+    let todayCount = 0;
+    try {
+      const d = new Date(); d.setHours(0,0,0,0);
+      const todayRes = await this.queryLogs({ startTime: d.getTime(), endTime: Date.now(), limit: 1000 }, { includeDetails: false, includeMetadata: false });
+      todayCount = todayRes.data?.length || 0;
+    } catch(_) {}
+
+    let activeUsers = 0;
+    try {
+      const users = await this.getTopUsers({}, 1000);
+      activeUsers = users.length;
+    } catch(_) {}
+
+    return {
+      total: stats.total || 0,
+      todayCount,
+      activeUsers,
+      byLevel: byLevelArr
+    };
+  }
+
+  /**
    * 获取日志统计信息
    */
   async getLogStats(filters = {}) {
     try {
+      if (!this.logCollection) {
+        console.warn('[operationLog] 集合不存在，返回默认统计');
+        return { success: true, stats: { total: 0, byLevel: {}, byType: [], byUser: [], period: {} } };
+      }
       const {
         familyId = wx.getStorageSync('currentFamily')?.familyId,
         startTime,
@@ -342,18 +487,28 @@ class OperationLogService {
       }
 
       // 获取总数统计
-      const totalResult = await this.logCollection.where(conditions).count();
+      let totalResult = { total: 0 };
+      try {
+        totalResult = await this.logCollection.where(conditions).count();
+      } catch (e) {
+        console.warn('[operationLog] 统计 count 失败：', e);
+        return { success: true, stats: { total: 0, byLevel: {}, byType: [], byUser: [], period: {} } };
+      }
       
       // 按级别统计
       const levelStats = {};
       for (const level of Object.keys(this.operationLevels)) {
-        const levelResult = await this.logCollection
-          .where({
-            ...conditions,
-            level: level
-          })
-          .count();
-        levelStats[level] = levelResult.total;
+        try {
+          const levelResult = await this.logCollection
+            .where({
+              ...conditions,
+              level: level
+            })
+            .count();
+          levelStats[level] = levelResult.total;
+        } catch (e) {
+          levelStats[level] = 0;
+        }
       }
 
       // 按操作类型统计（取前10）
@@ -388,11 +543,18 @@ class OperationLogService {
   async getTopOperationTypes(conditions, limit = 10) {
     try {
       // 由于小程序云数据库不支持聚合查询，这里使用简化实现
-      const result = await this.logCollection
-        .where(conditions)
-        .orderBy('createdAt', 'desc')
-        .limit(1000) // 取最近1000条记录进行统计
-        .get();
+      if (!this.logCollection) return [];
+      let result;
+      try {
+        result = await this.logCollection
+          .where(conditions)
+          .orderBy('createdAt', 'desc')
+          .limit(1000)
+          .get();
+      } catch (e) {
+        console.warn('[operationLog] getTopOperationTypes 查询失败：', e);
+        return [];
+      }
 
       const typeCount = {};
       result.data.forEach(log => {
@@ -422,11 +584,18 @@ class OperationLogService {
    */
   async getTopUsers(conditions, limit = 10) {
     try {
-      const result = await this.logCollection
-        .where(conditions)
-        .orderBy('createdAt', 'desc')
-        .limit(1000)
-        .get();
+      if (!this.logCollection) return [];
+      let result;
+      try {
+        result = await this.logCollection
+          .where(conditions)
+          .orderBy('createdAt', 'desc')
+          .limit(1000)
+          .get();
+      } catch (e) {
+        console.warn('[operationLog] getTopUsers 查询失败：', e);
+        return [];
+      }
 
       const userCount = {};
       result.data.forEach(log => {
@@ -451,10 +620,23 @@ class OperationLogService {
   }
 
   /**
+   * 页面兼容：清理日志（对齐 clearLogs 调用）
+   * params.keepDays: 保留天数
+   */
+  async clearLogs(params = {}) {
+    const keep = typeof params.keepDays === 'number' ? params.keepDays : 30;
+    return this.cleanupExpiredLogs(keep);
+  }
+
+  /**
    * 删除过期日志
    */
   async cleanupExpiredLogs(retentionDays = 90) {
     try {
+      if (!this.logCollection) {
+        console.warn('[operationLog] 集合不存在，跳过清理');
+        return { success: true, deletedCount: 0 };
+      }
       const expireDate = new Date();
       expireDate.setDate(expireDate.getDate() - retentionDays);
 

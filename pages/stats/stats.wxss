@@ -1,9 +1,13 @@
 /* pages/stats/stats.wxss */
+@import '/styles/safe-area.wxss';
 @import "../../styles/variables.wxss";
 @import "../../styles/common.wxss";
 
 .page-container {
   padding-top: 176rpx;
+  /* 顶部安全区与下移适配 */
+  padding-top: calc(176rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(176rpx + constant(safe-area-inset-top, 0px));
   padding-bottom: 160rpx;
   background: #F5F5F5;
   min-height: 100vh;

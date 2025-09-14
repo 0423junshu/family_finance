@@ -1,9 +1,12 @@
 /* pages/conflict-resolution/conflict-resolution.wxss */
+@import '/styles/safe-area.wxss';
 
 .page-container {
   padding: 32rpx;
   background-color: var(--td-bg-color-page, #f3f3f3);
   min-height: 100vh;
+  padding-top: calc(32rpx + env(safe-area-inset-top, 0px));
+  padding-top: calc(32rpx + constant(safe-area-inset-top, 0px));
 }
 
 /* 冲突列表 */

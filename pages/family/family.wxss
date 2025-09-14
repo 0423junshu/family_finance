@@ -1,4 +1,5 @@
 /* pages/family/family.wxss */
+@import '/styles/safe-area.wxss';
 
 .page-container {
   padding: 20rpx;
@@ -28,14 +29,14 @@
   color: #1a1a1a;
 }
 
-/* 家庭信息卡片 */
-.family-info-card {
+/* 家庭基本信息卡片 - 精简版 */
+.family-basic-info {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #ffffff;
 }
 
 .family-header {
-  padding: 32rpx 32rpx 24rpx;
+  padding: 32rpx 32rpx 16rpx;
 }
 
 .family-title {
@@ -55,13 +56,17 @@
   opacity: 0.8;
 }
 
-/* 家庭码区域 */
-.family-code-section {
-  background: rgba(255, 255, 255, 0.1);
-  margin: 0 32rpx 32rpx;
-  padding: 24rpx;
-  border-radius: 12rpx;
-  backdrop-filter: blur(10rpx);
+.family-header-actions {
+  margin-top: 8rpx;
+  padding: 0 32rpx 8rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  justify-content: space-between;
+}
+
+.members-list.merged {
+  padding: 0 32rpx 24rpx;
 }
 
 .family-code-header {
@@ -102,6 +107,38 @@
 /* 成员列表 */
 .members-card .card-header {
   border-bottom: 1rpx solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 邀请新成员按钮 */
+.invite-member-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #ffffff;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.3);
+}
+
+.invite-member-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 1rpx 4rpx rgba(102, 126, 234, 0.4);
+}
+
+.invite-member-btn .invite-icon {
+  font-size: 28rpx;
+}
+
+.invite-member-btn .invite-text {
+  font-size: 24rpx;
+  font-weight: 500;
 }
 
 .member-avatar {
@@ -135,19 +172,87 @@
   border-bottom: 1rpx solid #f0f0f0;
 }
 
-/* 快捷操作 */
-.actions-card .card-header {
+/* 数据同步状态卡片 */
+.sync-status-card .card-header {
   border-bottom: 1rpx solid #f0f0f0;
-}
-
-.action-buttons {
   display: flex;
-  gap: 20rpx;
-  padding: 24rpx 32rpx 32rpx;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.action-btn {
-  flex: 1;
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 16rpx;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  color: #666666;
+  font-size: 24rpx;
+  transition: all 0.2s ease;
+}
+
+.refresh-btn:active {
+  background: #e9ecef;
+  transform: scale(0.95);
+}
+
+.refresh-icon {
+  font-size: 24rpx;
+}
+
+.refresh-text {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.sync-info {
+  padding: 0 32rpx 32rpx;
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.status-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #52c41a;
+}
+
+.sync-status.syncing .status-dot {
+  background: #1890ff;
+  animation: pulse 1.5s infinite;
+}
+
+.sync-status.error .status-dot {
+  background: #ff4d4f;
+}
+
+.status-text {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333333;
+}
+
+.last-sync-time {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
 }
 
 /* 未加入家庭状态 */
@@ -341,4 +446,551 @@
   100% {
     background-position: -200% 0;
   }
+}
+
+/* 统一的增强卡片样式 */
+.enhanced-card {
+  background: #fff;
+  margin: 0 20rpx 16rpx;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  border: 1rpx solid #f0f0f0;
+}
+
+/* 家庭信息卡片增强样式 */
+.enhanced-card.family-info-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+}
+
+.family-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.role-badge {
+  font-size: 20rpx;
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.role-badge.owner {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.role-badge.admin {
+  background: rgba(76, 217, 100, 0.3);
+}
+
+/* 精简的家庭码展示 */
+.family-code-container {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 12rpx;
+}
+
+.family-code-info {
+  margin-bottom: 20rpx;
+}
+
+.code-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.family-code-label {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.family-code {
+  font-size: 32rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  color: #fff;
+}
+
+.family-code-tip {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
+/* 统一的邀请按钮 */
+.invite-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12rpx;
+  color: #667eea;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.invite-action:active {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(0.98);
+}
+
+.invite-icon {
+  font-size: 28rpx;
+}
+
+.invite-text {
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* 成员列表增强样式 */
+.members-list {
+  padding: 0;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+  transition: background-color 0.2s ease;
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-item.clickable {
+  cursor: pointer;
+}
+
+.member-item.clickable:active {
+  background-color: #f8f9fa;
+}
+
+.member-avatar-container {
+  position: relative;
+  margin-right: 16rpx;
+}
+
+.member-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #666;
+  background-size: cover;
+  background-position: center;
+}
+
+.online-indicator {
+  position: absolute;
+  bottom: 2rpx;
+  right: 2rpx;
+  width: 20rpx;
+  height: 20rpx;
+  background: #4cd964;
+  border-radius: 50%;
+  border: 2rpx solid #fff;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-main {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 6rpx;
+}
+
+.member-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.member-role-badge {
+  font-size: 20rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
+  font-weight: 500;
+  color: #fff;
+}
+
+.member-role-badge.owner {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+}
+
+.member-role-badge.admin {
+  background: linear-gradient(135deg, #4ecdc4, #44bd87);
+}
+
+.member-role-badge.member {
+  background: linear-gradient(135deg, #a8a8a8, #8e8e8e);
+}
+
+.member-status {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.status-dot {
+  font-size: 16rpx;
+}
+
+.status-dot.online {
+  color: #4cd964;
+}
+
+.status-dot.offline {
+  color: #ccc;
+}
+
+.status-text {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.member-arrow {
+  font-size: 32rpx;
+  color: #ccc;
+}
+
+.empty-members {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #999;
+}
+
+.empty-icon {
+  font-size: 60rpx;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  margin-bottom: 8rpx;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: #ccc;
+}
+
+
+
+/* 管理功能网格布局 */
+.management-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  padding: 0;
+}
+
+.management-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx 16rpx;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  text-align: center;
+}
+
+.management-icon {
+  font-size: 40rpx;
+  margin-bottom: 8rpx;
+}
+
+.management-text {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+
+
+/* 权限弹窗 */
+.perm-modal-mask {
+  position: fixed;
+  z-index: 999;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.perm-modal {
+  width: 640rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.15);
+}
+
+.perm-modal-header {
+  padding: 28rpx 32rpx 12rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.perm-modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.perm-modal-subtitle {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 6rpx;
+  display: block;
+}
+
+.perm-modal-body {
+  padding: 20rpx 32rpx;
+}
+
+.perm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f7f7f7;
+}
+
+.perm-row:last-child {
+  border-bottom: none;
+}
+
+.perm-label {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.perm-tip {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+/* 按钮区 */
+.perm-modal-actions {
+  display: flex;
+  gap: 16rpx;
+  justify-content: flex-end;
+  padding: 16rpx 32rpx 24rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.btn {
+  min-width: 160rpx;
+  padding: 16rpx 0;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.btn.cancel {
+  background: #f7f7f7;
+  color: #666;
+}
+
+.btn.save {
+  background: #667eea;
+  color: #fff;
+}
+
+/* 操作日志样式 */
+.logs-card .card-header {
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.logs-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12rpx;
+  padding: 16rpx 32rpx;
+}
+
+.filter-item {
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.filter-label {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.filter-value {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.logs-list {
+  padding: 0 32rpx 24rpx;
+}
+
+.log-item {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.log-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.log-type {
+  font-size: 24rpx;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.log-time {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.log-middle {
+  display: flex;
+  gap: 8rpx;
+  align-items: center;
+  margin-bottom: 6rpx;
+  flex-wrap: wrap;
+}
+
+.log-actor {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.log-action {
+  font-size: 26rpx;
+  color: #555;
+}
+
+.log-detail {
+  font-size: 24rpx;
+  color: #888;
+  line-height: 1.5;
+}
+
+.logs-empty {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+}
+
+/* 导航栏编辑按钮 */
+.nav-edit-btn {
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.edit-icon {
+  font-size: 28rpx;
+}
+
+/* 家庭名称编辑样式 */
+.family-name-display {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.family-name-edit {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.family-name-input {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  border-radius: 8rpx;
+  padding: 12rpx 16rpx;
+  font-size: 32rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+.family-name-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 16rpx;
+  justify-content: flex-end;
+}
+
+.edit-btn {
+  padding: 8rpx 16rpx;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  text-align: center;
+  min-width: 80rpx;
+}
+
+.edit-btn.save {
+  background: rgba(76, 217, 100, 0.9);
+  color: #fff;
+}
+
+.edit-btn.cancel {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+}
+
+/* 家庭名内联小编辑按钮 */
+.inline-edit-btn {
+  font-size: 28rpx;
+  padding: 6rpx 10rpx;
+  border-radius: 8rpx;
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+.inline-edit-btn:active {
+  background: rgba(255,255,255,0.28);
+  transform: scale(0.96);
 }
