@@ -1,0 +1,30 @@
+{
+  "status": "partial",
+  "summary": "直连云能力页面（首轮）",
+  "items": [
+    {
+      "page": "pages/init-db-simple/init-db-simple.js",
+      "patterns": ["wx.cloud.callFunction", "db.collection"]
+    },
+    {
+      "page": "pages/init-core-db/init-core-db.js",
+      "patterns": ["db.collection"]
+    },
+    {
+      "page": "pages/db-validator/db-validator.js",
+      "patterns": ["wx.cloud.callFunction", "db.collection"]
+    },
+    {
+      "page": "pages/complete-db-init/complete-db-init.js",
+      "patterns": ["db.collection"]
+    },
+    {
+      "page": "pages/operation-logs/operation-logs.js",
+      "patterns": ["db.collection"]
+    },
+    {
+      "page": "pages/operation-logs/operation-logs-backup.js",
+      "patterns": ["db.collection"]
+    }
+  ]
+}

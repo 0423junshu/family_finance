@@ -15,7 +15,7 @@ class ChartRenderer {
    */
   async initDPR() {
     try {
-      const systemInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      const systemInfo = (wx.getWindowInfo && wx.getWindowInfo()) || (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {});
       this.dpr = systemInfo.pixelRatio || 1;
     } catch (error) {
       console.warn('获取设备信息失败:', error);

@@ -4,10 +4,8 @@
 @import "../../styles/common.wxss";
 
 .page-container {
-  padding-top: 176rpx;
-  /* 顶部安全区与下移适配 */
-  padding-top: calc(176rpx + env(safe-area-inset-top, 0px));
-  padding-top: calc(176rpx + constant(safe-area-inset-top, 0px));
+  /* 顶部安全区由上方 safe-area-wrapper 承担，这里不再重复下移 */
+  padding-top: 0;
   padding-bottom: 160rpx;
   background: #F5F5F5;
   min-height: 100vh;
@@ -17,7 +15,8 @@
 
 .form-scroll {
   flex: 1;
-  padding: 32rpx;
+  /* 顶部仅保留 12rpx，确保“基本信息”卡片距顶部为 12rpx */
+  padding: 12rpx 32rpx 32rpx;
 }
 
 /* 表单区域 */

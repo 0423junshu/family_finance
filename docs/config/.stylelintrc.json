@@ -1,0 +1,26 @@
+{
+  "//": "Stylelint 参考配置（文档示例）：约束 WXSS/CSS 代码风格与错误",
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "color-named": "never",
+    "color-hex-length": "short",
+    "font-weight-notation": "numeric",
+    "declaration-no-important": true,
+    "selector-class-pattern": [
+      "^[a-z]([a-z0-9-]*[a-z0-9])?(?:__[a-z0-9]+(?:-[a-z0-9]+)*)?(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$",
+      { "message": "使用 BEM 命名（block__element--modifier）且小写短横线" }
+    ],
+    "max-nesting-depth": 3,
+    "number-max-precision": 4,
+    "property-no-unknown": true,
+    "unit-allowed-list": ["px", "rpx", "em", "rem", "%", "deg", "s", "ms", "vh", "vw"]
+  },
+  "ignoreFiles": [
+    "node_modules/**",
+    "miniprogram_npm/**",
+    "cloudfunctions/**/node_modules/**",
+    "cloudfunctions/**/miniprogram_npm/**",
+    "dist/**",
+    "build/**"
+  ]
+}

@@ -77,7 +77,7 @@ Page({
     query.exec((res) => {
       if (!res || !res[0]) {
         // 创建测试元素
-        const deviceInfo = wx.getDeviceInfo ? wx.getDeviceInfo() : wx.getSystemInfoSync();
+        const deviceInfo = (wx.getDeviceInfo && wx.getDeviceInfo()) || (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {});
         const fontSize = deviceInfo.platform === 'devtools' ? '16px' : '32rpx';
         
         // 通过setData创建测试元素

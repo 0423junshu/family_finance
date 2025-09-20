@@ -1,0 +1,47 @@
+/* styles/navigation-vars.wxss */
+/* 仅提供导航相关的可复用样式令牌类，不主动影响现有页面与组件 */
+/* 使用方式：在组件或页面中按需添加这些类名，确保首页/报表/其他页面保持一致视觉 */
+
+ /* 背景与前景 */
+.nav-bg-default { background-color: #FFFFFF; }
+.nav-bg-transparent { background: transparent !important; }
+.nav-fg-default { color: #333333; }
+.nav-fg-inverse { color: #FFFFFF; }
+
+/* 按压与悬停（小程序不支持 :hover，保留 :active） */
+.nav-pressed-bg { background-color: rgba(0, 0, 0, 0.04); }
+.nav-pressed-fg { color: #1A1A1A; }
+
+/* 阴影 */
+.nav-shadow { box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06); }
+.nav-shadow-none { box-shadow: none !important; }
+
+/* 内容区高度（组件内部JS仍按“状态栏高度 + 44px”计算；此类仅用于内容容器） */
+.nav-content-height { height: 44px; line-height: 44px; }
+
+/* 标题与图标推荐尺寸（不强制） */
+.nav-title { font-size: 34rpx; font-weight: 500; }
+.nav-icon { font-size: 40rpx; }
+
+/* 通用按钮区（back/action/right-slot 可使用） */
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30rpx;
+}
+.nav-btn:active {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* 预设主题（需要时在组件根节点添加对应类以快速切换） */
+.nav-theme-light {
+  background-color: #FFFFFF;
+  color: #333333;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+.nav-theme-transparent {
+  background: transparent !important;
+  color: #333333;
+  box-shadow: none !important;
+}

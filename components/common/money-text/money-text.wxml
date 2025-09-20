@@ -1,0 +1,9 @@
+<wxs src="./money-format.wxs" module="fmt" />
+<view class="money-text">
+  <block wx:if="{{showToggle}}">
+    <eye-toggle bind:change="onToggleChange" visible="{{visible !== null ? visible : internalVisible}}" />
+  </block>
+  <text class="money-text__value {{(visible !== null ? visible : internalVisible) ? 'is-visible' : 'is-hidden'}}">
+    {{ (visible !== null ? visible : internalVisible) ? displayText : masked }}
+  </text>
+</view>

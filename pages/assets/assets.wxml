@@ -16,19 +16,22 @@
         <text class="month-arrow">📅</text>
       </view>
     </view>
+    <view class="header-actions">
+      <view class="eye-toggle" catchtap="onEyeToggle" style="margin-left:8px;font-size:16px;line-height:16px;">{{pageMoneyVisible ? '👁' : '🙈'}}</view>
+    </view>
     
     <view class="stats-content">
       <view class="stat-item">
         <text class="stat-label">总资产</text>
-        <text class="stat-value">¥{{totalAssetsDisplay}}</text>
+        <text class="stat-value">{{ pageMoneyVisible ? ('¥' + totalAssetsDisplay) : '***' }}</text>
       </view>
       <view class="stat-item income">
         <text class="stat-label">账户余额</text>
-        <text class="stat-value">¥{{accountsTotalDisplay}}</text>
+        <text class="stat-value">{{ pageMoneyVisible ? ('¥' + accountsTotalDisplay) : '***' }}</text>
       </view>
       <view class="stat-item">
         <text class="stat-label">投资持仓</text>
-        <text class="stat-value">¥{{investmentsTotalDisplay}}</text>
+        <text class="stat-value">{{ pageMoneyVisible ? ('¥' + investmentsTotalDisplay) : '***' }}</text>
       </view>
     </view>
   </view>
@@ -61,7 +64,7 @@
           </text>
         </view>
         <view class="account-balance">
-          <text class="balance-amount">¥{{item.balanceDisplay}}</text>
+          <text class="balance-amount">{{ pageMoneyVisible ? ('¥' + item.balanceDisplay) : '***' }}</text>
         </view>
       </view>
     </view>
@@ -95,7 +98,7 @@
           </text>
         </view>
         <view class="investment-data">
-          <text class="investment-amount">¥{{item.amountDisplay}}</text>
+          <text class="investment-amount">{{ pageMoneyVisible ? ('¥' + item.amountDisplay) : '***' }}</text>
           <text class="investment-profit {{item.profit >= 0 ? 'positive' : 'negative'}}">
             <block wx:if="{{item.profit >= 0}}">+</block>{{item.profitDisplay}} ({{item.profitRate}}%)
           </text>

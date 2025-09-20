@@ -1,0 +1,428 @@
+---
+title: 微信小程序效率与质量规范
+version: 1.0.0
+lastUpdated: 2025-09-14
+---
+
+# 简介
+本规范面向微信小程序开发，目标是提升开发效率与代码质量。规则采用结构化块，统一包含 meta/definition/params/examples/cases 字段，便于自动解析与工程化落地。所有规则均标注最低基础库版本（minBaseLib）与强制等级（must/recommend）。
+
+与项目已有 my-rule.mdc 一致，强调：
+- 条件渲染使用 wx:if/wx:elif/wx:else
+- 数据预处理在 JS 层，WXML 专注展示
+- 简化模板表达式，避免复杂逻辑进入渲染层
+- 命名与注释规范
+
+---
+
+## 目录
+- A. 性能与生命周期
+- B. 组件化与样式隔离
+- C. 异常处理与兼容
+- D. 可维护性与工程化
+- E. 典型问题与修复案例
+
+---
+
+## A. 性能与生命周期
+
+### R-PERF-01 setData 最小化与分片更新
+meta:
+  id: R-PERF-01
+  minBaseLib: "1.7.0"
+  level: must
+  category: performance
+definition:
+  - 仅更新变化字段，禁止整对象覆盖（除非确有必要）。
+  - 合并同一事件循环内的多次 setData 调用（建议 requestAnimationFrame/微任务聚合）。
+  - 大列表分页加载；仅更新新增/变更的可见区数据；滚动事件建议节流 ≥ 50ms。
+  - setData 载荷（JSON 字节）超过阈值需告警（建议阈值：20KB/次），并记录调用频次。
+params:
+  thresholdBytesPerSet: 20480
+  batchByRAF: true
+  devWrapperSample: "docs/examples/setdata-dev-wrapper.md"
+examples:
+  good:
+    - |
+      // 仅更新变化字段
+      this.setData({ "list[pageIndex]": newPage, total: nextTotal });
+cases:
+  notes:
+    - 将复杂计算前移到 JS 层，避免在 WXML 触发重复计算。
+    - 开发期可启用 setData 包装器统计载荷与频率，生产禁用。
+  good:
+    - |
+      // 仅更新变化字段
+      this.setData({ "list[pageIndex]": newPage, total: nextTotal });
+  bad:
+    - |
+      // 全量替换大对象，导致主从桥传输过大
+      this.setData({ list: hugeList, total: nextTotal })
+cases:
+  notes:
+    - 将复杂计算前移到 JS 层，避免在 WXML 触发重复计算。
+
+### R-PERF-02 避免在渲染层做复杂表达式
+meta:
+  id: R-PERF-02
+  minBaseLib: "1.6.0"
+  level: must
+  category: performance
+definition:
+  - 在 JS 中完成格式化与派生数据计算（computed/preprocess）。
+  - WXML 红线（禁止）：函数调用、嵌套三元(>1层)、数组/对象字面量、链式运算、管道式格式化。
+  - 条件渲染优先 wx:if/wx:elif/wx:else，避免复杂三元表达式。
+examples:
+  bad:
+    - |
+      <view>{{ (a ? b : c) ? d : e }}</view>
+      <view>{{ format(amount/100) + '元' }}</view>
+checks:
+  - lint: 模板扫描脚本检测红线表达式
+  - review: 人工确认复杂区块改为 wx:if/elif/else
+  good:
+    - |
+      // JS 预处理
+      const rows = raw.map(x => ({ ...x, amountText: formatAmount(x.amount) }));
+      this.setData({ rows, isHighRisk: riskScore >= 80 });
+      // WXML
+      <view>{{item.amountText}}</view>
+      <view wx:if="{{isHighRisk}}">高风险</view>
+  bad:
+    - |
+      // WXML 内复杂表达式
+      <view>{{ amount/100 | fixed(2) + '元' }}</view>
+      <view>{{ riskScore >= 80 ? '高' : (riskScore >= 50 ? '中' : '低') }}</view>
+
+### R-PERF-03 生命周期管理（页面/组件）
+meta:
+  id: R-PERF-03
+  minBaseLib: "1.5.0"
+  level: must
+  category: lifecycle
+definition:
+  - 页面：onLoad 做一次性初始化；onShow 做轻量同步；onHide/onUnload 释放资源。
+  - 组件：attached 绑定、detached 解绑；observer 谨慎使用，防连锁更新。
+  - 清理计时器、事件订阅、文件句柄与临时缓存，避免内存泄漏；异步回写前进行“可见性守卫”。
+examples:
+  good:
+    - |
+      onLoad() { this._visible = false; }
+      onShow() { this._visible = true; this.syncBadge(); }
+      onHide() { this._visible = false; clearInterval(this.tid); this.tid = null; }
+      // 异步回写前
+      someAsync().then(data => { if (this._visible) this.setData({ data }); });
+checks:
+  - review: onHide/onUnload/detached 是否存在清理；是否使用可见性守卫
+  good:
+    - |
+      onShow() { this.syncBadge(); }
+      onHide() { clearInterval(this.tid); this.tid = null; }
+  bad:
+    - |
+      // 未清理，返回页面后逐渐变慢
+      onHide() { /* empty */ }
+
+### R-PERF-04 列表渲染优化与节点稳定
+meta:
+  id: R-PERF-04
+  minBaseLib: "2.2.3"
+  level: recommend
+  category: performance
+definition:
+  - 使用 scroll-view 分页/懒加载，避免一次性渲染超大列表。
+  - 使用 wx:for:key 稳定节点，减少 diff 与重排。
+  - 图片/图表采用占位与懒加载策略。
+examples:
+  good:
+    - |
+      <block wx:for="{{rows}}" wx:key="id">...</block>
+
+### R-PERF-05 条件渲染规范
+meta:
+  id: R-PERF-05
+  minBaseLib: "1.6.0"
+  level: must
+  category: template
+definition:
+  - 复杂区块使用 wx:if/wx:elif/wx:else 替代三元。
+  - 频繁显示/隐藏用 hidden 切换，避免频繁创建/销毁节点。
+  - 静态区块抽为模板，通过 include/import 复用。
+
+---
+
+## B. 组件化与样式隔离
+
+### R-COMP-01 模板复用与 import/include
+meta:
+  id: R-COMP-01
+  minBaseLib: "1.6.2"
+  level: must
+  category: component
+definition:
+  - 跨页通用结构用 template；差异通过数据与 slot 表达，禁止结构复制粘贴。
+  - 页面内复用用 include；跨文件用 import 与 template is。
+examples:
+  good:
+    - |
+      <import src="/templates/record-item.wxml"/>
+      <template is="record-item" data="{{...item}}"/>
+
+### R-COMP-02 自定义组件与 Behavior 复用
+meta:
+  id: R-COMP-02
+  minBaseLib: "1.6.3"
+  level: must
+  category: component
+definition:
+  - 跨页面通用逻辑抽到 Behavior 或 utils；组件 props 明确，采用小写-中划线命名。
+  - 自定义事件统一 bind:xxx/onXxx；避免用字符串常量作为事件名分散定义。
+examples:
+  good:
+    - |
+      Component({
+        properties: { value: String },
+        methods: { onConfirm() { this.triggerEvent('confirm', { value: this.data.value }); } }
+      });
+
+### R-COMP-03 样式隔离策略
+meta:
+  id: R-COMP-03
+  minBaseLib: "2.6.5"
+  level: must
+  category: style
+definition:
+  - 默认 isolated，避免样式泄漏。
+  - 需要共享主题变量时使用 apply-shared；仅在必要时使用 shared，并备注原因与到期整改时间。
+  - 全局变量与原子类在 app.wxss 定义，组件内部避免深层选择器。
+params:
+  defaultIsolation: isolated
+  allowSharedIn: ["内部工具页"]
+  decisionMatrix:
+    isolated: "通用业务场景，强隔离，避免污染"
+    apply-shared: "需要继承主题变量，有限共享"
+    shared: "仅限内部工具页或 demo，必须记录原因/范围/整改时间"
+checks:
+  - review: 组件 .json 是否明确 styleIsolation
+params:
+  defaultIsolation: isolated
+  allowSharedIn: ["内部工具页"]
+examples:
+  good:
+    - |
+      // component.json
+      { "styleIsolation": "isolated" }
+
+### R-COMP-04 命名与约定
+meta:
+  id: R-COMP-04
+  minBaseLib: "0.0.0"
+  level: must
+  category: convention
+definition:
+  - 组件目录四件套同名（.wxml/.wxss/.js/.json）。
+  - 组件名、样式类使用小写-中划线；数据字段语义化（如 amount_cents、settled_at）。
+  - 事件名统一 confirm/cancel/change 等语义集合。
+
+---
+
+## C. 异常处理与兼容
+
+### R-ERR-01 网络请求失败与重试
+meta:
+  id: R-ERR-01
+  minBaseLib: "1.6.0"
+  level: must
+  category: error
+definition:
+  - 统一 request 封装：超时（默认 8-12s）、重试（指数退避，最大 3 次）、取消控制。
+  - 用户可重试 vs 系统性错误区分；各自提示与兜底 UI。
+  - 离线检测与提示；失败上报（可选）。
+params:
+  timeoutMs: 10000
+  maxRetries: 3
+  backoffBaseMs: 400
+examples:
+  good:
+    - |
+      request({ url, timeout: 10000, retries: 3 }).catch(() => showRetryToast());
+
+### R-ERR-02 API 兼容性与能力探测
+meta:
+  id: R-ERR-02
+  minBaseLib: "1.6.0"
+  level: must
+  category: compatibility
+definition:
+  - 使用 wx.canIUse/特性探测；对关键能力提供降级/替代路径。
+  - 记录最低支持基础库版本，App 内露出升级引导入口（可选）。
+examples:
+  good:
+    - |
+      if (!wx.canIUse('button.open-type.getUserInfo')) { useFallback(); }
+
+### R-ERR-03 云函数与后端错误语义化
+meta:
+  id: R-ERR-03
+  minBaseLib: "2.2.3"
+  level: must
+  category: error
+definition:
+  - 统一错误码与 message 字段；前端根据错误码决策 UI（toast/modal/重试）。
+  - 打点上报关键失败链路，便于问题定位。
+
+### R-ERR-04 资源加载失败处理
+meta:
+  id: R-ERR-04
+  minBaseLib: "1.9.90"
+  level: recommend
+  category: error
+definition:
+  - image 绑定 error 展示占位；字体加载失败回退到系统字体；图表异常显示占位与使用指南。
+
+---
+
+## D. 可维护性与工程化
+
+### R-MAINT-01 目录结构规范
+meta:
+  id: R-MAINT-01
+  minBaseLib: "0.0.0"
+  level: must
+  category: maintainability
+definition:
+  - pages/* 单一职责；components/* 通用组件；cloudfunctions/* 云函数；
+    utils/* 工具；services/* 数据访问；stores/* 状态；docs/* 文档；patches/* 补丁。
+  - 严禁跨层逆向依赖（业务不可直接依赖工具以下的实现细节）。
+examples:
+  good:
+    - |
+      /pages/record-list
+      /components/record-item
+      /services/transaction.service.js
+      /utils/date.js
+
+### R-MAINT-02 模块拆分与依赖方向
+meta:
+  id: R-MAINT-02
+  minBaseLib: "0.0.0"
+  level: must
+  category: maintainability
+definition:
+  - 复用优先级：utils/Behavior > 组件 > 页面。
+  - 层级依赖：业务 -> 服务 -> 工具（单向）。
+  - 禁止“神对象”与跨模块耦合。
+
+### R-MAINT-03 注释与文档
+meta:
+  id: R-MAINT-03
+  minBaseLib: "0.0.0"
+  level: must
+  category: documentation
+definition:
+  - 模块、类、方法注释：描述职责、入参/返回、异常与副作用。
+  - 复杂流程在 docs/ 补充数据流或时序图；变更需同步需求文档与产品文档。
+examples:
+  good:
+    - |
+      /**
+       * 计算当月预算剩余
+       * @param {number} total - 总预算(分)
+       * @param {number} used - 已用(分)
+       * @returns {number} 剩余(分)
+       */
+
+### R-MAINT-04 配置与常量
+meta:
+  id: R-MAINT-04
+  minBaseLib: "0.0.0"
+  level: must
+  category: maintainability
+definition:
+  - 环境配置 env.* 区分；常量集中 constants/*；禁止魔法数硬编码。
+  - 密钥与隐私信息严禁入库与日志。
+
+### R-MAINT-05 Lint/Format/Commit
+meta:
+  id: R-MAINT-05
+  minBaseLib: "0.0.0"
+  level: must
+  category: engineering
+definition:
+  - ESLint + Prettier + Stylelint；lint-staged + husky。
+  - Commit 规范：type(scope): subject（如 feat(record): 支持批量导入）。
+examples:
+  good:
+    - |
+      feat(record): 支持交易列表增量加载与错误重试
+
+---
+
+## E. 典型问题与修复案例
+
+### CASE-01 setData 全量更新导致卡顿（交易列表）
+meta:
+  id: CASE-01
+  relates: ["R-PERF-01","R-PERF-02","R-PERF-04"]
+problem:
+  - 翻页后将整个列表与统计对象全量 setData，传输量与 diff 成本激增。
+impact:
+  - 滚动丢帧、操作迟滞，低端机明显卡顿。
+diagnosis:
+  - 记录 setData 载荷大小；分析调用频率与字段覆盖范围。
+solution:
+  - 仅 set 新增页；使用 wx:for:key 稳定节点；在 JS 预处理格式化字段。
+
+### CASE-02 模板中复杂表达式导致渲染抖动
+meta:
+  id: CASE-02
+  relates: ["R-PERF-02","R-PERF-05"]
+problem:
+  - WXML 使用嵌套三元、函数调用与管道格式化。
+impact:
+  - 渲染层频繁计算，页面抖动。
+solution:
+  - 将格式化前移到 JS；条件用 wx:if/elif/else；模板只做展示。
+
+### CASE-03 生命周期清理缺失引发内存泄漏
+meta:
+  id: CASE-03
+  relates: ["R-PERF-03"]
+problem:
+  - 定时器与订阅未在 onHide/onUnload/detached 清理。
+impact:
+  - 切页返回变慢、耗电增多。
+solution:
+  - 统一封装 addInterval/removeInterval；在离开时批量清理。
+
+### CASE-04 API 低版本兼容问题
+meta:
+  id: CASE-04
+  relates: ["R-ERR-02"]
+problem:
+  - 低基础库缺失能力导致功能不可用。
+solution:
+  - canIUse + 降级替代；引导升级基础库或提供替代交互。
+
+### CASE-05 样式泄漏导致主题错乱
+meta:
+  id: CASE-05
+  relates: ["R-COMP-03"]
+problem:
+  - 使用 shared/默认未隔离，组件样式影响全局。
+solution:
+  - 设为 isolated；共享变量通过 apply-shared；避免深层选择器。
+
+---
+
+## 附：检查点与工具化建议
+- 可实现的 Lint/Review 检查点
+  - 扫描 WXML 复杂表达式红线：函数调用、嵌套三元(>1层)、数组/对象字面量、管道式格式化；提示改为 wx:if/elif/else 或 JS 预处理。
+  - 统计单次 setData 载荷（开发期代理 wx.setData 或封装 this.setData）并对超阈值 warn；记录调用频次。
+  - 生命周期钩子中是否存在清理逻辑（onHide/onUnload/detached）与可见性守卫（_visible 标志）的启发式检查。
+- CI 与提交
+  - pre-commit: eslint/stylelint/prettier --check + WXML 模板扫描脚本
+  - pre-push: 单元与基础能力探测脚本
+- 示例与落地
+  - 参见 docs/examples/setdata-dev-wrapper.md（setData 包装器）
+  - 参见 docs/examples/feature-detect-util.md（ensureFeature/canIUse 工具）

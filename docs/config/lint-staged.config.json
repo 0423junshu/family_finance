@@ -1,0 +1,8 @@
+{
+  "//": "lint-staged 参考配置（文档示例）：按文件类型在提交前局部执行格式化与校验",
+  "*.js": ["prettier --write", "eslint --max-warnings=0 --fix"],
+  "*.ts": ["prettier --write", "eslint --max-warnings=0 --fix"],
+  "*.wxml": ["prettier --write"],
+  "*.wxss": ["prettier --write", "stylelint --fix"],
+  "*.{json,md,yml,yaml}": ["prettier --write"]
+}

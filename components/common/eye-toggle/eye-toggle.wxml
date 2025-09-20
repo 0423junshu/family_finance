@@ -1,0 +1,4 @@
+<view class="eye-toggle {{internalVisible ? 'is-visible' : 'is-hidden'}}" bindtap="onTap" hover-class="eye-toggle--hover" role="button" aria-label="{{internalVisible ? '隐藏金额' : '显示金额'}}">
+  <!-- 使用内置文本图标，避免外部图片依赖 -->
+  <text class="eye-toggle__text">{{ internalVisible ? '👁' : '🙈' }}</text>
+</view>

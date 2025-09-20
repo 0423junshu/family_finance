@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2025-09-14T23:00:00+08:00",
+  "note": "文档内链接死链草案（静态初版，后续可用脚本校验）。",
+  "suspicions": [
+    {
+      "file": "docs/fix-report.md",
+      "links": [
+        {"text": "相关实现片段", "target": "pages/reports/reports.js#canvas-dpr", "status": "likely-missing"},
+        {"text": "安全区说明", "target": "docs/safe-area-adaptation.md#navbar-padding", "status": "exists"}
+      ]
+    },
+    {
+      "file": "docs/微信小程序问题完整解决方案_2025-09-07.md",
+      "links": [
+        {"text": "兼容性处理代码段", "target": "services/chart-renderer.js#line:1", "status": "exists"},
+        {"text": "旧API说明", "target": "docs/legacy/reports/reports-compatible.js", "status": "to-archive"}
+      ]
+    }
+  ],
+  "actions": [
+    "将引用 legacy 的链接改为指向合并后的 problems 文档锚点",
+    "对缺失锚点的章节在目标文档创建相应小节或移除链接"
+  ]
+}

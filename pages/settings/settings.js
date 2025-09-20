@@ -1,7 +1,8 @@
-// pages/settings/settings.js
+/* pages/settings/settings.js */
 const familyService = require('../../services/family');
 const syncService = require('../../services/sync');
 const dataManager = require('../../services/dataManager');
+const privacy = require('../../services/privacy');
 
 Page({
   data: {
@@ -42,7 +43,10 @@ Page({
     ],
     
     // 应用版本
-    appVersion: '1.0.0'
+    appVersion: '1.0.0',
+
+    // 金额显示偏好（来自全局 privacy 服务）
+    moneyVisible: false
   },
 
   onLoad(options) {
@@ -57,6 +61,13 @@ Page({
     });
     
     this.initPage();
+
+    // 订阅金额显示全局状态并初始化
+    this.unsubscribePrivacy = privacy.subscribe((v) => {
+      // 仅更新一个字段，最小化 setData
+      this.setData({ moneyVisible: v });
+    });
+    this.setData({ moneyVisible: privacy.getMoneyVisible() });
   },
 
   // 家庭名称编辑相关方法
@@ -139,7 +150,12 @@ Page({
   onUnload() {
     // 注销数据管理器刷新回调
     dataManager.unregisterRefreshCallback('settings');
-    console.log('[SETTINGS] onUnload - 已注销数据管理器回调');
+    // 注销 privacy 订阅
+    if (this.unsubscribePrivacy) {
+      try { this.unsubscribePrivacy(); } catch (e) {}
+      this.unsubscribePrivacy = null;
+    }
+    console.log('[SETTINGS] onUnload - 已注销数据管理器回调与隐私订阅');
   },
 
   async initPage() {
@@ -157,6 +173,21 @@ Page({
         icon: 'error'
       });
     }
+  },
+
+  /**
+   * “默认显示金额”开关变化
+   */
+  onMoneyVisibleChange(e) {
+    const enabled = !!(e && e.detail && e.detail.value);
+    // 更新全局状态（会写入 storage 并广播）
+    privacy.setMoneyVisible(enabled);
+    // 本页立即反映
+    this.setData({ moneyVisible: enabled });
+    wx.showToast({
+      title: enabled ? '金额默认显示' : '金额默认隐藏',
+      icon: 'success'
+    });
   },
 
 

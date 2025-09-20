@@ -1,20 +1,20 @@
 /*
- * Eslint config file
+ * ESLint config file
  * Documentation: https://eslint.org/docs/user-guide/configuring/
- * Install the Eslint extension before using this feature.
+ * Install the ESLint extension before using this feature.
  */
 module.exports = {
   env: {
     es6: true,
     browser: true,
-    node: true,
+    node: true
   },
   ecmaFeatures: {
-    modules: true,
+    modules: true
   },
   parserOptions: {
     ecmaVersion: 2018,
-    sourceType: 'module',
+    sourceType: 'module'
   },
   globals: {
     wx: true,
@@ -24,8 +24,22 @@ module.exports = {
     getApp: true,
     Component: true,
     requirePlugin: true,
-    requireMiniProgram: true,
+    requireMiniProgram: true
   },
-  // extends: 'eslint:recommended',
-  rules: {},
-}
+  extends: ['eslint:recommended'],
+  rules: {
+    'no-unused-vars': ['warn', { args: 'none', ignoreRestSiblings: true }],
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'eqeqeq': ['error', 'always'],
+    'complexity': ['warn', 10]
+  },
+  ignorePatterns: [
+    'miniprogram_npm/**',
+    'node_modules/**',
+    'cloudfunctions/**/node_modules/**',
+    'dist/**',
+    '__*__/**',
+    'donutAuthorize__/**',
+    'scripts/__pycache__/**'
+  ]
+};

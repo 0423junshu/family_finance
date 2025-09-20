@@ -1,0 +1,11 @@
+{
+  "status": "partial",
+  "summary": "按页面统计 setData 使用热点（首轮）",
+  "items": [
+    { "page": "pages/transaction-list/transaction-list.js", "notes": ["筛选/日期/弹层切换多点 setData，建议批量与脏检查（P0）"] },
+    { "page": "pages/transaction-list/transaction-list-simple.js", "notes": ["列表筛选/日期/面板切换 setData 较多（P0）"] },
+    { "page": "pages/transfer/transfer.js", "notes": ["多字段逐次 setData，可合并（P1）"] },
+    { "page": "pages/theme-settings/theme-settings.js", "notes": ["预览/切换场景可节流（P1）"] },
+    { "page": "pages/template-manage/template-manage.js", "notes": ["引导/列表态切换（P1）"] }
+  ]
+}

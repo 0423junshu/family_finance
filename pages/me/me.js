@@ -289,6 +289,14 @@ Page({
     // 注销数据管理器刷新回调
     dataManager.unregisterRefreshCallback('me');
     console.log('[ME] onUnload - 已注销数据管理器回调');
+  },
+
+  // 头像加载失败回退
+  onAvatarError() {
+    const cur = this.data.userInfo || {};
+    if (cur.avatarUrl !== '/images/default-avatar.svg') {
+      this.setData({ 'userInfo.avatarUrl': '/images/default-avatar.svg' });
+    }
   }
 
 })

@@ -1,14 +1,14 @@
 <!-- components/navigation-bar/navigation-bar.wxml -->
-<view class="navigation-bar" style="height: {{navBarHeight}}px;">
+<view class="navigation-bar nav-shadow-none" style="height: {{navBarHeight}}px;">
   <view class="navigation-bar-content" style="height: {{navBarHeight}}px;">
-    <view wx:if="{{showBack}}" class="back-button" bindtap="onBackTap">
-      <text class="back-icon">←</text>
+    <view wx:if="{{showBack}}" class="back-button nav-btn" bindtap="onBackTap">
+      <text class="back-icon nav-icon nav-fg-default">←</text>
     </view>
-    <view class="title">{{title}}</view>
-    <view wx:if="{{showHideAmount}}" class="action-button" bindtap="onHideAmountTap">
+    <view class="title nav-title nav-fg-default">{{title}}</view>
+    <view wx:if="{{showHideAmount}}" class="action-button nav-btn" bindtap="onHideAmountTap">
       <text class="action-text">{{hideAmount ? '***' : '显示'}}</text>
     </view>
-    <view wx:if="{{rightContent}}" class="action-button" bindtap="onRightTap">
+    <view wx:if="{{rightContent}}" class="action-button nav-btn" bindtap="onRightTap">
       <text class="action-text">{{rightContent}}</text>
     </view>
     <!-- 支持右侧插槽内容 -->

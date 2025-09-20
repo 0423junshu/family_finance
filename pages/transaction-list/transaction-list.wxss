@@ -1,3 +1,4 @@
+@import '/styles/icons.wxss';
 /* pages/transaction-list/transaction-list.wxss */
 @import '/styles/safe-area.wxss';
 @import '/styles/variables.wxss';

@@ -8,7 +8,10 @@
   <view class="md-stats-container">
     <view class="md-stats-card">
       <view class="md-stats-header">
-        <text class="md-stats-title">财务概览</text>
+        <view style="display: flex; align-items: center; justify-content: space-between;">
+          <text class="md-stats-title">财务概览</text>
+          <eye-toggle visible="{{pageMoneyVisible}}" bind:change="onEyeChange" />
+        </view>
         <text class="md-stats-subtitle">{{statsSubtitle || '本月数据'}}</text>
       </view>
       <view class="md-stats-grid">
@@ -18,7 +21,10 @@
           </view>
           <view class="md-stat-content">
             <text class="md-stat-label">收入</text>
-            <text class="md-stat-value">¥{{totalIncome}}</text>
+            <text class="md-stat-value">
+              <block wx:if="{{pageMoneyVisible}}">¥{{totalIncome}}</block>
+              <block wx:else>***</block>
+            </text>
           </view>
         </view>
         <view class="md-stat-item md-stat-expense">
@@ -27,7 +33,10 @@
           </view>
           <view class="md-stat-content">
             <text class="md-stat-label">支出</text>
-            <text class="md-stat-value">¥{{totalExpense}}</text>
+            <text class="md-stat-value">
+              <block wx:if="{{pageMoneyVisible}}">¥{{totalExpense}}</block>
+              <block wx:else>***</block>
+            </text>
           </view>
         </view>
         <view class="md-stat-item md-stat-balance">
@@ -36,7 +45,10 @@
           </view>
           <view class="md-stat-content">
             <text class="md-stat-label">结余</text>
-            <text class="md-stat-value {{netAmount >= 0 ? 'positive' : 'negative'}}">¥{{netAmount}}</text>
+            <text class="md-stat-value {{netAmount >= 0 ? 'positive' : 'negative'}}">
+              <block wx:if="{{pageMoneyVisible}}">¥{{netAmount}}</block>
+              <block wx:else>***</block>
+            </text>
           </view>
         </view>
       </view>
@@ -84,7 +96,7 @@
         data-id="{{item.id}}"
       >
         <view class="transaction-icon">
-          <view class="category-text-icon">{{getCategoryAbbr(item.category)}}</view>
+          <text class="category-emoji">{{item.categoryIcon}}</text>
         </view>
         <view class="transaction-info">
           <view class="transaction-title">{{item.category}}</view>
@@ -95,7 +107,12 @@
           <view wx:if="{{item.description}}" class="transaction-description">{{item.description}}</view>
         </view>
         <view class="transaction-amount {{item.type === 'income' ? 'income' : 'expense'}}">
-          {{item.type === 'income' ? '+' : '-'}}{{item.formattedAmount}}
+          <text class="amount {{item.type === 'income' ? 'income' : 'expense'}}">
+            <block wx:if="{{pageMoneyVisible}}">
+              {{item.type === 'income' ? '+' : '-'}}{{item.formattedAmount}}
+            </block>
+            <block wx:else>***</block>
+          </text>
         </view>
       </view>
     </view>
@@ -159,20 +176,7 @@
             >
               <text>本月</text>
             </view>
-            <view 
-              class="filter-option {{filters.dateRange === 'quarter' ? 'active' : ''}}"
-              data-range="quarter"
-              bindtap="onDateRangeFilter"
-            >
-              <text>本季度</text>
-            </view>
-            <view 
-              class="filter-option {{filters.dateRange === 'year' ? 'active' : ''}}"
-              data-range="year"
-              bindtap="onDateRangeFilter"
-            >
-              <text>本年</text>
-            </view>
+
             <view 
               class="filter-option {{filters.dateRange === 'custom' ? 'active' : ''}}"
               data-range="custom"
@@ -186,15 +190,15 @@
         <!-- 自定义日期选择器 - 始终显示当前日期范围 -->
         <view class="filter-section">
           <text class="filter-section-title">当前日期范围</text>
-          <view class="date-range-display">
-            <text class="date-range-text">{{filters.startDate}} 至 {{filters.endDate}}</text>
+          <view class="date-range-display" style="padding-right: 16rpx;">
+            <text class="date-range-text">{{filters.startDate || '开始日期'}} 至 {{filters.endDate || '结束日期'}}</text>
           </view>
         </view>
 
         <!-- 自定义日期 -->
         <view wx:if="{{filters.dateRange === 'custom'}}" class="filter-section">
           <text class="filter-section-title">自定义日期设置</text>
-          <view class="date-range-picker">
+          <view class="date-range-picker" style="padding-right: 16rpx;">
             <view class="date-picker-item" data-type="start" bindtap="onCustomDateTap">
               <text class="date-label">开始日期</text>
               <text class="date-value">{{filters.startDate}}</text>
@@ -209,11 +213,11 @@
         <!-- 分类筛选 - 下拉菜单 -->
         <view class="filter-section">
           <text class="filter-section-title">交易分类</text>
-          <view class="dropdown-selector" bindtap="showCategoryDropdown">
+          <view class="dropdown-selector" bindtap="showCategoryDropdown" style="padding-right: 16rpx;">
             <text class="dropdown-text">{{filters.category === 'all' ? '全部分类' : filters.category}}</text>
             <text class="dropdown-arrow">▼</text>
           </view>
-          <view wx:if="{{showCategoryDropdown}}" class="dropdown-options">
+          <view wx:if="{{showCategoryDropdown}}" class="dropdown-options" style="width: 100%; max-height: 50vh; overflow-y: auto; padding-right: 16rpx;">
             <view 
               class="dropdown-option {{filters.category === 'all' ? 'active' : ''}}"
               data-category="all"
@@ -233,14 +237,44 @@
           </view>
         </view>
 
+        <!-- 账户筛选（下拉单选） -->
+        <view class="filter-section">
+          <text class="filter-section-title">账户筛选</text>
+          <view wx:if="{{!accounts || accounts.length === 0}}" class="hint-text">暂无账户</view>
+          <view wx:elif="{{accounts && accounts.length > 0}}">
+            <view class="dropdown-selector" bindtap="showAccountDropdown">
+              <text class="dropdown-text">{{selectedAccountLabel || '全部账户'}}</text>
+              <text class="dropdown-arrow">▼</text>
+            </view>
+            <view wx:if="{{showAccountDropdown}}" class="dropdown-options">
+              <view 
+                class="dropdown-option {{(filters.accounts.length === 0) ? 'active' : ''}}"
+                data-id="all"
+                bindtap="onAccountSelect"
+              >
+                <text>全部账户</text>
+              </view>
+              <view 
+                wx:for="{{accounts}}" 
+                wx:key="id"
+                class="dropdown-option {{(filters.accounts.length > 0 && String(filters.accounts[0]) === String(item.id)) ? 'active' : ''}}"
+                data-id="{{item.id}}"
+                bindtap="onAccountSelect"
+              >
+                <text>{{item.name}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
         <!-- 标签筛选 -->
         <view class="filter-section">
           <text class="filter-section-title">标签筛选</text>
-          <view class="dropdown-selector" bindtap="showTagDropdown">
+          <view class="dropdown-selector" bindtap="showTagDropdown" style="padding-right: 16rpx;">
             <text class="dropdown-text">{{filters.tag === 'all' ? '全部标签' : filters.tag}}</text>
             <text class="dropdown-arrow">▼</text>
           </view>
-          <view wx:if="{{showTagDropdown}}" class="dropdown-options">
+          <view wx:if="{{showTagDropdown}}" class="dropdown-options" style="width: 100%; max-height: 50vh; overflow-y: auto; padding-right: 16rpx;">
             <view 
               class="dropdown-option {{filters.tag === 'all' ? 'active' : ''}}"
               data-tag="all"

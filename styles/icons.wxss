@@ -1,0 +1,60 @@
+/* styles/icons.wxss */
+/* 统一图标尺寸与对齐（emoji 与文字混排） */
+.ui-icon,
+.type-icon,
+.form-icon,
+.category-icon,
+.account-icon,
+.arrow-icon,
+.icon-text,
+.md-icon,
+.md-chip-icon,
+.empty-icon {
+  font-size: 32rpx;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* 大图标（空态/统计） */
+.ui-icon-lg,
+.empty-icon {
+  font-size: 56rpx;
+}
+
+/* 次大图标（类型切换等） */
+.ui-icon-md,
+.type-icon {
+  font-size: 32rpx;
+}
+
+/* 辅助箭头 */
+.arrow-icon,
+.arrow-text {
+  font-size: 28rpx;
+  color: #C7C7CC;
+}
+
+/* 删除、勾选等符号对齐 */
+.delete-icon,
+.check-icon,
+.close-icon {
+  font-size: 24rpx;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* 列表中的统计/模块化图标 */
+.md-icon,
+.md-chip-icon {
+  font-size: 28rpx;
+}
+
+/* 分类选择网格中的图标，跟随原有 .category-icon 使用 */
+.category-icon {
+  /* 保持与页面色彩一致，不强行覆盖 color */
+}
+
+/* 账户图标同上 */
+.account-icon {
+  /* 不强制颜色，统一尺寸 */
+}

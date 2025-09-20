@@ -4,6 +4,9 @@
 </view>
 
 <view class="page-container">
+  <view class="header-actions" style="display:flex;justify-content:flex-end;padding: 8rpx 12rpx 0;">
+    <eye-toggle visible="{{pageMoneyVisible}}" bind:change="onEyeChange" />
+  </view>
   <view wx:if="{{loading}}" class="loading-container">
     <view class="loading-spinner"></view>
     <text class="loading-text">加载�?..</text>
@@ -40,7 +43,8 @@
         <view class="form-value">
           <view wx:if="{{fromAccount}}" class="account-info">
             <text class="account-name">{{fromAccount.name}}</text>
-            <text class="account-balance">余额: {{fromAccount.balanceDisplay}}</text>
+            <text class="account-balance" wx:if="{{pageMoneyVisible}}">余额: {{fromAccount.balanceDisplay}}</text>
+            <text class="account-balance" wx:else>余额: ***</text>
           </view>
           <text wx:else class="placeholder-text">请选择转出账户</text>
           <text class="arrow-icon">›</text>
@@ -62,7 +66,8 @@
         <view class="form-value">
           <view wx:if="{{toAccount}}" class="account-info">
             <text class="account-name">{{toAccount.name}}</text>
-            <text class="account-balance">余额: {{toAccount.balanceDisplay}}</text>
+            <text class="account-balance" wx:if="{{pageMoneyVisible}}">余额: {{toAccount.balanceDisplay}}</text>
+            <text class="account-balance" wx:else>余额: ***</text>
           </view>
           <text wx:else class="placeholder-text">请选择转入账户</text>
           <text class="arrow-icon">›</text>
@@ -133,7 +138,8 @@
         >
           <view class="account-info">
             <text class="account-name">{{item.name}}</text>
-            <text class="account-balance">余额: {{item.balanceDisplay}}</text>
+            <text class="account-balance" wx:if="{{pageMoneyVisible}}">余额: {{item.balanceDisplay}}</text>
+            <text class="account-balance" wx:else>余额: ***</text>
           </view>
           <text wx:if="{{item._id === formData.fromAccountId}}" class="check-icon">✓</text>
         </view>

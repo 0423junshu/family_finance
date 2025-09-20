@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "eye-toggle": "/components/common/eye-toggle/eye-toggle"
+  }
+}

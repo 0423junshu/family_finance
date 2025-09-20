@@ -111,15 +111,8 @@ Page({
         console.warn('没有读取账户的权限');
         return;
       }
-
-      // 模拟加载账户数据
-      const accounts = [
-        { id: '1', name: '现金', balance: 1000, type: 'cash' },
-        { id: '2', name: '银行卡', balance: 5000, type: 'bank' },
-        { id: '3', name: '支付宝', balance: 800, type: 'alipay' },
-        { id: '4', name: '微信', balance: 300, type: 'wechat' }
-      ];
-
+      const { getAvailableAccounts } = require('../../services/accountProvider')
+      const accounts = getAvailableAccounts()
       this.setData({ accounts });
     } catch (error) {
       console.error('加载账户失败:', error);
@@ -130,6 +123,7 @@ Page({
    * 输入金额
    */
   onAmountInput(e) {
+    // 仅更新原始输入字符串，提交时再解析为分
     this.setData({
       amount: e.detail.value
     });
@@ -191,8 +185,10 @@ Page({
       this.setData({ submitting: true });
 
       // 构建交易数据
+      const { parseAmount } = require('../../utils/formatter');
       const transactionData = {
-        amount: parseFloat(this.data.amount),
+        // 统一为分（整数）
+        amount: parseAmount(this.data.amount),
         categoryId: this.data.category.id,
         categoryName: this.data.category.name,
         accountId: this.data.account.id,

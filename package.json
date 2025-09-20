@@ -5,10 +5,22 @@
   "main": "app.js",
   "scripts": {
     "dev": "node ./scripts/dev.js",
-    "build": "node ./scripts/build.js"
+    "build": "node ./scripts/build.js",
+    "prepare": "husky install",
+    "lint": "npm run lint:js && npm run lint:style",
+    "lint:js": "eslint . --ext .js,.ts,.wxs",
+    "lint:style": "stylelint \"**/*.{css,wxss}\"",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "tdesign-miniprogram": "^1.10.1",
     "wx-server-sdk": "^3.0.1"
+  },
+  "devDependencies": {
+  },
+  "lint-staged": {
+    "*.{js,ts,wxs}": ["eslint --fix", "prettier --write"],
+    "*.{css,wxss}": ["stylelint --fix", "prettier --write"],
+    "*.{json,md,mdx}": ["prettier --write"]
   }
 }

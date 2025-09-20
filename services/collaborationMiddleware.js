@@ -435,8 +435,9 @@ class CollaborationMiddleware {
           timestamp: Date.now()
         },
         metadata: {
-          userAgent: wx.getDeviceInfo ? wx.getDeviceInfo() : wx.getSystemInfoSync(),
-          version: wx.getAccountInfoSync().miniProgram.version
+          // 优先新 API：设备与应用版本信息
+          userAgent: (wx.getDeviceInfo && wx.getDeviceInfo()) || (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {}),
+          version: (wx.getAppBaseInfo && wx.getAppBaseInfo().version) || (wx.getAccountInfoSync && wx.getAccountInfoSync().miniProgram && wx.getAccountInfoSync().miniProgram.version) || 'unknown'
         }
       };
 

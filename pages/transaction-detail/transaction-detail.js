@@ -4,6 +4,7 @@ const { formatDate, formatAmount } = require('../../utils/formatter')
 
 Page({
   data: {
+    pageMoneyVisible: true,
     loading: true,
     transaction: null,
     formattedDate: '',
@@ -12,6 +13,14 @@ Page({
   },
 
   onLoad(options) {
+    const app = getApp()
+    const route = this.route
+    const g = app.globalData || {}
+    const v = (g.pageVisibility && Object.prototype.hasOwnProperty.call(g.pageVisibility, route))
+      ? g.pageVisibility[route]
+      : !g.hideAmount
+    this.setData({ pageMoneyVisible: v })
+
     const { id } = options
     if (id) {
       this.loadTransactionDetail(id)
@@ -53,6 +62,17 @@ Page({
         wx.navigateBack()
       }, 800)
     }
+  },
+
+  // 切换显示/隐藏
+  onEyeChange(e) {
+    const v = e.detail.value
+    const app = getApp()
+    const route = this.route
+    if (app.globalData && app.globalData.pageVisibility) {
+      app.globalData.pageVisibility[route] = v
+    }
+    this.setData({ pageMoneyVisible: v })
   },
 
   // 编辑交易

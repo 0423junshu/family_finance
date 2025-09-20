@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2025-09-14T23:00:00+08:00",
+  "note": "中间态/备份/临时命名文件识别草案，仅做报告。",
+  "patterns": ["*_backup.*", "*-fixed.*", "*-optimized.*", "copy_of_*", "*备份*", "*中间*", "*临时*"],
+  "hits": [
+    "docs/legacy/reports/reports-simple-backup.js",
+    "docs/legacy/reports/reports-simple-fixed.js",
+    "docs/legacy/reports/reports-optimized.js",
+    "docs/legacy/reports/reports.js",
+    "docs/fix-report.md",
+    "docs/safe-area-navigation-fix-report.md"
+  ],
+  "proposal": {
+    "archiveTo": "docs/legacy-archive/2025-09/",
+    "frontMatter": {
+      "archived": true,
+      "archivedAt": "2025-09-15",
+      "reason": "合并至 problems 聚合文档后归档"
+    }
+  }
+}

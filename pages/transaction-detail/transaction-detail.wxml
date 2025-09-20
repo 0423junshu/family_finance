@@ -12,10 +12,14 @@
 
   <!-- 交易详情 -->
   <view wx:else class="transaction-detail">
+    <view class="amount-header" style="display:flex;align-items:center;justify-content:flex-end;padding: 4rpx 8rpx;">
+      <eye-toggle visible="{{pageMoneyVisible}}" bind:change="onEyeChange" />
+    </view>
     <!-- 金额展示 -->
     <view class="amount-section {{transaction.type === 'income' ? 'income' : 'expense'}}">
       <text class="amount-prefix">{{transaction.type === 'income' ? '+' : '-'}}</text>
-      <text class="amount-value">{{formattedAmount}}</text>
+      <text class="amount-value" wx:if="{{pageMoneyVisible}}">{{formattedAmount}}</text>
+      <text class="amount-value" wx:else>***</text>
     </view>
 
     <!-- 详情信息 -->

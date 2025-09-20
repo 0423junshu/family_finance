@@ -1,0 +1,18 @@
+# 文档合并脚本依赖
+# 基础依赖（Python标准库已包含）
+# pathlib
+# logging
+# json
+# re
+# shutil
+# datetime
+# collections
+
+# 可选依赖（用于处理Word文档）
+python-docx>=0.8.11
+
+# 可选依赖（用于更好的文本处理）
+chardet>=4.0.0
+
+# 可选依赖（用于PDF处理，如果需要）
+# PyPDF2>=2.0.0

@@ -1,0 +1,104 @@
+# GitHub Actions CI 参考工作流（文档示例）
+# 用法：将本文件内容复制到 .github/workflows/ci.yml 并按需调整
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          # 若使用国内源可在此设置 NPM_CONFIG_REGISTRY
+          # NPM_CONFIG_REGISTRY: https://registry.npmmirror.com
+          CI: true
+
+      - name: Lint (ESLint / Stylelint / Prettier check)
+        run: |
+          echo "Running ESLint..."
+          npm run lint --if-present
+          echo "Running Stylelint..."
+          npm run lint:style --if-present
+          echo "Running Prettier check..."
+          npm run format:check --if-present
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Test with coverage
+        run: |
+          npm run test --if-present -- --coverage
+        env:
+          CI: true
+
+      - name: Enforce coverage thresholds
+        if: always()
+        run: |
+          echo "Checking coverage thresholds..."
+          # 约定：使用 Jest 生成 coverage/coverage-summary.json
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+            const fs=require('fs');
+            const summary=JSON.parse(fs.readFileSync('coverage/coverage-summary.json','utf8'));
+            const t={ lines:70, statements:70, functions:70, branches:50 }; // 可按需要调整
+            const total=summary.total||{};
+            const ok=(k,need)=> (total[k]?.pct||0) >= need;
+            const pass = ok('lines',t.lines)&&ok('statements',t.statements)&&ok('functions',t.functions)&&ok('branches',t.branches);
+            if(!pass){
+              console.error('Coverage thresholds not met. Required:',t,' Actual:', total);
+              process.exit(1);
+            } else {
+              console.log('Coverage thresholds met.', total);
+            }"
+          else
+            echo "No coverage summary found, skipping strict check."
+          fi
+
+      - name: Archive build artifacts (optional)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/**
+            miniprogram_dist/**
+          if-no-files-found: ignore
+
+    # 常见缓存与忽略建议
+    # - miniprogram_npm、node_modules 不应打包入产物
+    # - cloudfunctions/**/node_modules 由云端安装/打包管理
+
+# 建议在 package.json 中提供以下脚本（与项目 rules 对齐）：
+# {
+#   "scripts": {
+#     "lint": "eslint --ext .js,.ts .",
+#     "lint:style": "stylelint \"**/*.{css,wxss}\"",
+#     "format": "prettier -w .",
+#     "format:check": "prettier -c .",
+#     "test": "jest --passWithNoTests"
+#   }
+# }
+
+# 覆盖率阈值（与项目 rules 对齐）：
+# - 单元测试 70%
+# - 集成测试 50%
+# - 云函数 60%

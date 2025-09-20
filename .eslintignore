@@ -1,0 +1,33 @@
+# Node modules
+node_modules/
+miniprogram_npm/
+cloudfunctions/**/node_modules/
+
+# Build output
+dist/
+build/
+
+# Special directories (preserve __ prefixed/suffixed)
+__*__/
+donutAuthorize__/
+
+# Python cache
+scripts/__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# IDE and system files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+.tmp/
+temp/

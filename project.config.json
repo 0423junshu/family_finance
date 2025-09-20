@@ -5,7 +5,12 @@
             {
                 "value": ".eslintrc.js",
                 "type": "file"
-            }
+            },
+            { "value": "docs", "type": "folder" },
+            { "value": "docs_backup", "type": "folder" },
+            { "value": "docs_backup_enhanced", "type": "folder" },
+            { "value": "logs", "type": "folder" },
+            { "value": ".git", "type": "folder" }
         ],
         "include": []
     },

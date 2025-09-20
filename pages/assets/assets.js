@@ -2,9 +2,11 @@
 const dataConsistency = require('../../services/data-consistency')
 const { updateAccountBalance, deleteAccount } = require('../../services/account')
 const testAssets = require('../../test-automation/generate-test-assets')
+const privacyScope = require('../../services/privacyScope')
 
 Page({
   data: {
+    pageMoneyVisible: false,
     totalAssets: 0,
     showEditDialog: false,
     editingAccount: null,
@@ -61,6 +63,12 @@ Page({
     // 检查报表页跳转上下文（在初始化前）
     this.checkReportsContextSync();
     this.checkReportsContext();
+    
+    // 初始化金额可见性（页面级持久化）
+    try {
+      const visible = privacyScope.getEffectiveVisible('assets')
+      this.setData({ pageMoneyVisible: !!visible })
+    } catch (e) {}
     
     this.initData()
     this.migrateAccountIcons() // 迁移账户图标到新版本
@@ -205,6 +213,23 @@ Page({
 
   // 阻止冒泡空函数（用于弹窗容器 catchtap）
   noop() {},
+  
+  // 小眼睛点击：切换金额显隐（页面级持久化 + 会话兜底）
+  onEyeToggle() {
+    const v = !this.data.pageMoneyVisible
+    this.setData({ pageMoneyVisible: v })
+    try {
+      privacyScope.setPageVisible('assets', v)
+    } catch (e) {}
+    try {
+      const app = getApp()
+      app.globalData = app.globalData || {}
+      app.globalData.pageVisibility = app.globalData.pageVisibility || {}
+      const pages = getCurrentPages()
+      const route = this.route || (pages && pages.length ? pages[pages.length - 1].route : 'pages/assets/assets')
+      app.globalData.pageVisibility[route] = v
+    } catch (e) {}
+  },
 
   // 新增：数据一致性检查，确保历史月份修改生效（带缓存优化）
   checkDataConsistency() {

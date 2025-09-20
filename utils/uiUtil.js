@@ -345,6 +345,21 @@ function throttle(func, delay = 300) {
   }
 }
 
+/**
+ * 包装异步流程，统一显示/隐藏 Loading，确保成对调用
+ * @param {Function|Promise} task 函数或Promise
+ * @param {string} title 提示文案
+ */
+async function withLoading(task, title = '加载中...') {
+  wx.showLoading({ title, mask: true })
+  try {
+    const p = typeof task === 'function' ? task() : task
+    return await p
+  } finally {
+    wx.hideLoading()
+  }
+}
+
 module.exports = {
   showLoading,
   hideLoading,
@@ -367,5 +382,6 @@ module.exports = {
   setClipboardData,
   getClipboardData,
   debounce,
-  throttle
+  throttle,
+  withLoading
 }

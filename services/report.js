@@ -219,23 +219,33 @@ async function generateMonthlyReport(year, month) {
           }
 
           if (!tagStats[tagName]) {
-            tagStats[tagName] = { income: 0, expense: 0, count: 0 }
+            tagStats[tagName] = { income: 0, expense: 0, count: 0, countIncome: 0, countExpense: 0 }
           }
-          if (type === 'income' || type === 'expense') {
-            tagStats[tagName][type] += amount
+          if (type === 'income') {
+            tagStats[tagName].income += amount
+            tagStats[tagName].countIncome++
+            tagStats[tagName].count++
+          } else if (type === 'expense') {
+            tagStats[tagName].expense += amount
+            tagStats[tagName].countExpense++
+            tagStats[tagName].count++
           }
-          tagStats[tagName].count++
         })
       } else {
         // 无标签的交易归入“其他”
         const otherName = '其他'
         if (!tagStats[otherName]) {
-          tagStats[otherName] = { income: 0, expense: 0, count: 0 }
+          tagStats[otherName] = { income: 0, expense: 0, count: 0, countIncome: 0, countExpense: 0 }
         }
-        if (type === 'income' || type === 'expense') {
-          tagStats[otherName][type] += amount
+        if (type === 'income') {
+          tagStats[otherName].income += amount
+          tagStats[otherName].countIncome++
+          tagStats[otherName].count++
+        } else if (type === 'expense') {
+          tagStats[otherName].expense += amount
+          tagStats[otherName].countExpense++
+          tagStats[otherName].count++
         }
-        tagStats[otherName].count++
       }
       
       // 按账户统计
@@ -245,11 +255,27 @@ async function generateMonthlyReport(year, month) {
             income: 0,
             expense: 0,
             transfer: 0,
-            count: 0
+            count: 0,
+            countIncome: 0,
+            countExpense: 0,
+            countTransfer: 0
           }
         }
-        accountStats[accountId][type] += amount
-        accountStats[accountId].count++
+        // 金额聚合
+        if (type === 'income' || type === 'expense' || type === 'transfer') {
+          accountStats[accountId][type] += amount || 0
+        }
+        // 计数聚合：总数 + 各类型细分
+        if (type === 'income') {
+          accountStats[accountId].countIncome++
+          accountStats[accountId].count++
+        } else if (type === 'expense') {
+          accountStats[accountId].countExpense++
+          accountStats[accountId].count++
+        } else if (type === 'transfer') {
+          accountStats[accountId].countTransfer++
+          accountStats[accountId].count++
+        }
       }
     })
     
@@ -315,18 +341,37 @@ async function generateMonthlyReport(year, month) {
       }
     })
     
-    // 格式化账户统计数据
+    // 格式化账户统计数据（补充 icon/color/type 与各类型计数，确保前端可一致渲染）
     const formattedAccountStats = []
+    // 账户类型稳定配色兜底
+    const accountTypeColorMap = {
+      cash: '#4CD964',
+      bank: '#409EFF',
+      alipay: '#1677FF',
+      wechat: '#07C160',
+      wallet: '#9B59B6',
+      invest: '#FF8C00',
+      other: '#999999'
+    }
     Object.keys(accountStats).forEach(accountId => {
       const account = accounts.find(a => (a.id === accountId || a._id === accountId))
       if (account) {
+        const aType = account.type || 'other'
+        const icon = account.icon || '💰'
+        const color = account.color || accountTypeColorMap[aType] || accountTypeColorMap.other
         formattedAccountStats.push({
           id: accountId,
           name: account.name,
+          icon,
+          color,
+          type: aType,
           income: accountStats[accountId].income,
           expense: accountStats[accountId].expense,
           transfer: accountStats[accountId].transfer,
-          count: accountStats[accountId].count
+          count: accountStats[accountId].count,
+          countIncome: accountStats[accountId].countIncome,
+          countExpense: accountStats[accountId].countExpense,
+          countTransfer: accountStats[accountId].countTransfer
         })
       }
     })
@@ -937,12 +982,12 @@ async function generateReport(params) {
         if (stats && stats.expense > 0) {
           if (!expenseMap[name]) expenseMap[name] = { name, amount: 0, count: 0, percentage: 0 };
           expenseMap[name].amount += stats.expense;
-          expenseMap[name].count += stats.count || 1;
+          expenseMap[name].count += (Number(stats.countExpense) || 1);
         }
         if (stats && stats.income > 0) {
           if (!incomeMap[name]) incomeMap[name] = { name, amount: 0, count: 0, percentage: 0 };
           incomeMap[name].amount += stats.income;
-          incomeMap[name].count += stats.count || 1;
+          incomeMap[name].count += (Number(stats.countIncome) || 1);
         }
       });
       const tagStats = {
@@ -960,6 +1005,32 @@ async function generateReport(params) {
         console.log('[report] tagStats mapped:', tagStats);
       } catch (_) {}
       reportData.tagStats = tagStats;
+      
+      // 按账户统计（仅月度）：透传月度报表中的账户聚合，并补充净额
+      try {
+        reportData.accountStats = (monthlyReport.accountStats || []).map(it => {
+          const inc = Number(it.income) || 0;
+          const exp = Number(it.expense) || 0;
+          return {
+            id: it.id,
+            name: it.name,
+            // 透传服务层图标与颜色，供前端直接渲染
+            icon: it.icon,
+            color: it.color,
+            type: it.type,
+            income: inc,
+            expense: exp,
+            net: inc - exp,
+            count: Number(it.count) || 0,
+            countIncome: Number(it.countIncome) || 0,
+            countExpense: Number(it.countExpense) || 0,
+            countTransfer: Number(it.countTransfer) || 0
+          };
+        });
+      } catch (e) {
+        console.warn('构建月度账户统计失败，已回退为空数组：', e && e.message);
+        reportData.accountStats = [];
+      }
       
       // 为趋势数据添加资产信息（使用当月资产快照）
       const trendData = monthlyReport.dailyTrend || [];
@@ -1557,6 +1628,8 @@ async function generateMonthlyAssetData(yearMonth) {
         name: account.name,
         balance: account.balance,
         icon: account.icon || '💰',
+        // 统一透传颜色字段，兼容不同命名
+        color: account.color || account.bgColor || account.themeColor,
         type: account.type || type
       })
     })

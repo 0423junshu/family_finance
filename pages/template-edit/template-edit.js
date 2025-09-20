@@ -110,22 +110,8 @@ Page({
   // 加载账户数据
   async loadAccounts() {
     try {
-      // 默认账户
-      const defaultAccounts = [
-        { id: 'cash', name: '现金', icon: '💵', color: '#34C759' },
-        { id: 'alipay', name: '支付宝', icon: '💙', color: '#1890FF' },
-        { id: 'wechat', name: '微信支付', icon: '💚', color: '#07C160' },
-        { id: 'bank_icbc', name: '工商银行', icon: '🏦', color: '#C41E3A' },
-        { id: 'bank_ccb', name: '建设银行', icon: '🏦', color: '#003DA5' },
-        { id: 'bank_abc', name: '农业银行', icon: '🏦', color: '#00A651' },
-        { id: 'bank_boc', name: '中国银行', icon: '🏦', color: '#B8860B' }
-      ]
-      
-      // 获取自定义账户
-      const customAccounts = wx.getStorageSync('customAccounts') || []
-      
-      const accounts = [...defaultAccounts, ...customAccounts]
-      
+      const { getAvailableAccounts } = require('../../services/accountProvider')
+      const accounts = getAvailableAccounts()
       this.setData({ accounts })
     } catch (error) {
       console.error('加载账户失败:', error)

@@ -168,7 +168,7 @@ Page({
       openid: guestId,
       _id: guestId,
       nickName: '游客用户',
-      avatarUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
+      avatarUrl: '/images/default-avatar.svg'
     }
     app.globalData.isLogin = true
     console.log('[LOGIN] 游客模式登录成功')

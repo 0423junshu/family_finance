@@ -1,30 +1,40 @@
 <!-- pages/reports/reports-simple.wxml -->
-<view class="safe-area-wrapper safe-area-white">
-  <navigation-bar title="家庭财务管理" show-back="{{false}}" class="transparent-navbar" />
+<view class="safe-area-wrapper safe-area-white" style="{{useJsSafeTop ? ('padding-top:' + paddingTopPx + 'px;') : ''}}">
+  <navigation-bar title="家庭财务管理" show-back="{{false}}" show-hide-amount="{{false}}" />
 </view>
 
-<view class="page-container" bindtap="onTapPage">
-  <!-- 顶部日期选择器（改进：明确显示 按月/按年/自定义 三种模式） -->
-  <view cc>
-    <view class="date-range-tabs">
-      <view class="tab {{dateRange === 'month' ? 'active' : ''}}" bindtap="onDateRangeChange" data-range="month">按月</view>
-      <view class="tab {{dateRange === 'year' ? 'active' : ''}}" bindtap="onDateRangeChange" data-range="year">按年</view>
-      <view class="tab {{dateRange === 'custom' ? 'active' : ''}}" bindtap="onDateRangeChange" data-range="custom">自定义</view>
+<view class="page-container" style="{{useJsSafeTop ? ('padding-top:' + paddingTopPx + 'px;') : ''}}" bindtap="onTapPage">
+
+  <!-- 顶部日期选择器（两行：行1三按钮等宽；行2日期居中 + 右侧小眼睛） -->
+  <view class="reports-header">
+    <!-- 行1：范围按钮（等宽三等分） -->
+    <view class="range-row">
+      <view class="date-range-tabs tabs-equal">
+        <view class="tab {{dateRange === 'month' ? 'active' : ''}}" bindtap="onDateRangeChange" data-range="month">按月</view>
+        <view class="tab {{dateRange === 'year' ? 'active' : ''}}" bindtap="onDateRangeChange" data-range="year">按年</view>
+        <view class="tab {{dateRange === 'custom' ? 'active' : ''}}" bindtap="onDateRangeChange" data-range="custom">自定义</view>
+      </view>
     </view>
 
-    <view class="date-display">
-      <view wx:if="{{dateRange === 'month'}}" class="date-text" bindtap="showMonthPicker">
-        {{currentYear}}年{{currentMonth + 1}}月
-        <text class="date-arrow">▼</text>
-      </view>
+    <!-- 行2：日期显示居中 + 右侧小眼睛 -->
+    <view class="date-row">
+      <view class="date-display date-center">
+        <view wx:if="{{dateRange === 'month'}}" class="date-text" bindtap="showMonthPicker">
+          {{currentYear}}年{{currentMonth + 1}}月
+          <text class="date-arrow">▼</text>
+        </view>
 
-      <view wx:elif="{{dateRange === 'year'}}" class="date-text" bindtap="showYearPicker">
-        {{currentYear}}年
-        <text class="date-arrow">▼</text>
-      </view>
+        <view wx:elif="{{dateRange === 'year'}}" class="date-text" bindtap="showYearPicker">
+          {{currentYear}}年
+          <text class="date-arrow">▼</text>
+        </view>
 
-      <view wx:elif="{{dateRange === 'custom'}}" class="date-text">
-        {{customStartDate}} 至 {{customEndDate}}
+        <view wx:elif="{{dateRange === 'custom'}}" class="date-text">
+          {{customStartDate}} 至 {{customEndDate}}
+        </view>
+      </view>
+      <view class="eye-toggle eye-right" catchtap="onGlobalEyeToggle">
+        {{ pageMoneyVisible ? '👁' : '🙈' }}
       </view>
     </view>
   </view>
@@ -33,6 +43,7 @@
   <view class="tab-header">
     <view class="tab-item {{currentTab === 0 ? 'active' : ''}}" bindtap="onTabChange" data-index="0">收支概览</view>
     <view class="tab-item {{currentTab === 1 ? 'active' : ''}}" bindtap="onTabChange" data-index="1">分类统计</view>
+    <view wx:if="{{dateRange === 'month'}}" class="tab-item {{currentTab === 5 ? 'active' : ''}}" bindtap="onTabChange" data-index="5">账户统计</view>
     <view wx:if="{{dateRange !== 'month'}}" class="tab-item {{currentTab === 2 ? 'active' : ''}}" bindtap="onTabChange" data-index="2">趋势图</view>
     <view wx:if="{{dateRange !== 'month'}}" class="tab-item {{currentTab === 3 ? 'active' : ''}}" bindtap="onTabChange" data-index="3">资产分析</view>
     <view class="tab-item {{currentTab === 4 ? 'active' : ''}}" bindtap="onTabChange" data-index="4">标签分析</view>
@@ -49,6 +60,7 @@
     <view class="summary-card">
       <view class="summary-header">
         <text class="summary-title">收支概览</text>
+        <view class="eye-toggle" catchtap="onTabEyeToggle" data-index="0" style="margin-left:auto;margin-right:8px;font-size:16px;line-height:16px;">{{pageMoneyVisible ? '👁' : '🙈'}}</view>
         <view class="summary-tools" catchtap="toggleOptions">
           <text class="icon-more">⋮</text>
           <view class="options-menu {{showOptions ? 'show' : ''}}">
@@ -61,15 +73,15 @@
       <view class="summary-content">
         <view class="summary-item">
           <text class="summary-label">收入</text>
-          <text class="summary-value income">¥{{summary.totalIncome / 100}}</text>
+          <text class="summary-value income">{{ pageMoneyVisible ? ('¥' + (summary.totalIncome / 100)) : '***' }}</text>
         </view>
         <view class="summary-item">
           <text class="summary-label">支出</text>
-          <text class="summary-value expense">¥{{summary.totalExpense / 100}}</text>
+          <text class="summary-value expense">{{ pageMoneyVisible ? ('¥' + (summary.totalExpense / 100)) : '***' }}</text>
         </view>
         <view class="summary-item">
           <text class="summary-label">结余</text>
-          <text class="summary-value {{summary.balance >= 0 ? 'income' : 'expense'}}">¥{{summary.balance / 100}}</text>
+          <text class="summary-value {{summary.balance >= 0 ? 'income' : 'expense'}}">{{ pageMoneyVisible ? ('¥' + (summary.balance / 100)) : '***' }}</text>
         </view>
       </view>
     </view>
@@ -82,9 +94,12 @@
       </view>
       
       <view class="category-list">
-        <block wx:for="{{categoryStats.expense}}" wx:key="id" wx:for-index="expenseIdx" wx:if="{{expenseIdx < 5}}">
+        <block wx:for="{{categoryStats.expense}}" wx:key="uniqueKey" wx:for-index="expenseIdx" wx:if="{{expenseIdx < 5}}">
           <view class="category-item" bindtap="viewCategoryDetail" data-category="{{item.id}}" data-type="expense" data-name="{{item.name}}">
-            <view class="category-icon" style="background-color: {{item.color}}">{{item.icon}}</view>
+            <view class="category-icon" style="background-color: {{item.color}}">
+            <image wx:if="{{item.iconType === 'image'}}" src="{{item.icon}}" class="category-icon-img" mode="aspectFit"></image>
+            <block wx:else>{{item.icon}}</block>
+          </view>
             <view class="category-info">
               <view class="category-name">{{item.name}}</view>
               <view class="category-progress">
@@ -94,7 +109,7 @@
                 <text class="category-percentage">{{item.percentage}}%</text>
               </view>
             </view>
-            <view class="category-amount expense">¥{{item.amount / 100}}</view>
+            <view class="category-amount expense">{{ pageMoneyVisible ? ('¥' + (item.amount / 100)) : '***' }}</view>
           </view>
         </block>
         <view wx:if="{{categoryStats.expense.length === 0}}" class="empty-tip">暂无支出数据</view>
@@ -109,7 +124,7 @@
       </view>
       
       <view class="category-list">
-        <block wx:for="{{categoryStats.income}}" wx:key="id" wx:for-index="incomeIdx" wx:if="{{incomeIdx < 5}}">
+        <block wx:for="{{categoryStats.income}}" wx:key="uniqueKey" wx:for-index="incomeIdx" wx:if="{{incomeIdx < 5}}">
           <view class="category-item" bindtap="viewCategoryDetail" data-category="{{item.id}}" data-type="income" data-name="{{item.name}}">
             <view class="category-icon" style="background-color: {{item.color}}">{{item.icon}}</view>
             <view class="category-info">
@@ -121,12 +136,14 @@
                 <text class="category-percentage">{{item.percentage}}%</text>
               </view>
             </view>
-            <view class="category-amount income">¥{{item.amount / 100}}</view>
+            <view class="category-amount income">{{ pageMoneyVisible ? ('¥' + (item.amount / 100)) : '***' }}</view>
           </view>
         </block>
         <view wx:if="{{categoryStats.income.length === 0}}" class="empty-tip">暂无收入数据</view>
       </view>
     </view>
+
+
 
     <!-- 资产概览 -->
     <view class="section-card">
@@ -138,14 +155,14 @@
       <view class="asset-overview">
         <view class="asset-total">
           <text class="asset-label">总资产</text>
-          <text class="asset-value">¥{{assetData.totalAssets / 100}}</text>
+          <text class="asset-value">{{ pageMoneyVisible ? ('¥' + (assetData.totalAssets / 100)) : '***' }}</text>
         </view>
         <view class="asset-distribution">
           <block wx:for="{{assetData.assetsDistribution}}" wx:key="name">
             <view class="asset-type">
               <view class="asset-type-dot" style="background-color: {{item.color}}"></view>
               <text class="asset-type-name">{{item.name}}</text>
-              <text class="asset-type-value">¥{{item.amount / 100}}</text>
+              <text class="asset-type-value">{{ pageMoneyVisible ? ('¥' + (item.amount / 100)) : '***' }}</text>
             </view>
           </block>
         </view>
@@ -155,13 +172,14 @@
 
   <!-- 分类统计 -->
   <view wx:elif="{{currentTab === 1}}" class="tab-content">
-    <view class="category-type-switch">
+    <view class="category-type-switch" style="display:flex;align-items:center;padding:0 12px 8px;gap:8px;">
       <view class="switch-item {{categoryType === 'expense' ? 'active' : ''}}" bindtap="onCategoryTypeChange" data-type="expense">支出</view>
       <view class="switch-item {{categoryType === 'income' ? 'active' : ''}}" bindtap="onCategoryTypeChange" data-type="income">收入</view>
+      <view class="eye-toggle" catchtap="onTabEyeToggle" data-index="1" style="margin-left:auto;font-size:16px;line-height:16px;">{{pageMoneyVisible ? '👁' : '🙈'}}</view>
     </view>
     
     <view class="category-stats">
-      <block wx:for="{{categoryStats[categoryType]}}" wx:key="id" wx:for-index="categoryIdx">
+      <block wx:for="{{categoryStats[categoryType]}}" wx:key="uniqueKey" wx:for-index="categoryIdx">
         <view class="category-item" bindtap="viewCategoryDetail" data-category="{{item.id}}" data-type="{{categoryType}}">
           <view class="category-icon" style="background-color: {{item.color}}">{{item.icon}}</view>
           <view class="category-info">
@@ -174,10 +192,39 @@
               <text class="category-count">{{item.count}}笔</text>
             </view>
           </view>
-          <view class="category-amount {{categoryType}}">¥{{item.amount / 100}}</view>
+          <view class="category-amount {{categoryType}}">{{ pageMoneyVisible ? ('¥' + (item.amount / 100)) : '***' }}</view>
         </view>
       </block>
       <view wx:if="{{categoryStats[categoryType].length === 0}}" class="empty-tip">暂无{{categoryType === 'expense' ? '支出' : '收入'}}数据</view>
+    </view>
+  </view>
+
+  <!-- 账户统计（按月模式专属Tab） -->
+  <view class="tab-content" wx:elif="{{currentTab === 5 && dateRange === 'month'}}">
+    <view class="category-type-switch" style="display:flex;align-items:center;padding:0 12px 8px;gap:8px;">
+      <view class="switch-item {{accountType === 'expense' ? 'active' : ''}}" bindtap="onAccountTypeChange" data-type="expense">支出</view>
+      <view class="switch-item {{accountType === 'income' ? 'active' : ''}}" bindtap="onAccountTypeChange" data-type="income">收入</view>
+      <view class="eye-toggle" catchtap="onTabEyeToggle" data-index="5" style="margin-left:auto;font-size:16px;line-height:16px;">{{pageMoneyVisible ? '👁' : '🙈'}}</view>
+    </view>
+
+    <view class="category-stats">
+      <block wx:for="{{accountStatsView[accountType]}}" wx:key="id">
+        <view class="category-item" bindtap="viewAccountTransactions" data-account="{{item.id}}" data-type="{{accountType}}">
+          <view class="category-icon" style="background-color: {{item.color}}">{{item.icon}}</view>
+          <view class="category-info">
+            <view class="category-name">{{item.name}}</view>
+            <view class="category-progress">
+              <view class="progress-bar {{accountType === 'income' ? 'income-bar' : ''}}" style="width: {{item.percentage}}%"></view>
+            </view>
+            <view class="category-detail">
+              <text class="category-percentage">{{item.percentage}}%</text>
+              <text class="category-count">{{item.count}}笔</text>
+            </view>
+          </view>
+          <view class="category-amount {{accountType}}">{{ pageMoneyVisible ? ('¥' + (item.amount / 100)) : '***' }}</view>
+        </view>
+      </block>
+      <view wx:if="{{!accountStatsView || accountStatsView[accountType].length === 0}}" class="empty-tip">暂无{{accountType === 'expense' ? '支出' : '收入'}}账户数据</view>
     </view>
   </view>
 
@@ -190,6 +237,7 @@
     <view class="trend-data">
       <view class="trend-header">
         <text class="trend-title">趋势数据明细</text>
+        <view class="eye-toggle" catchtap="onTabEyeToggle" data-index="2" style="margin-left:auto;margin-right:8px;font-size:16px;line-height:16px;">{{pageMoneyVisible ? '👁' : '🙈'}}</view>
       </view>
       
       <view class="trend-table">
@@ -204,12 +252,12 @@
         <block wx:for="{{trendData}}" wx:key="date">
           <view class="trend-table-row">
             <view class="trend-table-cell">{{item.dateDisplay}}</view>
-            <view class="trend-table-cell income">¥{{item.income / 100}}</view>
-            <view class="trend-table-cell expense">¥{{item.expense / 100}}</view>
+            <view class="trend-table-cell income">{{ pageMoneyVisible ? ('¥' + (item.income / 100)) : '***' }}</view>
+            <view class="trend-table-cell expense">{{ pageMoneyVisible ? ('¥' + (item.expense / 100)) : '***' }}</view>
             <view class="trend-table-cell {{(item.income - item.expense) >= 0 ? 'income' : 'expense'}}">
-              ¥{{(item.income - item.expense) / 100}}
+              {{ pageMoneyVisible ? ('¥' + ((item.income - item.expense) / 100)) : '***' }}
             </view>
-            <view class="trend-table-cell asset">¥{{(item.totalAssets || 0) / 100}}</view>
+            <view class="trend-table-cell asset">{{ pageMoneyVisible ? ('¥' + ((item.totalAssets || 0) / 100)) : '***' }}</view>
           </view>
         </block>
       </view>
@@ -219,6 +267,7 @@
   <!-- 资产分析 -->
   <view wx:elif="{{currentTab === 3 && dateRange !== 'month'}}" class="tab-content">
     <view wx:if="{{!showYearPicker && !showMonthPicker && !showDateRangePicker}}" class="asset-chart">
+      <view class="asset-eye" catchtap="onTabEyeToggle" data-index="3">{{ pageMoneyVisible ? '👁' : '🙈' }}</view>
       <canvas type="2d" id="assetPie" class="asset-canvas"></canvas>
     </view>
     
@@ -235,7 +284,7 @@
               <view class="account-name">{{item.name}}</view>
               <view class="account-type">{{item.typeName}}</view>
             </view>
-            <view class="account-balance">¥{{item.balance / 100}}</view>
+            <view class="account-balance">{{ pageMoneyVisible ? ('¥' + (item.balance / 100)) : '***' }}</view>
           </view>
         </block>
         <view wx:if="{{assetData.accounts.length === 0}}" class="empty-tip">暂无账户数据</view>
@@ -256,7 +305,7 @@
               <view class="investment-type">{{item.typeName}}</view>
             </view>
             <view class="investment-data">
-              <view class="investment-value">¥{{item.currentValue / 100}}</view>
+              <view class="investment-value">{{ pageMoneyVisible ? ('¥' + (item.currentValue / 100)) : '***' }}</view>
               <view class="investment-profit {{item.profit >= 0 ? 'income' : 'expense'}}">
                 {{item.profit >= 0 ? '+' : ''}}{{item.profitRate}}
               </view>
@@ -292,18 +341,19 @@
 
   <!-- 标签分析 -->
   <view class="tab-content" wx:elif="{{currentTab === 4}}">
-    <view class="category-type-switch">
+    <view class="category-type-switch" style="display:flex;align-items:center;padding:0 12px 8px;gap:8px;">
       <view class="switch-item {{categoryType === 'expense' ? 'active' : ''}}" bindtap="onCategoryTypeChange" data-type="expense">支出</view>
       <view class="switch-item {{categoryType === 'income' ? 'active' : ''}}" bindtap="onCategoryTypeChange" data-type="income">收入</view>
+      <view class="eye-toggle" catchtap="onTabEyeToggle" data-index="4" style="margin-left:auto;font-size:16px;line-height:16px;">{{pageMoneyVisible ? '👁' : '🙈'}}</view>
     </view>
     
     <view class="tag-stats">
-      <block wx:for="{{tagStats[categoryType]}}" wx:key="name">
+      <block wx:for="{{tagStats[categoryType]}}" wx:key="uniqueKey">
         <view class="tag-item" bindtap="viewTagDetail" data-tag="{{item.name}}" data-type="{{categoryType}}">
           <view class="tag-name">#{{item.name}}</view>
           <view class="tag-info">
             <view class="tag-count">{{item.count}}笔</view>
-            <view class="tag-amount {{categoryType}}">¥{{item.amount / 100}}</view>
+            <view class="tag-amount {{categoryType}}">{{ pageMoneyVisible ? ('¥' + (item.amount / 100)) : '***' }}</view>
           </view>
         </view>
       </block>

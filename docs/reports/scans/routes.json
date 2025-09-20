@@ -1,0 +1,68 @@
+{
+  "status": "verified-by-review",
+  "updatedAt": "2025-09-14T22:00:00+08:00",
+  "appJson": {
+    "pagesCount": 33,
+    "tabBarPages": [
+      "pages/index/index",
+      "pages/reports/reports-simple",
+      "pages/assets/assets",
+      "pages/investments/investments",
+      "pages/profile/profile"
+    ]
+  },
+  "findings": [
+    {
+      "from": "pages/transaction-list/transaction-list.js",
+      "calls": [
+        {
+          "api": "wx.navigateTo",
+          "url": "/pages/record/record?mode=edit&id=${id}",
+          "targetExistsInAppJson": true,
+          "target": "pages/record/record",
+          "paramsVerified": ["mode", "id"],
+          "notes": "基于模板字符串构造，实际运行时符合 app.json；建议在跳转前校验 id 存在性。"
+        }
+      ]
+    },
+    {
+      "from": "pages/reports/reports-simple.js",
+      "calls": [
+        {
+          "api": "wx.navigateTo",
+          "url": "/pages/transaction-list/transaction-list?from=reports&type=${type}&category=${categoryName}&range=${dateRange}&year=${currentYear}&month=${displayMonth}&start=${customStartDate}&end=${customEndDate}",
+          "targetExistsInAppJson": true,
+          "target": "pages/transaction-list/transaction-list",
+          "paramsVerified": ["from","type","category","range","year","month","start","end"],
+          "notes": "参数键与目标页 onLoad(options) 能正确解析（type/category/range/year/month/start/end）。"
+        },
+        {
+          "api": "wx.switchTab",
+          "url": "/pages/assets/assets",
+          "targetExistsInAppJson": true,
+          "target": "pages/assets/assets",
+          "isTabBar": true,
+          "notes": "跳转 tabBar 页面使用 switchTab 符合规范；额外采用 storage 传递上下文。"
+        },
+        {
+          "api": "wx.navigateTo",
+          "url": "/pages/account-manage/account-manage?mode=edit&id=${id}",
+          "targetExistsInAppJson": true,
+          "target": "pages/account-manage/account-manage"
+        },
+        {
+          "api": "wx.navigateTo",
+          "url": "/pages/investment-add/investment-add?mode=edit&id=${id}",
+          "targetExistsInAppJson": true,
+          "target": "pages/investment-add/investment-add"
+        }
+      ]
+    }
+  ],
+  "gaps": [],
+  "recommendations": [
+    "为 navigateTo URL 参数统一做 encodeURIComponent 包裹（文本类参数如 categoryName、tag）。",
+    "在目标页统一做参数存在性与类型校验，必要时给出用户提示并安全返回。",
+    "建立 routes 校验脚本（AST）在 CI 中校验目标存在性与 tabBar 规范使用。"
+  ]
+}

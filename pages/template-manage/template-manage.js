@@ -60,10 +60,10 @@ Page({
         params.push(`amount=${amountInYuan}`)
       }
       if (template.categoryId) {
-        params.push(`categoryId=${template.categoryId}`)
+        params.push(`categoryId=${encodeURIComponent(String(template.categoryId))}`)
       }
       if (template.accountId) {
-        params.push(`accountId=${template.accountId}`)
+        params.push(`accountId=${encodeURIComponent(String(template.accountId))}`)
       }
       if (template.name) {
         // 使用简单的字符串传递，避免编码问题
@@ -72,7 +72,18 @@ Page({
       
       const queryString = params.join('&')
       console.log('跳转参数:', queryString)
-      
+
+      // 存储模板参数作为兜底，目标页 onLoad 会合并并清理
+      try {
+        wx.setStorageSync('templatePayload', {
+          type: template.type,
+          amount: typeof amountInYuan !== 'undefined' ? String(amountInYuan) : undefined,
+          categoryId: template.categoryId != null ? String(template.categoryId) : undefined,
+          accountId: template.accountId != null ? String(template.accountId) : undefined,
+          templateName: template.name
+        })
+      } catch (_) {}
+
       wx.navigateTo({
         url: `/pages/record/record${queryString ? '?' + queryString : ''}`,
         success: () => {
@@ -89,6 +100,9 @@ Page({
             title: '跳转失败',
             icon: 'error'
           })
+        },
+        complete: () => {
+          try { wx.hideLoading() } catch (_) {}
         }
       })
     } catch (error) {

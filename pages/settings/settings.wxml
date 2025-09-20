@@ -160,6 +160,14 @@
     <view class="card-header">
       <view class="card-title">系统设置</view>
     </view>
+
+    <view class="setting-item">
+      <view class="setting-info">
+        <view class="setting-title">默认显示金额</view>
+        <view class="setting-desc">影响账单/交易/余额等金额的默认可见性</view>
+      </view>
+      <switch checked="{{moneyVisible}}" bindchange="onMoneyVisibleChange" />
+    </view>
     
     <view class="setting-item">
       <view class="setting-info">

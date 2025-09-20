@@ -310,7 +310,7 @@ Page({
   viewTransactionDetail(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({
-      url: `/pages/transaction-detail/transaction-detail-simple?id=${id}`
+      url: `/pages/transaction-detail/transaction-detail?id=${id}`
     })
   },
   

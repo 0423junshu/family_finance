@@ -1,3 +1,4 @@
+@import '/styles/icons.wxss';
 /* pages/transfer/transfer.wxss */
 @import '/styles/safe-area.wxss';
 

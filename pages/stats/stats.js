@@ -1,6 +1,7 @@
 // pages/stats/stats.js
 Page({
   data: {
+    pageMoneyVisible: true,
     currentTab: 0,
     dateRange: 'month',
     chartData: {
@@ -18,6 +19,13 @@ Page({
   },
 
   onLoad() {
+    const app = getApp()
+    const route = this.route
+    const g = app.globalData || {}
+    const v = (g.pageVisibility && Object.prototype.hasOwnProperty.call(g.pageVisibility, route))
+      ? g.pageVisibility[route]
+      : !g.hideAmount
+    this.setData({ pageMoneyVisible: v })
     this.loadStatsData()
   },
 
@@ -29,6 +37,17 @@ Page({
   onTabChange(e) {
     const index = e.currentTarget.dataset.index
     this.setData({ currentTab: index })
+  },
+
+  // 切换显示/隐藏
+  onEyeChange(e) {
+    const v = e.detail.value
+    const app = getApp()
+    const route = this.route
+    if (app.globalData && app.globalData.pageVisibility) {
+      app.globalData.pageVisibility[route] = v
+    }
+    this.setData({ pageMoneyVisible: v })
   },
 
   // 切换时间范围

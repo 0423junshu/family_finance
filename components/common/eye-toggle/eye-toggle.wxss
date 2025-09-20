@@ -1,0 +1,16 @@
+.eye-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56rpx;
+  min-height: 56rpx;
+  padding: 12rpx;
+  border-radius: 12rpx;
+}
+.eye-toggle--hover {
+  background: rgba(0,0,0,0.06);
+}
+.eye-toggle__text {
+  font-size: 28rpx;
+  line-height: 1;
+}

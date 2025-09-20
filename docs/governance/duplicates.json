@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2025-09-14T23:00:00+08:00",
+  "note": "重复主题聚类草案，仅做报告，不移动文件。本文件供评审与调整主题聚合边界。",
+  "clusters": [
+    {
+      "topic": "API弃用与兼容（getSystemInfoSync -> 新API）",
+      "targetDoc": "docs/problems/P0_API弃用替换.md",
+      "candidates": [
+        "docs/safe-area-navigation-fix-report.md",
+        "docs/问题修复记录_云函数依赖与API弃用修复.md",
+        "docs/legacy/reports/reports-compatible.js",
+        "docs/legacy/reports/reports-simple-fixed.js",
+        "docs/legacy/reports/reports-optimized.js",
+        "docs/legacy/reports/reports.js",
+        "docs/legacy/reports/reports-simple-backup.js",
+        "docs/微信小程序问题完整解决方案_2025-09-07.md"
+      ],
+      "reason": "均涉及 system info 获取、DPR、安全区、API弃用告警处理；应合并为统一问题条目，保留来源清单。"
+    },
+    {
+      "topic": "页面跳转与参数规范（无效模式回退为创建）",
+      "targetDoc": "docs/problems/P0_页面跳转与参数.md",
+      "candidates": [
+        "docs/fix-report.md",
+        "docs/legacy/reports/reports-simple-backup.js"
+      ],
+      "reason": "均涉及 navigateTo 传参、record 页 mode 校验、月份基数传递。"
+    },
+    {
+      "topic": "性能与 setData 节流/RangeError",
+      "targetDoc": "docs/problems/P1_性能与setData.md",
+      "candidates": [
+        "docs/legacy/reports/reports-optimized.js",
+        "docs/legacy/reports/reports.js",
+        "docs/legacy/reports/reports-simple-fixed.js"
+      ],
+      "reason": "长列表、setData 频次、日期边界导致的 Invalid time value 与数据一致性问题。"
+    }
+  ]
+}

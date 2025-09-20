@@ -1,0 +1,6 @@
+{
+  "status": "partial",
+  "summary": "API 能力检测（首轮）",
+  "items": [],
+  "notes": "常用 API 使用广泛，未发现明显需 canIUse 的新接口缺失检测点；后续二次核验字体/主题等差异化能力。"
+}

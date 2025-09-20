@@ -113,7 +113,7 @@ class AuthService {
     const defaultUser = {
       openid: 'demo_user_' + Date.now(),
       nickName: '演示用户',
-      avatarUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
+      avatarUrl: '/images/default-avatar.svg'
     }
     
     updateGlobalData('userInfo', defaultUser)
@@ -130,7 +130,7 @@ class AuthService {
     return app.globalData.userInfo || {
       openid: 'demo_user',
       nickName: '演示用户',
-      avatarUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
+      avatarUrl: '/images/default-avatar.svg'
     }
   }
 

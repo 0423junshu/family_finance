@@ -1,8 +1,7 @@
 /* components/navigation-bar/navigation-bar.wxss */
+@import '../../styles/navigation-vars.wxss';
 .navigation-bar {
   width: 100%;
-  background: transparent !important;
-  background-color: transparent !important;
   position: relative;
   z-index: 99;
   /* 完全移除阴影，确保无视觉差异 */

@@ -1,0 +1,6 @@
+{
+  "status": "partial",
+  "summary": "组件副作用扫描（首轮）",
+  "items": [],
+  "notes": "components/ 下未检出网络/云副作用调用，初步符合通用组件无业务副作用规范。"
+}

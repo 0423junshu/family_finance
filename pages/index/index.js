@@ -3,6 +3,8 @@ const app = getApp()
 const { formatDate, formatAmount } = require('../../utils/formatter')
 const { getTransactions, getCycleDateRange } = require('../../services/transaction-simple')
 const { showLoading, hideLoading, showToast } = require('../../utils/uiUtil')
+// 页面级独立可见性覆盖
+const privacyScope = require('../../services/privacyScope')
 
 
 Page({
@@ -44,6 +46,11 @@ Page({
   async onLoad() {
     console.log('首页加载开始')
     this.initPage()
+    // 初始化本页有效可见性（优先页面覆盖，否则全局默认）
+    try {
+      const effectiveVisible = privacyScope.getEffectiveVisible('index')
+      this.setData({ hideAmount: !effectiveVisible })
+    } catch (e) {}
     // 注册窗口尺寸变化监听（节流内部处理）
     if (wx && wx.onWindowResize) {
       wx.onWindowResize(this.updateSafeTop)
@@ -274,11 +281,14 @@ Page({
     this.setData({ showMonthPicker: false })
   },
   
-  // 切换金额显示/隐藏
+  // 切换金额显示/隐藏（来自自定义导航栏）—改为“仅作用于本页”
   onToggleAmount() {
-    this.setData({
-      hideAmount: !this.data.hideAmount
-    })
+    const nextVisible = this.data.hideAmount; // 当前 hideAmount 取反即为下一次 visible
+    const visible = !nextVisible;
+    // 持久化到页面覆盖
+    privacyScope.setPageVisible('index', visible);
+    // 更新本页渲染条件
+    this.setData({ hideAmount: !visible });
   },
   
   // 同步数据
@@ -432,10 +442,11 @@ Page({
   
   // 复制交易
   copyTransaction(item) {
+    // 统一内部单位为“分”：复制时传递分值给编辑页，由目标页自行格式化
     const params = new URLSearchParams({
       type: item.type,
       category: item.category,
-      amount: (item.amount / 100).toFixed(2), // 转换为元
+      amount: String(Math.round(item.amount)), // 分（整数）
       account: item.account,
       description: item.description || ''
     }).toString()
@@ -448,14 +459,14 @@ Page({
   // 快速支出
   onQuickExpense() {
     wx.navigateTo({
-      url: '/pages/record/record?type=expense&quick=true'
+      url: '/pages/record/record?mode=create&type=expense&quick=true' // 补齐 mode=create
     })
   },
   
   // 快速收入
   onQuickIncome() {
     wx.navigateTo({
-      url: '/pages/record/record?type=income&quick=true'
+      url: '/pages/record/record?mode=create&type=income&quick=true' // 补齐 mode=create
     })
   },
   
@@ -469,7 +480,7 @@ Page({
   // 记账按钮
   onRecordTap() {
     wx.navigateTo({
-      url: '/pages/record/record'
+      url: '/pages/record/record?mode=create' // 补齐 mode=create
     })
   },
 
@@ -493,6 +504,18 @@ Page({
       url: '/pages/custom-cycle/custom-cycle'
     })
   },
+
+  // 操作日志（补实现）
+  onViewOperationLogs() {
+    try {
+      wx.navigateTo({
+        url: '/pages/operation-logs/operation-logs'
+      })
+    } catch (e) {
+      console.error('跳转操作日志失败:', e)
+      wx.showToast({ title: '跳转失败', icon: 'none' })
+    }
+  },
   
   // 新交易提示
   onNewTransactionTap() {
@@ -515,8 +538,9 @@ Page({
       if (timer) clearTimeout(timer)
       timer = setTimeout(() => {
         try {
-          const info = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {}
-          const statusBar = (info && info.statusBarHeight) || 0
+          // 优先新 API，保留回退
+          const info = (wx.getWindowInfo && wx.getWindowInfo()) || (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {})
+          const statusBar = (info && (info.statusBarHeight || info.safeAreaInsets?.top || 0)) || 0
           const padding = clamp(BASE_PX + EXTRA_PX + statusBar, MIN_PX, MAX_PX)
           this.setData({ paddingTopPx: padding })
         } catch (e) {
@@ -527,6 +551,13 @@ Page({
     }
   })(),
   
+  // 小眼睛按钮变化（来自 eye-toggle）—仅更新本页覆盖
+  onEyeChange(e) {
+    const nextVisible = !!(e && e.detail && e.detail.value)
+    privacyScope.setPageVisible('index', nextVisible)
+    this.setData({ hideAmount: !nextVisible })
+  },
+
   // 关闭提示
   onCloseTip(e) {
     if (e && typeof e.stopPropagation === 'function') {

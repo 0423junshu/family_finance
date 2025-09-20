@@ -38,6 +38,25 @@
   margin-bottom: 30rpx;
 }
 
+/* 概览卡片右上角操作区：小眼睛定位 */
+.header-actions {
+  position: absolute;
+  top: 24rpx;
+  right: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.eye-toggle {
+  color: #8E8E93;
+}
+
+.eye-toggle:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
 .month-selector {
   display: flex;
   align-items: center;

@@ -69,8 +69,7 @@ const fontLoader = {
     return {
       hasLocalFont: this.checkLocalFontExists(),
       fontUrls: [
-        '/fonts/t.woff',
-        'https://tdesign.gtimg.com/icon/0.3.2/fonts/t.woff'
+        '/fonts/t.woff'
       ],
       lastChecked: new Date().toISOString()
     };

@@ -1,6 +1,8 @@
 // pages/investments/investments.js
 Page({
   data: {
+    // 会话级金额可见性（默认隐藏）
+    pageMoneyVisible: false,
     totalAssets: 0,
     totalReturn: 0,
     returnRate: 0,
@@ -47,9 +49,29 @@ Page({
   },
 
   onLoad() {
+    // 会话级可见性初始化
+    try {
+      const app = getApp() || {};
+      const route = this.route;
+      const vmap = (app.globalData && app.globalData.pageVisibility) || {};
+      const v = (vmap && Object.prototype.hasOwnProperty.call(vmap, route)) ? !!vmap[route] : false;
+      this.setData({ pageMoneyVisible: v });
+    } catch (_) {}
     this.initData()
     this.migrateInvestmentIcons() // 迁移投资图标到统一版本
     this.loadInvestments()
+  },
+
+  // 小眼睛点击：切换会话级显示/隐藏
+  onEyeToggle() {
+    const v = !this.data.pageMoneyVisible;
+    this.setData({ pageMoneyVisible: v });
+    try {
+      const app = getApp() || {};
+      app.globalData = app.globalData || {};
+      app.globalData.pageVisibility = app.globalData.pageVisibility || {};
+      app.globalData.pageVisibility[this.route] = v;
+    } catch (_) {}
   },
   
   // 初始化默认日期为当月

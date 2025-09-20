@@ -1,7 +1,11 @@
 /* pages/record/record.wxss */
 @import '/styles/safe-area.wxss';
+@import '/styles/icons.wxss';
+/* 在本页降低安全区额外高度，避免与导航组件叠加导致顶部过大 */
+page { --safe-area-extra: 12rpx; }
+
 .page-container {
-  padding-top: 40rpx; /* 统一顶部间距为40rpx */
+  padding-top: 0; /* 避免与自定义导航栏高度叠加，显著缩小顶部间距 */
   padding-bottom: 160rpx;
   min-height: 100vh;
   background: #F8F9FA;
@@ -58,7 +62,7 @@
 /* 金额输入区域 - 增加高度和优化显示 */
 .amount-section {
   background: linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 100%);
-  padding: 80rpx 32rpx; /* 增加上下内边距 */
+  padding: 68rpx 32rpx; /* 上内边距减少 12rpx */
   border-bottom: 1rpx solid #F0F0F0;
 }
 
@@ -67,7 +71,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 20rpx;
-  height: 160rpx; /* 进一步增加高度 */
+  height: 148rpx; /* 高度同步减少 12rpx */
 }
 
 .currency-symbol {
@@ -75,7 +79,7 @@
   font-weight: 600;
   color: #007AFF;
   margin-right: 16rpx;
-  line-height: 160rpx; /* 垂直居中 */
+  line-height: 148rpx; /* 垂直居中 */
 }
 
 .amount-input {
@@ -86,8 +90,8 @@
   border: none;
   background: transparent;
   min-width: 240rpx;
-  height: 160rpx; /* 增加高度 */
-  line-height: 160rpx; /* 垂直居中 */
+  height: 148rpx; /* 同步减少 */
+  line-height: 148rpx; /* 同步减少 */
   padding: 0 30rpx; /* 增加水平内边距 */
 }
 

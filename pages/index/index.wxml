@@ -4,8 +4,8 @@
   <navigation-bar 
     title="家庭财务管理" 
     show-back="{{false}}" 
-    show-hide-amount="{{true}}"
-    bind:toggle-amount="onToggleAmount"
+    show-hide-amount="{{false}}"
+
     class="transparent-navbar"
   />
 </view>
@@ -29,10 +29,14 @@
           <text class="stats-title">{{currentMonth}}概览</text>
           <text class="month-arrow">▼</text>
         </view>
-        <view class="sync-status">
-          <text class="sync-text {{syncStatus}}" wx:if="{{syncStatus === 'syncing'}}">同步中...</text>
-          <text class="sync-text {{syncStatus}}" wx:elif="{{syncStatus === 'success'}}">已同步</text>
-          <text class="sync-text {{syncStatus}}" wx:elif="{{syncStatus === 'error'}}">同步失败</text>
+        <view class="header-actions">
+          <view class="sync-status">
+            <text class="sync-text {{syncStatus}}" wx:if="{{syncStatus === 'syncing'}}">同步中...</text>
+            <text class="sync-text {{syncStatus}}" wx:elif="{{syncStatus === 'success'}}">已同步</text>
+            <text class="sync-text {{syncStatus}}" wx:elif="{{syncStatus === 'error'}}">同步失败</text>
+          </view>
+          <!-- 受控模式：由本页 state 决定，不再跟随全局 -->
+
         </view>
       </view>
       

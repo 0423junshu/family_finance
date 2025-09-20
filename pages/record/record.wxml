@@ -9,6 +9,10 @@
 </page-meta>
 
 <view class="page-container">
+  <!-- 页面级金额显示/隐藏开关 -->
+  <view class="page-actions" style="display: flex; justify-content: flex-end; padding: 12rpx 16rpx;">
+    <eye-toggle visible="{{!hideAmount}}" bind:change="onEyeChange" />
+  </view>
   <view wx:if="{{loading}}" class="loading">
     <text>加载中...</text>
   </view>

@@ -1,0 +1,11 @@
+.money-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.money-text__value {
+  font-weight: 600;
+}
+.money-text__value.is-hidden {
+  letter-spacing: 2rpx;
+}

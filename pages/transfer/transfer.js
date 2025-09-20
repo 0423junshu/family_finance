@@ -3,9 +3,11 @@ const { getAccounts } = require('../../services/account')
 const { createTransaction } = require('../../services/transaction-simple')
 const { formatAmount } = require('../../utils/formatter')
 const { showLoading, hideLoading, showToast } = require('../../utils/uiUtil')
+const { resolveAccount } = require('../../utils/idResolver')
 
 Page({
   data: {
+    pageMoneyVisible: true,
     loading: true,
     submitting: false,
     
@@ -31,7 +33,17 @@ Page({
     errors: {}
   },
 
-  onLoad() {
+  onLoad(options) {
+    // 会话态初始化可见性（不持久化）
+    const app = getApp()
+    const route = this.route
+    const g = app.globalData || {}
+    if (!g.pageVisibility) g.pageVisibility = Object.create(null)
+    const v = Object.prototype.hasOwnProperty.call(g.pageVisibility, route) ? g.pageVisibility[route] : !g.hideAmount
+    this.setData({ pageMoneyVisible: v })
+
+    // 记录外部传参（支持 id 或 name）
+    this.pendingOptions = options || {}
     this.initPage()
   },
 
@@ -43,60 +55,56 @@ Page({
     })
     
     await this.loadAccounts()
+    // 账户加载后，应用外部参数（如有）
+    if (this.pendingOptions && Object.keys(this.pendingOptions).length) {
+      this.applyIncomingParams(this.pendingOptions)
+      this.pendingOptions = null
+    }
   },
 
   // 加载账户列表
   async loadAccounts() {
     try {
       this.setData({ loading: true })
-      
-      // 从本地存储获取账户数据，确保与记账页面一致
-      const storedAccounts = wx.getStorageSync('accounts') || []
-      
-      // 如果没有存储的账户，使用默认账户
-      const defaultAccounts = [
-        { 
-          _id: '1', 
-          id: '1',
-          name: '现金', 
-          type: 'cash', 
-          balance: 100000, // 1000元
-          icon: '💰'
-        },
-        { 
-          _id: '2', 
-          id: '2',
-          name: '招商银行', 
-          type: 'bank', 
-          balance: 500000, // 5000元
-          icon: '🏦'
-        },
-        { 
-          _id: '3', 
-          id: '3',
-          name: '支付宝', 
-          type: 'wallet', 
-          balance: 50000, // 500元
-          icon: '📱'
-        }
-      ]
-      
-      const accounts = storedAccounts.length > 0 ? storedAccounts : defaultAccounts
-      
-      // 处理账户余额显示
-      const processedAccounts = accounts.map(account => ({
-        ...account,
-        balanceDisplay: formatAmount(account.balance)
-      }))
-      
-      this.setData({ 
-        accounts: processedAccounts,
-        loading: false 
-      })
+      const { getAvailableAccounts } = require('../../services/accountProvider')
+      const accounts = getAvailableAccounts()
+      this.setData({ accounts, loading: false })
+      if (this.pendingOptions && Object.keys(this.pendingOptions).length) {
+        this.applyIncomingParams(this.pendingOptions)
+      }
     } catch (error) {
       console.error('加载账户失败:', error)
       this.setData({ loading: false })
       showToast('加载账户失败', 'error')
+    }
+  },
+
+  // 应用外部入参（兼容 id/name）
+  applyIncomingParams(options = {}) {
+    const fromInput = options.fromAccountId || options.fromAccountName
+    const toInput = options.toAccountId || options.toAccountName
+
+    const from = resolveAccount(this.data.accounts, fromInput)
+    const to = resolveAccount(this.data.accounts, toInput)
+
+    const dataUpdate = {}
+
+    if (from) {
+      const fromId = from._id || from.id
+      dataUpdate['formData.fromAccountId'] = fromId
+      dataUpdate.fromAccount = from
+    }
+    if (to) {
+      const toId = to._id || to.id
+      dataUpdate['formData.toAccountId'] = toId
+      dataUpdate.toAccount = to
+    }
+
+    if (Object.keys(dataUpdate).length) {
+      this.setData(dataUpdate)
+      // 清理潜在错误
+      if (dataUpdate['formData.fromAccountId']) this.clearFieldError('fromAccountId')
+      if (dataUpdate['formData.toAccountId']) this.clearFieldError('toAccountId')
     }
   },
 
@@ -349,6 +357,17 @@ Page({
     } finally {
       this.setData({ submitting: false })
     }
+  },
+
+  // 显示/隐藏切换
+  onEyeChange(e) {
+    const v = e.detail.value
+    const app = getApp()
+    const route = this.route
+    if (app.globalData && app.globalData.pageVisibility) {
+      app.globalData.pageVisibility[route] = v
+    }
+    this.setData({ pageMoneyVisible: v })
   },
 
   // 关闭选择器

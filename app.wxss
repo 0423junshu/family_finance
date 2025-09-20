@@ -3,6 +3,7 @@
 @import './styles/common.wxss';
 @import './styles/iconfont.wxss';
 @import './styles/navigation-fix.wxss';
+@import './styles/navigation-vars.wxss';
 
 /* TDesign 字体完全本地化 - 彻底阻止远程加载 */
 @font-face {

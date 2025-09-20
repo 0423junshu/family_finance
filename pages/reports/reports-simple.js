@@ -135,6 +135,23 @@ function getReportService() {
           }, 0);
           const totalAssets = totalCash + totalInvestment;
 
+          // 账户统计聚合（fallback）
+          const accMap = {};
+          list.forEach(tr => {
+            const aid = tr.accountId || tr.account || tr.accountName || '';
+            const aname = tr.accountName || tr.account || '未命名账户';
+            if (!aid && !aname) return;
+            const key = aid || aname;
+            if (!accMap[key]) {
+              accMap[key] = { id: aid || `acc_${key}`, name: aname, income: 0, expense: 0, count: 0 };
+            }
+            const amt = Number(tr.amount) || 0;
+            if (tr.type === 'income') accMap[key].income += amt;
+            else if (tr.type === 'expense') accMap[key].expense += amt;
+            accMap[key].count += 1;
+          });
+          const accountStats = Object.values(accMap);
+
           return {
             summary: { totalIncome, totalExpense, balance: totalIncome - totalExpense },
             categoryStats,
@@ -146,12 +163,13 @@ function getReportService() {
                 { name: '现金账户', amount: totalCash, color: '#4CD964' },
                 { name: '投资资产', amount: totalInvestment, color: '#FF9500' }
               ],
-              accounts: accounts.map(a => ({ id: a.id || a._id, name: a.name, balance: Number(a.balance) || 0 })),
+              accounts: accounts.map(a => ({ id: a.id || a._id, name: a.name, balance: Number(a.balance) || 0, icon: a.icon, color: a.color, typeName: a.typeName || a.type })),
               investments: investments.map(i => ({
                 id: i.id || i._id, name: i.name, currentValue: Number(i.currentValue ?? i.amount) || 0
               }))
             },
-            tagStats: { expense: [], income: [] }
+            tagStats: { expense: [], income: [] },
+            accountStats
           };
         } catch (err) {
           console.error('fallback generateReport 失败:', err);
@@ -174,7 +192,41 @@ function getReportService() {
  */
 
 Page({
+  // B2: setData wrapper - internal batching state
+  _b2_setDataQueue: null,
+  _b2_setDataTimer: null,
+
+  // B2: setData wrapper - shallow dirty-check + throttled batch
+  setDataSafe(patch, throttleMs = 16) {
+    try {
+      if (!patch || typeof patch !== 'object') return;
+      const dirty = {};
+      Object.keys(patch).forEach((k) => {
+        const nv = patch[k];
+        const ov = this.data && k in this.data ? this.data[k] : undefined;
+        if (nv !== ov) dirty[k] = nv;
+      });
+      const keys = Object.keys(dirty);
+      if (!keys.length) return;
+      this._b2_setDataQueue = Object.assign(this._b2_setDataQueue || {}, dirty);
+      if (this._b2_setDataTimer) return;
+      this._b2_setDataTimer = setTimeout(() => {
+        const q = this._b2_setDataQueue || {};
+        this._b2_setDataQueue = null;
+        this._b2_setDataTimer = null;
+        this.setData(q);
+      }, Math.max(0, throttleMs));
+    } catch (e) {
+      try { this.setData(patch); } catch (_) {}
+    }
+  },
+
   data: {
+    // 会话级金额可见性（默认隐藏）
+    pageMoneyVisible: false,
+    // 全局与每个TAB的显隐源（全局优先，其次TAB）
+    globalMoneyVisible: null, // null 表示未设全局，由各TAB决定；true/false 表示强制全局
+    tabVisible: { 0: false, 1: false, 2: false, 3: false, 4: false, 5: false },
     // 日期筛选
     dateRange: 'month', // 'month' | 'year' | 'custom'
     currentYear: new Date().getFullYear(),
@@ -222,15 +274,36 @@ Page({
     assetData: { totalAssets: 0, assetsDistribution: [], accounts: [], investments: [] },
     trendData: [],
     tagStats: { expense: [], income: [] },
+    accountStats: [],
+    accountType: 'expense',
+    accountStatsView: { expense: [], income: [] },
     consistencyResult: null,
     checkingConsistency: false,
     
     // 兼容性相关
     systemInfo: null,
-    canvasSupported: true
+    canvasSupported: true,
+    
+    // 顶部安全区 JS 兜底（默认关闭，仅问题机型开启）
+    useJsSafeTop: false,
+    paddingTopPx: 0
   },
 
   onLoad() {
+    // 会话级可见性初始化
+    try {
+      const app = getApp() || {};
+      const route = this.route;
+      const vmap = (app.globalData && app.globalData.pageVisibility) || {};
+      const v = (vmap && Object.prototype.hasOwnProperty.call(vmap, route)) ? !!vmap[route] : false;
+      this.setDataSafe({ 
+        pageMoneyVisible: v,
+        globalMoneyVisible: null,
+        ['tabVisible.' + (this.data.currentTab || 0)]: v
+      });
+      // 根据全局/当前TAB重算一次
+      this.recomputeVisibility && this.recomputeVisibility();
+    } catch (_) {}
     console.log('报表页面加载 - 修复版本 v3.9.3');
     
     // 获取系统信息
@@ -243,6 +316,76 @@ Page({
     this.safeTimeout(() => {
       this.loadReportData();
     }, 200);
+
+    // 顶部安全区兜底：注册窗口变化监听并尝试计算一次
+    try {
+      if (wx && wx.onWindowResize) {
+        wx.onWindowResize(this.updateSafeTop);
+      }
+      this.updateSafeTop && this.updateSafeTop();
+    } catch (_) {}
+  },
+
+  // 小眼睛点击（旧）：保留为兼容，但改为作用于当前TAB
+  onEyeToggle: function() {
+    // 兼容旧绑定：等价于对当前TAB进行切换
+    const idx = this.data.currentTab || 0;
+    this.onTabEyeToggle({ currentTarget: { dataset: { index: idx } } });
+  },
+
+  // 全局小眼睛：统一控制所有TAB（本统计周期）
+  onGlobalEyeToggle(e) {
+    const effective = !!this.data.pageMoneyVisible;
+    const next = !effective;
+    // 一次性同步：避免竞态
+    this.setData({ globalMoneyVisible: next, pageMoneyVisible: next });
+    try {
+      const app = getApp() || {};
+      app.globalData = app.globalData || {};
+      app.globalData.pageVisibility = app.globalData.pageVisibility || {};
+      app.globalData.pageVisibility[this.route] = next;
+    } catch (_) {}
+  },
+
+  // TAB内小眼睛：仅控制该TAB显隐，并清空全局强制
+  onTabEyeToggle(e) {
+    let idx = this.data.currentTab || 0;
+    try {
+      const ds = (e && e.currentTarget && e.currentTarget.dataset) || {};
+      if (ds.index !== undefined) idx = parseInt(ds.index) || idx;
+    } catch (_) {}
+    const cur = !!(this.data.tabVisible && this.data.tabVisible[idx]);
+    const nextTabVisible = !cur;
+    const g = this.data.globalMoneyVisible;
+    // 依据将生效的新源直接计算有效可见性，避免读取旧 this.data
+    const nextEffective = (g === null || g === undefined) ? nextTabVisible : !!g;
+    const patch = {};
+    patch['tabVisible.' + idx] = nextTabVisible;
+    patch['globalMoneyVisible'] = null; // 清除全局强制，回到TAB控制
+    patch['pageMoneyVisible'] = nextEffective;
+    this.setData(patch);
+    try {
+      const app = getApp() || {};
+      app.globalData = app.globalData || {};
+      app.globalData.pageVisibility = app.globalData.pageVisibility || {};
+      app.globalData.pageVisibility[this.route] = nextEffective;
+    } catch (_) {}
+  },
+
+  // 依据全局/当前TAB 计算实际展示可见性
+  recomputeVisibility() {
+    const g = this.data.globalMoneyVisible;
+    const idx = this.data.currentTab || 0;
+    const tv = this.data.tabVisible && this.data.tabVisible[idx];
+    const effective = (g === null || g === undefined) ? !!tv : !!g;
+    this.setDataSafe({ pageMoneyVisible: effective });
+    // 会话兜底存储有效状态（仅用于页面返回后恢复）
+    try {
+      const app = getApp() || {};
+      app.globalData = app.globalData || {};
+      app.globalData.pageVisibility = app.globalData.pageVisibility || {};
+      app.globalData.pageVisibility[this.route] = effective;
+    } catch (_) {}
   },
 
   /**
@@ -250,25 +393,28 @@ Page({
    */
   initSystemInfo() {
     try {
-      const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      const windowInfo = (wx.getWindowInfo && wx.getWindowInfo()) || (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {});
       console.log('窗口信息:', windowInfo);
       
-      this.setData({ systemInfo: windowInfo });
+      // B2: setData wrapper
+      this.setDataSafe({ systemInfo: windowInfo })
       
       // 检查Canvas支持
       const version = windowInfo.SDKVersion || '3.9.3';
       const versionNum = parseFloat(version);
       const canvasSupported = versionNum >= 2.9;
       
-      this.setData({ canvasSupported });
+      // B2: setData wrapper
+      this.setDataSafe({ canvasSupported })
       console.log('Canvas支持:', canvasSupported, '基础库版本:', version);
       
     } catch (error) {
       console.error('获取系统信息失败:', error);
-      this.setData({ 
+      // B2: setData wrapper
+      this.setDataSafe({ 
         systemInfo: { SDKVersion: '3.9.3' },
         canvasSupported: true 
-      });
+      })
     }
   },
 
@@ -293,7 +439,8 @@ Page({
       monthList.push(i + '月');
     }
     
-    this.setData({
+    // B2: setData wrapper
+    this.setDataSafe({
       currentYear: now.getFullYear(),
       currentMonth: now.getMonth(),
       showYear: now.getFullYear(),
@@ -304,7 +451,7 @@ Page({
       yearIndex: 5, // 当前年份索引
       monthList,
       monthIndex: now.getMonth()
-    });
+    })
   },
 
   /**
@@ -359,7 +506,8 @@ Page({
       this.setData({ currentTab: 0 });
     }
     // 同步更新dateRange
-    this.setData({ dateRange: range });
+    // B2: setData wrapper
+    this.setDataSafe({ dateRange: range })
 
     if (range === 'custom') {
       this.setData({ 
@@ -388,13 +536,14 @@ Page({
    * 关闭所有选择器
    */
   closeAllPickers() {
-    this.setData({
+    // B2: setData wrapper
+    this.setDataSafe({
       showYearPicker: false,
       showMonthPicker: false,
       showDateRangePicker: false,
       showOptions: false,
       showToolsMenu: false
-    });
+    })
   },
 
   /**
@@ -405,11 +554,12 @@ Page({
     this.closeAllPickers();
     
     const yearIndex = this.findYearIndex(this.data.currentYear);
-    this.setData({ 
+    // B2: setData wrapper
+    this.setDataSafe({ 
       showYearPicker: true,
       yearIndex: yearIndex,
       dateRange: 'year'
-    });
+    })
   },
 
   /**
@@ -447,12 +597,13 @@ Page({
     
     console.log('选择年份:', year, '索引:', yearIndex);
     
-    this.setData({ 
+    // B2: setData wrapper
+    this.setDataSafe({ 
       currentYear: year, 
       showYear: year,
       dateRange: 'year', 
       yearIndex: yearIndex
-    });
+    })
   },
 
   /**
@@ -460,7 +611,8 @@ Page({
    */
   confirmYearPicker() {
     console.log('确认年份选择');
-    this.setData({ showYearPicker: false });
+    // B2: setData wrapper
+    this.setDataSafe({ showYearPicker: false })
     this.loadReportData();
   },
 
@@ -470,11 +622,12 @@ Page({
   showMonthPicker() {
     console.log('显示月份选择器');
     this.closeAllPickers();
-    this.setData({ 
+    // B2: setData wrapper
+    this.setDataSafe({ 
       showMonthPicker: true,
       monthIndex: this.data.currentMonth,
       dateRange: 'month'
-    });
+    })
   },
 
   /**
@@ -655,17 +808,18 @@ Page({
     // 修正月份参数：currentMonth是0-based，交易列表页面期望1-based
     const displayMonth = (currentMonth ?? 0) + 1;
     
+    // B1: routing params encode/validate
     const q = [
-      `from=reports`,
-      `type=${type}`,
-      `category=${categoryName}`,
-      `range=${dateRange || ''}`,
-      `year=${currentYear || ''}`,
-      `month=${displayMonth}`,
-      `start=${customStartDate || ''}`,
-      `end=${customEndDate || ''}`
+      `from=${encodeURIComponent('reports')}`,
+      `type=${encodeURIComponent(type)}`,
+      `category=${encodeURIComponent(categoryName)}`,
+      `range=${encodeURIComponent(dateRange || '')}`,
+      `year=${encodeURIComponent(currentYear || '')}`,
+      `month=${encodeURIComponent(displayMonth)}`,
+      `start=${encodeURIComponent(customStartDate || '')}`,
+      `end=${encodeURIComponent(customEndDate || '')}`
     ].join('&');
-    
+
     console.log('跳转参数:', { type, categoryName, year: currentYear, month: displayMonth, range: dateRange });
     wx.navigateTo({ url: `/pages/transaction-list/transaction-list?${q}` });
   },
@@ -685,18 +839,53 @@ Page({
     const type = ds.type || 'expense';
     if (!tag) return;
     const { dateRange, currentYear, currentMonth, customStartDate, customEndDate } = this.data || {};
+    // B1: routing params encode/validate - month unify 1-based
+    const displayMonth = (currentMonth ?? 0) + 1;
     const q = [
-      `from=reports`,
+      `from=${encodeURIComponent('reports')}`,
       `type=${encodeURIComponent(type)}`,
       `tag=${encodeURIComponent(tag)}`,
       `range=${encodeURIComponent(dateRange || '')}`,
       `year=${encodeURIComponent(currentYear || '')}`,
-      `month=${encodeURIComponent(currentMonth ?? '')}`,
+      `month=${encodeURIComponent(displayMonth)}`,
       `start=${encodeURIComponent(customStartDate || '')}`,
       `end=${encodeURIComponent(customEndDate || '')}`
     ].join('&');
     wx.navigateTo({ url: `/pages/transaction-list/transaction-list?${q}` });
   },
+  // 账户统计卡片 → 交易记录筛选（携带 accounts、type、日期范围）
+  viewAccountTransactions(e) {
+    console.log('viewAccountTransactions 被调用:', e);
+    try {
+      const ds = (e && e.currentTarget && e.currentTarget.dataset) || (e && e.target && e.target.dataset) || {};
+      const accountId = ds.account || ds.id;
+      const type = (ds.type === 'income' || ds.type === 'expense') ? ds.type : 'expense';
+      if (!accountId) {
+        wx.showToast({ title: '账户ID缺失，无法跳转', icon: 'none' });
+        return;
+      }
+
+      const { dateRange, currentYear, currentMonth, customStartDate, customEndDate } = this.data || {};
+      const displayMonth = (currentMonth ?? 0) + 1;
+
+      const q = [
+        `from=${encodeURIComponent('reports')}`,
+        `type=${encodeURIComponent(type)}`,
+        `accounts=${encodeURIComponent(accountId)}`,
+        `range=${encodeURIComponent(dateRange || '')}`,
+        `year=${encodeURIComponent(currentYear || '')}`,
+        `month=${encodeURIComponent(displayMonth)}`,
+        `start=${encodeURIComponent(customStartDate || '')}`,
+        `end=${encodeURIComponent(customEndDate || '')}`
+      ].join('&');
+
+      console.log('账户跳转参数:', { accountId, type, dateRange, year: currentYear, month: displayMonth, start: customStartDate, end: customEndDate, q });
+      wx.navigateTo({ url: `/pages/transaction-list/transaction-list?${q}` });
+    } catch (err) {
+      console.warn('viewAccountTransactions 失败:', err && err.message);
+    }
+  },
+
   onTabChange(e) {
     console.log('页签切换事件:', e);
     
@@ -724,6 +913,8 @@ Page({
     }
     
     this.setData({ currentTab: index });
+    // TAB切换后，依据现有源重算一次
+    this.recomputeVisibility && this.recomputeVisibility();
     
     // 延迟更新图表
     this.safeTimeout(() => {
@@ -749,6 +940,20 @@ Page({
     if (type === 'expense' || type === 'income') {
       this.setData({ categoryType: type });
     }
+  },
+
+  /**
+   * 账户统计类型切换（支出/收入）
+   */
+  onAccountTypeChange(e) {
+    let type = 'expense';
+    try {
+      const ds = (e && e.currentTarget && e.currentTarget.dataset) || (e && e.target && e.target.dataset) || {};
+      if (ds.type === 'income' || ds.type === 'expense') type = ds.type;
+    } catch (error) {
+      console.error('解析账户统计类型失败:', error);
+    }
+    this.setData({ accountType: type });
   },
 
   /**
@@ -833,11 +1038,12 @@ Page({
       this.validateProcessedData(keyedData);
 
       // 更新页面数据
-      this.setData({
+      // B2: setData wrapper
+      this.setDataSafe({
         loading: false,
         isEmpty: this.isDataEmpty(keyedData),
         ...keyedData
-      });
+      })
 
       // 延迟更新图表
       this.safeTimeout(() => {
@@ -847,11 +1053,12 @@ Page({
     } catch (error) {
       console.error('加载报表数据失败:', error);
       
-      this.setData({
+      // B2: setData wrapper
+      this.setDataSafe({
         loading: false,
         isEmpty: true,
         errorMessage: error.message || '加载数据失败'
-      });
+      })
 
       wx.showToast({
         title: '加载数据失败',
@@ -904,52 +1111,41 @@ Page({
   /**
    * 构建查询参数
    */
+  // B3: date utils unify
   buildQueryParams() {
     const { dateRange, currentYear, currentMonth, customStartDate, customEndDate } = this.data;
-    
-    let params = { dateRange };
-    
+    const dutils = require('../../utils/date-range');
+
+    const params = { dateRange };
+
     if (dateRange === 'month') {
-      const startDate = new Date(currentYear, currentMonth, 1);
-      const endDate = new Date(currentYear, currentMonth + 1, 0);
-      
-      // 验证日期有效性
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        throw new Error(`无效的月份参数: year=${currentYear}, month=${currentMonth}`);
+      const { startDate, endDate } = dutils.buildMonthRange(currentYear, currentMonth);
+      if (!dutils.isValidDate(startDate) || !dutils.isValidDate(endDate)) {
+        throw new Error(`无效的月份参数: year=${currentYear}, month0=${currentMonth}`);
       }
-      
-      params.startDate = startDate.toISOString().slice(0, 10);
-      params.endDate = endDate.toISOString().slice(0, 10);
+      params.startDate = startDate;
+      params.endDate = endDate;
       params.currentYear = currentYear;
       params.currentMonth = currentMonth;
     } else if (dateRange === 'year') {
-      const startDate = new Date(currentYear, 0, 1);
-      const endDate = new Date(currentYear, 11, 31);
-      
-      // 验证日期有效性
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      const { startDate, endDate } = dutils.buildYearRange(currentYear);
+      if (!dutils.isValidDate(startDate) || !dutils.isValidDate(endDate)) {
         throw new Error(`无效的年份参数: year=${currentYear}`);
       }
-      
-      params.startDate = startDate.toISOString().slice(0, 10);
-      params.endDate = endDate.toISOString().slice(0, 10);
+      params.startDate = startDate;
+      params.endDate = endDate;
       params.currentYear = currentYear;
     } else if (dateRange === 'custom') {
-      // 验证自定义日期格式
-      const startDate = new Date(customStartDate);
-      const endDate = new Date(customEndDate);
-      
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      // customStartDate/customEndDate 已为 YYYY-MM-DD；直接校验
+      if (!dutils.isValidDate(customStartDate) || !dutils.isValidDate(customEndDate)) {
         throw new Error(`无效的自定义日期: startDate=${customStartDate}, endDate=${customEndDate}`);
       }
-      
-      // 同时传入start/end和customStart/customEnd，兼容服务端校验
       params.startDate = customStartDate;
       params.endDate = customEndDate;
       params.customStartDate = customStartDate;
       params.customEndDate = customEndDate;
     }
-    
+
     return params;
   },
 
@@ -1114,7 +1310,8 @@ Page({
       categoryStats: reportData.categoryStats || { expense: [], income: [] },
       assetData: reportData.assetData || { totalAssets: 0, assetsDistribution: [], accounts: [], investments: [] },
       trendData: fillTrendData(reportData),
-      tagStats: reportData.tagStats || { expense: [], income: [] }
+      tagStats: reportData.tagStats || { expense: [], income: [] },
+      accountStats: reportData.accountStats || []
     };
   },
 
@@ -1142,6 +1339,147 @@ Page({
           income: process(res.categoryStats.income, 'income'),
         };
       }
+      // 构建账户统计视图（与分类统计一致：amount/percentage/count）
+      try {
+        const acc = Array.isArray(res.accountStats) ? res.accountStats : [];
+        const totalExpense = (res.summary && Number(res.summary.totalExpense)) || 0;
+        const totalIncome = (res.summary && Number(res.summary.totalIncome)) || 0;
+        const toNum = (v) => Number(v) || 0;
+        // 构建账户信息索引，用于补充 icon 与颜色
+        const acctList = (res.assetData && Array.isArray(res.assetData.accounts)) ? res.assetData.accounts : [];
+        const accountInfoMap = acctList.reduce((m, a) => {
+          const key = a && (a.id || a._id);
+          if (key) m[key] = a;
+          return m;
+        }, {});
+        const palette = ['#4CD964','#FF9500','#007AFF','#FF3B30','#8E8E93','#5856D6','#34C759','#FF2D55','#AF52DE','#5AC8FA'];
+        const hashStr = (s) => {
+          let h = 0;
+          const str = String(s || '');
+          for (let i=0;i<str.length;i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+          return h;
+        };
+        const getColor = (name, typeName) => {
+          const idx = hashStr((typeName || '') + (name || '')) % palette.length;
+          return palette[idx];
+        };
+        // 固定图标映射：优先使用账户类型，其次从名称关键词推断
+        const getIcon = (info = {}, name = '') => {
+          const t = (info.typeName || info.type || '').toLowerCase();
+          const n = String(name || '').toLowerCase();
+          // 类型优先
+          if (t.includes('bank') || t.includes('银行卡') || t.includes('借记') || t.includes('信用')) return '🏦';
+          if (t.includes('cash') || t.includes('现金')) return '💵';
+          if (t.includes('alipay')) return '🅰️';
+          if (t.includes('wechat')) return '🟩';
+          if (t.includes('fund') || t.includes('投资') || t.includes('理财')) return '📈';
+          if (t.includes('card') || t.includes('储蓄')) return '💳';
+          if (t.includes('wallet') || t.includes('钱包')) return '👛';
+          // 名称关键词兜底
+          if (n.includes('工行') || n.includes('工商') || n.includes('icbc')) return '🏦';
+          if (n.includes('农行') || n.includes('农业') || n.includes('abc')) return '🌾';
+          if (n.includes('招行') || n.includes('cmb')) return '🏧';
+          if (n.includes('建行') || n.includes('ccb')) return '🏗️';
+          if (n.includes('现金') || n.includes('cash')) return '💵';
+          if (n.includes('支付宝') || n.includes('alipay')) return '🅰️';
+          if (n.includes('微信') || n.includes('wechat')) return '🟩';
+          if (n.includes('基金') || n.includes('理财') || n.includes('投资') || n.includes('fund')) return '📈';
+          // 通用银行卡
+          return '💳';
+        };
+        res.accountStatsView = {
+          expense: acc
+            .map((it, idx) => {
+              const amount = toNum(it.expense);
+              if (amount <= 0) return null;
+              const percentage = totalExpense > 0 ? Math.round((amount / totalExpense) * 100) : 0;
+              const info = accountInfoMap[it.id || it._id] || {};
+              const iconVal = (info && info.icon) ? info.icon : getIcon(info, it.name || info.name);
+              const isImg = typeof iconVal === 'string' && /(\.png|\.jpg|\.jpeg|\.svg|^https?:|^wxfile:)/i.test(iconVal);
+              // 颜色优先级：service 透传(it.color) > 资产账户(info.color/bgColor/themeColor) > 稳定回退
+              const colorVal = it.color || (info && (info.color || info.bgColor || info.themeColor)) || getColor(it.name || info.name, info.typeName);
+              return {
+                id: it.id || it._id || `acc_exp_${idx}`,
+                name: it.name || info.name || '未命名账户',
+                amount,
+                percentage,
+                count: toNum(it.countExpense || it.count),
+                icon: iconVal,
+                iconType: isImg ? 'image' : 'text',
+                color: colorVal
+              };
+            })
+            .filter(Boolean)
+            .sort((a, b) => (b.amount || 0) - (a.amount || 0)),
+          income: acc
+            .map((it, idx) => {
+              const amount = toNum(it.income);
+              if (amount <= 0) return null;
+              const percentage = totalIncome > 0 ? Math.round((amount / totalIncome) * 100) : 0;
+              const info = accountInfoMap[it.id || it._id] || {};
+              const iconVal = (info && info.icon) ? info.icon : getIcon(info, it.name || info.name);
+              const isImg = typeof iconVal === 'string' && /(\.png|\.jpg|\.jpeg|\.svg|^https?:|^wxfile:)/i.test(iconVal);
+              const colorVal2 = it.color || (info && (info.color || info.bgColor || info.themeColor)) || getColor(it.name || info.name, info.typeName);
+              return {
+                id: it.id || it._id || `acc_inc_${idx}`,
+                name: it.name || info.name || '未命名账户',
+                amount,
+                percentage,
+                count: toNum(it.countIncome || it.count),
+                icon: iconVal,
+                iconType: isImg ? 'image' : 'text',
+                color: colorVal2
+              };
+            })
+            .filter(Boolean)
+            .sort((a, b) => (b.amount || 0) - (a.amount || 0))
+        };
+      } catch (_) {}
+      // 仅在前面的 accountStatsView 不存在或为空时，兜底构建；否则保留服务层/资产数据生成的 icon/color
+      try {
+        const hasExisting =
+          res.accountStatsView &&
+          Array.isArray(res.accountStatsView.expense) && res.accountStatsView.expense.length > 0 ||
+          Array.isArray(res.accountStatsView.income) && res.accountStatsView.income.length > 0;
+
+        if (!hasExisting) {
+          const accArr = Array.isArray(res.accountStats) ? res.accountStats : [];
+          const totalExp = (res.summary && Number(res.summary.totalExpense)) || 0;
+          const totalInc = (res.summary && Number(res.summary.totalIncome)) || 0;
+          const toPct = (amt, tot) => (tot > 0 ? Math.round((amt / tot) * 100) : 0);
+
+          // 若不存在配色/图标函数，提供兜底
+          const safeGetColor = (typeof getColor === 'function')
+            ? getColor
+            : (_name, type) => (type === 'expense' ? '#DC2626' : '#16A34A');
+          const safeGetIcon = (typeof getIcon === 'function')
+            ? getIcon
+            : (_info, _name) => '💳';
+
+          const build = (isExpense) => accArr.map(it => {
+            const displayName = it.name || String(it.id || '');
+            const amount = isExpense ? (Number(it.expense) || 0) : (Number(it.income) || 0);
+            return {
+              ...it,
+              displayName,
+              amount,
+              percentage: toPct(amount, isExpense ? totalExp : totalInc),
+              // 保留已有的颜色与图标；仅在缺失时兜底
+              color: it.color || safeGetColor(displayName, isExpense ? 'expense' : 'income'),
+              icon: it.icon || safeGetIcon({ type: 'account', name: displayName }, displayName)
+            };
+          }).sort((a, b) => (b.amount - a.amount));
+
+          res.accountStatsView = {
+            expense: build(true),
+            income: build(false)
+          };
+        }
+      } catch (e) {
+        try { console.warn('[report] 兜底构建账户统计视图失败：', e && e.message); } catch (_) {}
+        res.accountStatsView = res.accountStatsView || { expense: [], income: [] };
+      }
+
       return res;
     } catch (e) {
       console.warn('enhanceCategoryStats 失败:', e);
@@ -1969,18 +2307,46 @@ Page({
     console.log('数据一致性检查');
     this.closeAllPickers();
     
-    this.setData({ checkingConsistency: true });
+    // B2: setData wrapper
+    this.setDataSafe({ checkingConsistency: true })
     
     this.safeTimeout(() => {
-      this.setData({
+      // B2: setData wrapper
+      this.setDataSafe({
         checkingConsistency: false,
         consistencyResult: {
           needFix: false,
           message: '数据一致性检查通过'
         }
-      });
+      })
     }, 2000);
   },
+
+  // ========== 顶部安全区 JS 兜底（与首页一致） ==========
+  // 注意：默认 useJsSafeTop=false 不生效；仅在问题机型置为 true。
+  updateSafeTop: (() => {
+    let timer = null;
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+    const BASE_PX = 12;
+    const EXTRA_PX = 16;
+    const MIN_PX = 10;
+    const MAX_PX = 88;
+    return function() {
+      if (!this || !this.setData) return;
+      if (!this.data || !this.data.useJsSafeTop) return;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        try {
+          const info = (wx.getWindowInfo && wx.getWindowInfo()) || (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {});
+          const statusBar = (info && (info.statusBarHeight || (info.safeAreaInsets && info.safeAreaInsets.top) || 0)) || 0;
+          const padding = clamp(BASE_PX + EXTRA_PX + statusBar, MIN_PX, MAX_PX);
+          this.setData({ paddingTopPx: padding });
+        } catch (e) {
+          this.setData({ paddingTopPx: 24 });
+        }
+      }, 120);
+    }
+  })(),
 
   /**
    * 页面生命周期
@@ -2001,6 +2367,12 @@ Page({
     if (this._chartTimer) {
       clearTimeout(this._chartTimer);
     }
+    // 注销窗口监听
+    try {
+      if (wx && wx.offWindowResize) {
+        wx.offWindowResize(this.updateSafeTop);
+      }
+    } catch (_) {}
   },
 
   onPullDownRefresh() {

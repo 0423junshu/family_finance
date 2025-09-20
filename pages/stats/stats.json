@@ -1,4 +1,8 @@
 {
+  "usingComponents": {
+    "navigation-bar": "/components/navigation-bar/navigation-bar",
+    "eye-toggle": "/components/common/eye-toggle/eye-toggle"
+  },
   "navigationStyle": "custom",
   "backgroundColor": "#F5F5F5"
 }

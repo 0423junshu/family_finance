@@ -6,7 +6,7 @@ const collaborationHelper = require('../../utils/collaborationHelper.js');
 Page({
   data: {
     userInfo: {
-      avatarUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+      avatarUrl: '/images/default-avatar.svg',
       nickName: '用户',
       phone: ''
     },
@@ -83,10 +83,12 @@ Page({
 
   // 加载用户信息
   loadUserInfo() {
-    const userInfo = wx.getStorageSync('userInfo')
-    if (userInfo) {
-      this.setData({ userInfo })
+    const userInfo = wx.getStorageSync('userInfo') || {};
+    // 本地兜底：无头像或加载失败时使用本地占位
+    if (!userInfo.avatarUrl) {
+      userInfo.avatarUrl = '/images/default-avatar.svg';
     }
+    this.setData({ userInfo });
   },
 
   // 设置项点击
@@ -392,6 +394,14 @@ Page({
   /**
    * 创建或加入家庭
    */
+  // 头像加载失败回退
+  onAvatarError() {
+    const cur = this.data.userInfo || {};
+    if (cur.avatarUrl !== '/images/default-avatar.svg') {
+      this.setData({ 'userInfo.avatarUrl': '/images/default-avatar.svg' });
+    }
+  },
+
   onCreateOrJoinFamily() {
     console.log('[DEBUG] 点击创建或加入家庭');
     wx.showActionSheet({

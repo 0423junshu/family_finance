@@ -425,21 +425,20 @@ Page({
   // 生成导出内容
   generateExportContent(data, format) {
     if (format === 'excel') {
-      // CSV格式
-      let csv = '日期,类型,分类,账户,金额,描述
-'
+      // CSV格式（模板字符串）
+      let csv = `日期,类型,分类,账户,金额,描述
+`
       data.forEach(item => {
         csv += `${item.date},${item.type === 'income' ? '收入' : '支出'},${item.category},${item.account},${(item.amount / 100).toFixed(2)},${item.description || ''}
 `
       })
       return csv
     } else {
-      // 文本格式
-      let text = '交易记录导出
-'
-      text += '================
-
-'
+      // 文本格式（模板字符串）
+      let text = `交易记录导出
+`
+      text += `================
+`
       data.forEach(item => {
         text += `日期: ${item.date}
 `
@@ -453,8 +452,7 @@ Page({
 `
         text += `描述: ${item.description || '无'}
 `
-        text += '----------------
-'
+        text += '----------------'
       })
       return text
     }
@@ -463,19 +461,18 @@ Page({
   // 生成资产内容
   generateAssetsContent(accounts, format) {
     if (format === 'excel') {
-      let csv = '账户名称,账户类型,当前余额,交易笔数
-'
+      let csv = `账户名称,账户类型,当前余额,交易笔数
+`
       accounts.forEach(account => {
         csv += `${account.name},${account.type},${(account.balance / 100).toFixed(2)},${account.transactionCount}
 `
       })
       return csv
     } else {
-      let text = '资产数据导出
-'
-      text += '================
-
-'
+      let text = `资产数据导出
+`
+      text += `================
+`
       accounts.forEach(account => {
         text += `账户: ${account.name}
 `
@@ -485,8 +482,7 @@ Page({
 `
         text += `交易笔数: ${account.transactionCount}
 `
-        text += '----------------
-'
+        text += '----------------'
       })
       return text
     }
@@ -526,8 +522,8 @@ Page({
   // 生成报表内容
   generateReportContent(report, format) {
     if (format === 'excel') {
-      let csv = '项目,金额
-'
+      let csv = `项目,金额
+`
       csv += `总收入,${(report.totalIncome / 100).toFixed(2)}
 `
       csv += `总支出,${(report.totalExpense / 100).toFixed(2)}
@@ -537,21 +533,18 @@ Page({
       csv += `交易笔数,${report.transactionCount}
 
 `
-      csv += '分类统计
-'
-      csv += '分类,收入,支出,笔数
-'
+      csv += '分类统计'
+      csv += '分类,收入,支出,笔数'
       Object.entries(report.categoryStats).forEach(([category, stats]) => {
         csv += `${category},${(stats.income / 100).toFixed(2)},${(stats.expense / 100).toFixed(2)},${stats.count}
 `
       })
       return csv
     } else {
-      let text = '财务报表
-'
-      text += '================
-
-'
+      let text = `财务报表
+`
+      text += `================
+`
       text += `总收入: ¥${(report.totalIncome / 100).toFixed(2)}
 `
       text += `总支出: ¥${(report.totalExpense / 100).toFixed(2)}
@@ -561,10 +554,8 @@ Page({
       text += `交易笔数: ${report.transactionCount}
 
 `
-      text += '分类统计:
-'
-      text += '----------------
-'
+      text += '分类统计:'
+      text += '----------------'
       Object.entries(report.categoryStats).forEach(([category, stats]) => {
         text += `${category}:
 `

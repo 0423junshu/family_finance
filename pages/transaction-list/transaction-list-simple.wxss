@@ -1,3 +1,4 @@
+@import '/styles/icons.wxss';
 /* pages/transaction-list/transaction-list-simple.wxss */
 @import "../../styles/common.wxss";
 

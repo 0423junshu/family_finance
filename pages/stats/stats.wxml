@@ -30,20 +30,27 @@
   </view>
 
   <!-- 统计概览 -->
+  <view class="summary-header" style="display:flex;align-items:center;justify-content:space-between;padding: 8rpx 12rpx 0;">
+    <text class="summary-title">统计概览</text>
+    <eye-toggle visible="{{pageMoneyVisible}}" bind:change="onEyeChange" />
+  </view>
   <view class="summary-card">
     <view class="summary-item">
       <text class="summary-label">总收入</text>
-      <text class="summary-value income">+{{summary.totalIncomeDisplay}}</text>
+      <text class="summary-value income" wx:if="{{pageMoneyVisible}}">+{{summary.totalIncomeDisplay}}</text>
+      <text class="summary-value income" wx:else>***</text>
     </view>
     <view class="summary-item">
       <text class="summary-label">总支出</text>
-      <text class="summary-value expense">-{{summary.totalExpenseDisplay}}</text>
+      <text class="summary-value expense" wx:if="{{pageMoneyVisible}}">-{{summary.totalExpenseDisplay}}</text>
+      <text class="summary-value expense" wx:else>***</text>
     </view>
     <view class="summary-item">
       <text class="summary-label">结余</text>
-      <text class="summary-value {{summary.balance >= 0 ? 'income' : 'expense'}}">
+      <text class="summary-value {{summary.balance >= 0 ? 'income' : 'expense'}}" wx:if="{{pageMoneyVisible}}">
         <block wx:if="{{summary.balance >= 0}}">+</block>{{summary.balanceDisplay}}
       </text>
+      <text class="summary-value {{summary.balance >= 0 ? 'income' : 'expense'}}" wx:else>***</text>
     </view>
   </view>
 
@@ -58,7 +65,8 @@
       >
         <view class="category-info">
           <text class="category-name">{{item.name}}</text>
-          <text class="category-amount">{{item.amountDisplay}}</text>
+          <text class="category-amount" wx:if="{{pageMoneyVisible}}">{{item.amountDisplay}}</text>
+          <text class="category-amount" wx:else>***</text>
         </view>
         <view class="category-bar">
           <view 

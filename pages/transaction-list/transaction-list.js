@@ -1,14 +1,24 @@
-// pages/transaction-list/transaction-list.js
+ // pages/transaction-list/transaction-list.js
 const { getTransactions } = require('../../services/transaction-simple')
 const { formatDate, formatAmount } = require('../../utils/formatter')
 const { showLoading, hideLoading, showToast } = require('../../utils/uiUtil')
 const { fixAugust31InMiniProgram } = require('../../utils/fix-august31-records')
+const dutils = require('../../utils/date-range') // B3: date utils unify
+const privacyScope = require('../../services/privacyScope')
 
 Page({
+  // B2: setData wrapper - internal state for batching
+  _b2_setDataQueue: null,
+  _b2_setDataTimer: null,
+
   data: {
+    // 页面级金额可见性（受控，持久化于 privacyScope）
+    pageMoneyVisible: true,
     loading: true,
     transactions: [],
     filteredTransactions: [],
+    // 分类图标映射（由 storage categories 构建：按 id 与 name 双键）
+    categoryIconMap: {},
     
     // 筛选条件
     filters: {
@@ -17,12 +27,15 @@ Page({
       tag: 'all',
       dateRange: 'month', // week, month, quarter, year, custom
       startDate: '',
-      endDate: ''
+      endDate: '',
+      accounts: [] // 多选账户：id 数组
     },
     
     // 分类列表
     categories: [],
     availableTags: [],
+    // 账户列表（用于账户多选筛选）
+    accounts: [],
     
     // UI状态
     showFilterPanel: false,
@@ -30,6 +43,8 @@ Page({
     datePickerType: '', // start, end
     showCategoryDropdown: false,
     showTagDropdown: false,
+    showAccountDropdown: false,
+    selectedAccountLabel: '全部账户',
     
     // 统计数据
     totalIncome: 0,
@@ -51,46 +66,97 @@ Page({
   },
 
   onLoad(options) {
+    // 初始化本页面的金额可见性：优先页面覆盖，否则回退全局默认
+    try {
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route);
+      const visible = privacyScope.getEffectiveVisible(route || 'pages/transaction-list/transaction-list');
+      this.setData({ pageMoneyVisible: !!visible });
+    } catch (e) { /* no-op */ }
     console.log('交易列表页面加载，参数:', options)
-    
-    // 获取传入的筛选参数
+
+    // B1: routing params encode/validate - decode & validate
+    const safe = (v) => typeof v === 'string' ? decodeURIComponent(v) : v
+    const isValidType = (t) => ['all','income','expense'].includes(t)
+    const isValidRange = (r) => ['week','month','quarter','year','custom'].includes(r)
+    const toInt = (v, d = NaN) => {
+      const n = parseInt(v, 10)
+      return Number.isFinite(n) ? n : d
+    }
+    const isDate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)
+
     const updates = {}
-    
+
+    // type/category/tag/range
     if (options.type) {
-      updates['filters.type'] = options.type
+      const t = safe(options.type)
+      updates['filters.type'] = isValidType(t) ? t : 'all'
+      if (!isValidType(t)) wx.showToast({ title: '无效type，已回退为全部', icon: 'none' })
     }
     if (options.category) {
-      updates['filters.category'] = options.category
+      updates['filters.category'] = safe(options.category)
     }
     if (options.tag) {
-      updates['filters.tag'] = options.tag
+      updates['filters.tag'] = safe(options.tag)
     }
-    if (options.startDate && options.endDate) {
-      updates['filters.startDate'] = options.startDate
-      updates['filters.endDate'] = options.endDate
+    if (options.range) {
+      const r = safe(options.range)
+      updates['filters.dateRange'] = isValidRange(r) ? r : 'month'
+      if (!isValidRange(r)) wx.showToast({ title: '无效range，已回退为本月', icon: 'none' })
+    }
+
+    // start/end
+    const start = safe(options.start)
+    const end = safe(options.end)
+    if (start && end && isDate(start) && isDate(end)) {
+      updates['filters.startDate'] = start
+      updates['filters.endDate'] = end
       updates['filters.dateRange'] = 'custom'
-      console.log(`从URL参数设置自定义日期范围: ${options.startDate} 到 ${options.endDate}`)
+      console.log(`从URL参数设置自定义日期范围: ${start} 到 ${end}`)
     }
-    
-    // 设置年月信息
-    if (options.year && options.month) {
-      updates.currentYear = parseInt(options.year)
-      updates.currentMonth = parseInt(options.month) - 1 // JavaScript月份从0开始
-      updates.selectedYear = parseInt(options.year)
-      updates.selectedMonth = parseInt(options.month) - 1
+
+    // 年月（1-based -> 0-based）
+    const y = toInt(safe(options.year))
+    const m = toInt(safe(options.month))
+    if (Number.isFinite(y) && Number.isFinite(m) && m >= 1 && m <= 12) {
+      updates.currentYear = y
+      updates.currentMonth = m - 1
+      updates.selectedYear = y
+      updates.selectedMonth = m - 1
     }
-    
-    // 设置页面标题
+
+    // 账户多选参数（accounts=id1,id2）
+    if (options.accounts) {
+      const accStr = safe(options.accounts)
+      const ids = accStr.split(',').map(s => s.trim()).filter(Boolean)
+      if (ids.length) {
+        updates['filters.accounts'] = ids
+      }
+    }
+
+    // 标题
     if (options.title) {
-      wx.setNavigationBarTitle({
-        title: decodeURIComponent(options.title)
-      })
+      wx.setNavigationBarTitle({ title: safe(options.title) })
     }
-    
+
     if (Object.keys(updates).length) {
       this.setData(updates)
     }
-    
+
+    // B3: date utils unify - 如果通过URL设置了年月且未设置自定义范围，则补齐该月的起止日期
+    if (
+      updates.currentYear != null &&
+      updates.currentMonth != null &&
+      !(updates['filters.dateRange'] === 'custom' && updates['filters.startDate'] && updates['filters.endDate'])
+    ) {
+      const monthRange = dutils.buildMonthRange(updates.currentYear, updates.currentMonth) // month 为 0-based
+      if (monthRange && monthRange.start && monthRange.end) {
+        this.setData({
+          'filters.startDate': this.data.filters.startDate || monthRange.start,
+          'filters.endDate': this.data.filters.endDate || monthRange.end
+        })
+      }
+    }
+
     this.initPage()
   },
 
@@ -98,10 +164,46 @@ Page({
     this.loadTransactions()
   },
 
+  // B2: setData wrapper - shallow dirty-check and throttled batch
+  setDataSafe(patch, throttleMs = 16) {
+    try {
+      if (!patch || typeof patch !== 'object') return;
+
+      // 脏检查：仅保留实际变更的字段
+      const dirty = {};
+      Object.keys(patch).forEach((k) => {
+        const nv = patch[k];
+        const ov = this.data && k in this.data ? this.data[k] : undefined;
+        // 仅做浅比较；对象/数组引用变化视为变更
+        if (nv !== ov) dirty[k] = nv;
+      });
+
+      const keys = Object.keys(dirty);
+      if (!keys.length) return;
+
+      // 合并队列
+      this._b2_setDataQueue = Object.assign(this._b2_setDataQueue || {}, dirty);
+
+      // 节流调度
+      if (this._b2_setDataTimer) return;
+      this._b2_setDataTimer = setTimeout(() => {
+        const q = this._b2_setDataQueue || {};
+        this._b2_setDataQueue = null;
+        this._b2_setDataTimer = null;
+        // 实际提交
+        this.setData(q);
+      }, Math.max(0, throttleMs));
+    } catch (e) {
+      // 兜底回退使用原始 setData，确保功能不受影响
+      try { this.setData(patch); } catch (_) {}
+    }
+  },
+
   // 初始化页面
   async initPage() {
     this.initDateRange()
     await this.loadCategories()
+    await this.loadAccounts()
     await this.loadTransactions()
   },
 
@@ -170,65 +272,40 @@ Page({
         console.log(`=== 本周计算完成 ===`)
         break
       case 'month':
-        // 完全重写月份边界计算逻辑，确保每个月份的起始和结束日期正确对应
-        let monthYear, monthIndex
-        if (targetYear && targetMonth !== undefined) {
-          monthYear = targetYear
-          monthIndex = targetMonth
-        } else {
-          monthYear = currentYear
-          monthIndex = currentMonth
-        }
-        
-        // 月初：该月第一天 00:00:00
-        const monthStart = new Date(monthYear, monthIndex, 1)
-        monthStart.setHours(0, 0, 0, 0)
-        startDate = formatDateString(monthStart)
-        
-        // 月末：该月最后一天 23:59:59
-        // 使用 new Date(year, month + 1, 0) 获取当月最后一天
-        const monthEnd = new Date(monthYear, monthIndex + 1, 0)
-        monthEnd.setHours(23, 59, 59, 999)
-        endDate = formatDateString(monthEnd)
-        
-        // 验证日期计算的正确性
-        const monthName = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'][monthIndex]
-        console.log(`月份计算验证: ${monthYear}年${monthName}`)
-        console.log(`- 月初: ${monthStart.toDateString()} -> ${startDate}`)
-        console.log(`- 月末: ${monthEnd.toDateString()} -> ${endDate}`)
-        console.log(`- 该月天数: ${monthEnd.getDate()}天`)
-        
-        // 特别验证关键月份的边界
-        if (monthIndex === 6) { // 7月
-          console.log(`✓ 7月验证: 应为${monthYear}-07-01~${monthYear}-07-31，实际为${startDate}~${endDate}`)
-        } else if (monthIndex === 7) { // 8月
-          console.log(`✓ 8月验证: 应为${monthYear}-08-01~${monthYear}-08-31，实际为${startDate}~${endDate}`)
-        } else if (monthIndex === 8) { // 9月
-          console.log(`✓ 9月验证: 应为${monthYear}-09-01~${monthYear}-09-30，实际为${startDate}~${endDate}`)
+        // B3: date utils unify - 月份范围使用工具统一计算（0-based month）
+        {
+          const mYear = (targetYear && (targetMonth !== undefined)) ? targetYear : currentYear
+          const mIndex = (targetYear && (targetMonth !== undefined)) ? targetMonth : currentMonth
+          const mr = dutils.buildMonthRange(mYear, mIndex)
+          startDate = mr.start
+          endDate = mr.end
+
+          const monthName = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'][mIndex]
+          console.log(`月份计算验证: ${mYear}年${monthName}`)
+          console.log(`- 月初 -> ${startDate}`)
+          console.log(`- 月末 -> ${endDate}`)
         }
         break
       case 'quarter':
-        // 修复季度计算逻辑
-        const currentQuarterMonth = Math.floor(currentMonth / 3) * 3
-        const quarterStart = new Date(currentYear, currentQuarterMonth, 1)
-        quarterStart.setHours(0, 0, 0, 0)
-        const quarterEnd = new Date(currentYear, currentQuarterMonth + 3, 0)
-        quarterEnd.setHours(23, 59, 59, 999)
-        startDate = formatDateString(quarterStart)
-        endDate = formatDateString(quarterEnd)
-        
-        console.log(`季度计算: 第${Math.floor(currentMonth / 3) + 1}季度，范围: ${startDate} 到 ${endDate}`)
+        // B3: date utils unify - 季度范围使用月份工具组合
+        {
+          const qYear = currentYear
+          const qStartMonth0 = Math.floor(currentMonth / 3) * 3
+          const r1 = dutils.buildMonthRange(qYear, qStartMonth0)
+          const r2 = dutils.buildMonthRange(qYear, qStartMonth0 + 2)
+          startDate = r1.start
+          endDate = r2.end
+          console.log(`季度计算: 第${Math.floor(currentMonth / 3) + 1}季度，范围: ${startDate} 到 ${endDate}`)
+        }
         break
       case 'year':
-        // 修复年度计算逻辑
-        const yearStart = new Date(currentYear, 0, 1)
-        yearStart.setHours(0, 0, 0, 0)
-        const yearEnd = new Date(currentYear, 11, 31)
-        yearEnd.setHours(23, 59, 59, 999)
-        startDate = formatDateString(yearStart)
-        endDate = formatDateString(yearEnd)
-        
-        console.log(`年度计算: ${currentYear}年，范围: ${startDate} 到 ${endDate}`)
+        // B3: date utils unify - 年范围用工具计算
+        {
+          const yr = dutils.buildYearRange(currentYear)
+          startDate = yr.start
+          endDate = yr.end
+          console.log(`年度计算: ${currentYear}年，范围: ${startDate} 到 ${endDate}`)
+        }
         break
       case 'custom':
         // 修复自定义日期逻辑，确保日期选择器正常工作
@@ -259,6 +336,26 @@ Page({
     
     console.log(`日期范围计算 - 类型: ${this.data.filters.dateRange}, 开始: ${startDate}, 结束: ${endDate}`)
     
+    // 兜底：严防将 undefined 写入 data（会触发 setData 警告）
+    if (!startDate || !endDate) {
+      try {
+        const today2 = new Date();
+        const mr2 = dutils.buildMonthRange(today2.getFullYear(), today2.getMonth());
+        startDate = startDate || (mr2 && mr2.start);
+        endDate = endDate || (mr2 && mr2.end);
+      } catch (e) {
+        const t = new Date();
+        const ys = t.getFullYear();
+        const ms = String(t.getMonth() + 1).padStart(2, '0');
+        startDate = startDate || `${ys}-${ms}-01`;
+        // 月末简单估算：下月第0天
+        const mend = new Date(t.getFullYear(), t.getMonth() + 1, 0);
+        const mms = String(mend.getMonth() + 1).padStart(2, '0');
+        const dds = String(mend.getDate()).padStart(2, '0');
+        endDate = endDate || `${mend.getFullYear()}-${mms}-${dds}`;
+      }
+    }
+
     this.setData({
       'filters.startDate': startDate,
       'filters.endDate': endDate,
@@ -267,33 +364,165 @@ Page({
     })
   },
 
+  // 计算给定范围的起止（用于面板显示与切换即刻生效）
+  _calcRange(range) {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth(); // 0-based
+
+    const fmt = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dd}`;
+    };
+
+    if (range === 'week') {
+      const dow = today.getDay(); // 0 Sun .. 6 Sat
+      const mondayOffset = dow === 0 ? -6 : -(dow - 1);
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() + mondayOffset);
+      weekStart.setHours(0,0,0,0);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23,59,59,999);
+      return { start: fmt(weekStart), end: fmt(weekEnd) };
+    }
+
+    if (range === 'month') {
+      // 直接用 JS 计算当月起止，避免工具与时区差异
+      const y = this.data.currentYear || currentYear;
+      const m0 = (this.data.currentMonth != null) ? this.data.currentMonth : currentMonth; // 0-based
+      const monthStart = new Date(y, m0, 1);
+      const monthEnd = new Date(y, m0 + 1, 0);
+      const fmt2 = (d) => {
+        const yy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yy}-${mm}-${dd}`;
+      };
+      return { start: fmt2(monthStart), end: fmt2(monthEnd) };
+    }
+
+    // custom 或未知：保持现值，若为空则回退本月
+    const start = this.data?.filters?.startDate;
+    const end = this.data?.filters?.endDate;
+    if (start && end) return { start, end };
+    const mr = dutils.buildMonthRange(currentYear, currentMonth);
+    return { start: mr.start, end: mr.end };
+  },
+  
   // 加载分类列表和标签
   async loadCategories() {
     try {
-      // 模拟分类数据
+      // 从本地存储读取标准化分类结构：{ income:[], expense:[] }，与分类管理页同源
+      const stored = wx.getStorageSync('categories') || { income: [], expense: [] };
+      let income = Array.isArray(stored.income) ? stored.income : [];
+      let expense = Array.isArray(stored.expense) ? stored.expense : [];
+
+      // 兜底：若分类存储为空，基于本地交易记录动态提取分类名称
+      if ((!income.length && !expense.length)) {
+        const tx = wx.getStorageSync('transactions') || [];
+        const incomeSet = new Set();
+        const expenseSet = new Set();
+        tx.forEach(t => {
+          const name = t && (t.category || t.categoryName || t.categoryId);
+          const type = t && t.type;
+          if (!name || !type) return;
+          if (type === 'income') incomeSet.add(String(name));
+          else if (type === 'expense') expenseSet.add(String(name));
+        });
+        if (incomeSet.size || expenseSet.size) {
+          income = Array.from(incomeSet).map(n => ({ id: n, name: n, icon: '', color: '' }));
+          expense = Array.from(expenseSet).map(n => ({ id: n, name: n, icon: '', color: '' }));
+        }
+      }
+
+      // 合并并保留 icon/color/type
       const categories = [
-        { id: 'food', name: '餐饮', type: 'expense' },
-        { id: 'transport', name: '交通', type: 'expense' },
-        { id: 'shopping', name: '购物', type: 'expense' },
-        { id: 'entertainment', name: '娱乐', type: 'expense' },
-        { id: 'medical', name: '医疗', type: 'expense' },
-        { id: 'education', name: '教育', type: 'expense' },
-        { id: 'housing', name: '住房', type: 'expense' },
-        { id: 'salary', name: '工资', type: 'income' },
-        { id: 'bonus', name: '奖金', type: 'income' },
-        { id: 'investment', name: '投资收益', type: 'income' }
-      ]
-      
-      // 模拟标签数据
+        ...income.map(c => ({ ...c, type: 'income' })),
+        ...expense.map(c => ({ ...c, type: 'expense' }))
+      ];
+
+      // 构建图标映射（按 id 与 name 双键）
+      const iconMap = {};
+      const setIf = (k, v) => { if (k && iconMap[k] == null) iconMap[k] = v; };
+      categories.forEach(c => {
+        const icon = c.icon || '💰';
+        setIf(c.id, icon);
+        setIf(c._id, icon);
+        setIf(c.name, icon);
+      });
+
+      // 兜底标签列表（保留原有演示标签）
       const availableTags = [
         '必需品', '可选消费', '紧急支出', '计划支出', 
         '工作相关', '家庭开支', '个人消费', '投资理财',
         '健康医疗', '教育培训', '娱乐休闲', '交通出行'
-      ]
-      
-      this.setData({ categories, availableTags })
+      ];
+      this.setData({ categories, availableTags, categoryIconMap: iconMap });
     } catch (error) {
-      console.error('加载分类和标签失败:', error)
+      console.error('加载分类和标签失败:', error);
+    }
+  },
+
+  // 加载账户列表（用于账户多选筛选）
+  // 显示账户下拉
+  showAccountDropdown() {
+    this.setData({
+      showAccountDropdown: !this.data.showAccountDropdown,
+      showCategoryDropdown: false,
+      showTagDropdown: false
+    })
+  },
+
+  // 账户下拉选择
+  onAccountSelect(e) {
+    const id = String(e.currentTarget.dataset.id || '')
+    if (!id || id === 'all') {
+      this.setData({ 'filters.accounts': [], showAccountDropdown: false })
+    } else {
+      this.setData({ 'filters.accounts': [id], showAccountDropdown: false })
+    }
+    this.updateSelectedAccountLabel()
+    this.applyFiltersAndReload()
+  },
+
+  // 更新账户下拉展示文案
+  updateSelectedAccountLabel() {
+    try {
+      let label = '全部账户'
+      const sel = Array.isArray(this.data.filters.accounts) ? this.data.filters.accounts : []
+      if (sel.length > 0) {
+        const targetId = String(sel[0])
+        const found = (this.data.accounts || []).find(a => String(a.id) === targetId)
+        if (found && found.name) label = found.name
+      }
+      this.setDataSafe({ selectedAccountLabel: label })
+    } catch (e) {
+      this.setDataSafe({ selectedAccountLabel: '全部账户' })
+    }
+  },
+
+  async loadAccounts() {
+    try {
+      const accounts = wx.getStorageSync('accounts') || []
+      const normalized = (Array.isArray(accounts) ? accounts : []).map(a => ({
+        id: a.id || a._id,
+        name: a.name,
+        icon: a.icon,
+        color: a.color || a.bgColor || a.themeColor
+      })).filter(a => a.id && a.name)
+      // 根据当前 filters.accounts 标记选中状态
+      const sel = Array.isArray(this.data.filters.accounts) ? this.data.filters.accounts.map(String) : []
+      const selectedSet = new Set(sel)
+      const withSelected = normalized.map(a => ({ ...a, selected: selectedSet.has(String(a.id)) }))
+      this.setData({ accounts: withSelected })
+      // 更新账户下拉展示
+      this.updateSelectedAccountLabel()
+    } catch (e) {
+      console.warn('加载账户列表失败:', e)
+      this.setData({ accounts: [] })
     }
   },
 
@@ -359,18 +588,28 @@ Page({
       const { startDate, endDate } = this.data.filters
       let queryStartDate = startDate
       let queryEndDate = endDate
+
+      // 轻量校验 YYYY-MM-DD
+      const isValidDateString = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)
+      const toISODate = (d) => d.toISOString().split('T')[0]
       
       // 如果是月份筛选，扩展查询范围到前后各一天，确保不遗漏跨时区或边界数据
-      if (this.data.filters.dateRange === 'month') {
+      if (this.data.filters.dateRange === 'month' && isValidDateString(startDate) && isValidDateString(endDate)) {
         const start = new Date(startDate)
-        start.setDate(start.getDate() - 1) // 前一天
-        queryStartDate = start.toISOString().split('T')[0]
+        if (!isNaN(start.getTime())) {
+          start.setDate(start.getDate() - 1) // 前一天
+          queryStartDate = toISODate(start)
+        }
         
         const end = new Date(endDate)
-        end.setDate(end.getDate() + 1) // 后一天
-        queryEndDate = end.toISOString().split('T')[0]
+        if (!isNaN(end.getTime())) {
+          end.setDate(end.getDate() + 1) // 后一天
+          queryEndDate = toISODate(end)
+        }
         
         console.log(`月份查询扩展范围: ${queryStartDate} 到 ${queryEndDate}`)
+      } else if (this.data.filters.dateRange === 'month') {
+        console.warn('月份扩展跳过：起止日期无效或为空', { startDate, endDate })
       }
       
       const params = {
@@ -394,13 +633,20 @@ Page({
       this.calculateStats(filteredTransactions)
       
       // 格式化数据
-      const formattedTransactions = filteredTransactions.map(transaction => ({
-        ...transaction,
-        formattedDate: formatDate(transaction.date || transaction.createTime),
-        formattedAmount: formatAmount(transaction.amount)
-      }))
+      const formattedTransactions = filteredTransactions.map(transaction => {
+        const catKey = transaction.category || transaction.categoryName || transaction.categoryId;
+        const icon = this.getCategoryIcon(catKey, transaction.type);
+        return {
+          ...transaction,
+          category: transaction.category || transaction.categoryName || transaction.categoryId || '未分类',
+          categoryIcon: icon,
+          formattedDate: formatDate(transaction.date || transaction.createTime),
+          formattedAmount: formatAmount(transaction.amount)
+        };
+      })
       
-      this.setData({
+      // B2: setData wrapper 应用
+      this.setDataSafe({
         transactions: allTransactions,
         filteredTransactions: formattedTransactions,
         loading: false
@@ -518,6 +764,15 @@ Page({
         return ts === tag
       })
     }
+
+    // 按账户多选筛选
+    if (Array.isArray(this.data.filters.accounts) && this.data.filters.accounts.length > 0) {
+      const accSet = new Set(this.data.filters.accounts.map(String))
+      filtered = filtered.filter(t => {
+        const tid = t.accountId || t.account || t.accountIdStr || t.accountName
+        return tid && accSet.has(String(tid))
+      })
+    }
     
     // 按日期排序（最新的在前），兼容 createTime
     filtered.sort((a, b) => {
@@ -586,11 +841,30 @@ Page({
       case 'week':
         statsSubtitle = '本周数据'
         break
-      case 'month':
-        const monthStart = new Date(startDate)
-        const monthName = `${monthStart.getFullYear()}年${monthStart.getMonth() + 1}月`
-        statsSubtitle = `${monthName}数据`
+      case 'month': {
+        // 更稳健：当 startDate 无效时，用 currentYear/currentMonth 或今天兜底
+        const isYMD = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)
+        let y, m
+        if (isYMD(startDate)) {
+          const d = new Date(startDate)
+          if (!isNaN(d.getTime())) {
+            y = d.getFullYear()
+            m = d.getMonth() + 1
+          }
+        }
+        if (!y || !m) {
+          if (Number.isInteger(this.data.currentYear) && Number.isInteger(this.data.currentMonth)) {
+            y = this.data.currentYear
+            m = this.data.currentMonth + 1 // 0-based -> 1-based
+          } else {
+            const t = new Date()
+            y = t.getFullYear()
+            m = t.getMonth() + 1
+          }
+        }
+        statsSubtitle = `${y}年${m}月数据`
         break
+      }
       case 'quarter':
         statsSubtitle = '本季度数据'
         break
@@ -602,7 +876,8 @@ Page({
         break
     }
     
-    this.setData({
+    // B2: setData wrapper 应用
+    this.setDataSafe({
       totalIncome: totalIncome.toFixed(2),
       totalExpense: totalExpense.toFixed(2),
       netAmount: netAmount.toFixed(2),
@@ -613,6 +888,15 @@ Page({
 
   // 显示筛选面板
   showFilterPanel() {
+    // 若进入时起止为空，按当前筛选类型计算并回填，避免面板空白
+    const f = this.data.filters || {};
+    if (!f.startDate || !f.endDate) {
+      const r = this._calcRange(f.dateRange || 'month');
+      this.setData({
+        'filters.startDate': r.start,
+        'filters.endDate': r.end
+      });
+    }
     this.setData({ showFilterPanel: true })
   },
 
@@ -621,7 +905,8 @@ Page({
     this.setData({ 
       showFilterPanel: false,
       showCategoryDropdown: false,
-      showTagDropdown: false
+      showTagDropdown: false,
+      showAccountDropdown: false
     })
   },
 
@@ -670,24 +955,49 @@ Page({
     this.applyFiltersAndReload()
   },
 
-  // 日期范围筛选 - 修复自定义选择器消失问题
+  // 账户多选切换
+  onAccountToggle(e) {
+    const id = String(e.currentTarget.dataset.id || '')
+    if (!id) return
+    const sel = Array.isArray(this.data.filters.accounts) ? [...this.data.filters.accounts] : []
+    const idx = sel.indexOf(id)
+    if (idx >= 0) sel.splice(idx, 1); else sel.push(id)
+    // 更新 filters.accounts
+    this.setData({ 'filters.accounts': sel })
+    // 同步刷新 accounts[].selected 以驱动 UI 高亮
+    try {
+      const selSet = new Set(sel.map(String))
+      const updatedAccounts = (this.data.accounts || []).map(a => ({ ...a, selected: selSet.has(String(a.id)) }))
+      this.setData({ accounts: updatedAccounts })
+    } catch (e) { /* no-op */ }
+    this.applyFiltersAndReload()
+  },
+
+  // 清除账户筛选
+  onAccountClear() {
+    this.setData({ 'filters.accounts': [] })
+    this.applyFiltersAndReload()
+  },
+
+  // 日期范围筛选 - 显式写入起止，确保 UI 立刻更新
   onDateRangeFilter(e) {
     const range = e.currentTarget.dataset.range
     console.log('切换日期范围筛选:', range)
-    
-    // 更新筛选类型，但不隐藏自定义选择器
-    this.setData({
-      'filters.dateRange': range
-    })
-    
-    // 重新计算日期范围
-    this.initDateRange()
-    
-    // 应用筛选
+    const r = this._calcRange(range)
+    const patch = {
+      'filters.dateRange': range,
+      'filters.startDate': r.start,
+      'filters.endDate': r.end
+    }
+    // 当选择“本月”时，同时更新当前年月，确保后续计算一致
+    if (range === 'month') {
+      const today = new Date()
+      patch.currentYear = today.getFullYear()
+      patch.currentMonth = today.getMonth() // 0-based
+    }
+    this.setData(patch)
     this.applyFiltersAndReload()
-    
-    // 不关闭筛选面板，让用户可以继续调整
-    console.log('日期范围已切换到:', range, '当前日期:', this.data.filters.startDate, '到', this.data.filters.endDate)
+    console.log('日期范围已切换到:', range, '当前日期:', r.start, '到', r.end)
   },
 
   // 自定义日期选择 - 修复选择器消失和无法操作的问题
@@ -772,11 +1082,17 @@ Page({
     const filteredTransactions = this.applyFilters(this.data.transactions)
     this.calculateStats(filteredTransactions)
     
-    const formattedTransactions = filteredTransactions.map(transaction => ({
-      ...transaction,
-      formattedDate: formatDate(transaction.date || transaction.createTime),
-      formattedAmount: formatAmount(transaction.amount)
-    }))
+    const formattedTransactions = filteredTransactions.map(transaction => {
+      const catKey = transaction.category || transaction.categoryName || transaction.categoryId;
+      const icon = this.getCategoryIcon(catKey, transaction.type);
+      return {
+        ...transaction,
+        category: transaction.category || transaction.categoryName || transaction.categoryId || '未分类',
+        categoryIcon: icon,
+        formattedDate: formatDate(transaction.date || transaction.createTime),
+        formattedAmount: formatAmount(transaction.amount)
+      };
+    })
     
     // 输出筛选结果的日期分布
     const dateDistribution = {}
@@ -788,7 +1104,8 @@ Page({
     
     console.log('筛选结果日期分布:', dateDistribution)
     
-    this.setData({
+    // B2: setData wrapper 应用
+    this.setDataSafe({
       filteredTransactions: formattedTransactions
     })
   },
@@ -820,19 +1137,19 @@ Page({
 
   // 重置筛选条件
   resetFilters() {
+    const r = this._calcRange('month')
     this.setData({
       filters: {
         type: 'all',
         category: 'all',
         tag: 'all',
         dateRange: 'month',
-        startDate: '',
-        endDate: ''
+        startDate: r.start,
+        endDate: r.end
       },
       showCategoryDropdown: false,
       showTagDropdown: false
     })
-    this.initDateRange()
     this.applyFiltersAndReload()
   },
 
@@ -1051,12 +1368,25 @@ Page({
   
   // 阻止冒泡空函数（用于筛选面板容器 catchtap）
   noop() {},
+
+  // 切换本页金额可见性
+  onEyeChange(e) {
+    const v = !!(e && e.detail && e.detail.value);
+    try {
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route);
+      privacyScope.setPageVisible(route || 'pages/transaction-list/transaction-list', v);
+    } catch (e) { /* no-op */ }
+    this.setDataSafe({ pageMoneyVisible: v });
+  },
   
   // 获取分类名称的缩写（用于文字图标）
-  getCategoryAbbr(categoryName) {
-    if (!categoryName) return '💰';
-    
-    const abbrMap = {
+  // 分类图标提供：优先使用分类管理页提供的 icon，缺失时按名称兜底为稳定 emoji
+  getCategoryIcon(categoryKey, type) {
+    const key = categoryKey || '其他';
+    const map = this.data && this.data.categoryIconMap ? this.data.categoryIconMap : {};
+    if (map[key]) return map[key];
+    // 兜底映射（与分类页常见名称一致），保证视觉一致
+    const fallback = {
       '餐饮': '🍽️',
       '交通': '🚗',
       '购物': '🛍️',
@@ -1071,10 +1401,8 @@ Page({
       '投资收益': '📈',
       '兼职': '💼',
       '转账': '🔄',
-      '其他': '📦'
+      '其他': type === 'income' ? '💰' : '💸'
     };
-    
-    // 返回对应的emoji或取前两个字符
-    return abbrMap[categoryName] || '💰';
+    return fallback[key] || (type === 'income' ? '💰' : '💸');
   }
 })

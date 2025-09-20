@@ -62,8 +62,9 @@ Component({
     // 修复：初始化导航栏 - 简化逻辑，确保显示
     initNavBar() {
       try {
-        const systemInfo = wx.getSystemInfoSync()
-        const statusBarHeight = systemInfo.statusBarHeight || 44
+        // 优先新 API 获取窗口信息，保留兼容回退
+        const winInfo = (wx.getWindowInfo && wx.getWindowInfo()) || (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {})
+        const statusBarHeight = winInfo.statusBarHeight || (winInfo.safeAreaInsets && winInfo.safeAreaInsets.top) || 44
         // 设置导航栏高度：状态栏高度 + 导航栏内容高度
         const navBarHeight = statusBarHeight + 44
         

@@ -1,0 +1,31 @@
+var toFixed = function(n, d) {
+  var m = Math.pow(10, d);
+  return Math.round(n * m) / m;
+};
+var addComma = function(s) {
+  var parts = s.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+};
+exports.formatDisplay = function(raw, format, compact) {
+  var n = Number(raw || 0);
+  var s;
+  if (compact) {
+    // 简化：>=10000 转万，>=100000000 转亿
+    var abs = Math.abs(n);
+    if (abs >= 100000000) {
+      s = toFixed(n / 100000000, 2) + '亿';
+    } else if (abs >= 10000) {
+      s = toFixed(n / 10000, 2) + '万';
+    } else {
+      s = String(toFixed(n, 2));
+    }
+  } else {
+    s = String(toFixed(n, 2));
+  }
+  if (format === 'currency') {
+    s = addComma(s);
+    if (n >= 0) s = '¥' + s; // 可根据项目货币扩展
+  }
+  return s;
+};

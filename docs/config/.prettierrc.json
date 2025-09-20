@@ -1,0 +1,24 @@
+{
+  "//": "Prettier 参考配置（文档示例）：统一格式化风格，用于提交前与CI自动格式化",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "semi": true,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "overrides": [
+    {
+      "files": "*.wxml",
+      "options": { "parser": "html" }
+    },
+    {
+      "files": "*.wxss",
+      "options": { "parser": "css" }
+    },
+    {
+      "files": "*.wxs",
+      "options": { "parser": "babel" }
+    }
+  ]
+}

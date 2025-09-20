@@ -7,7 +7,7 @@
   <!-- 用户信息区域 -->
   <view class="profile-section">
     <view class="avatar">
-      <image src="{{userInfo.avatarUrl || '/images/default-avatar.svg'}}" mode="aspectFill" />
+      <image src="{{userInfo.avatarUrl || '/images/default-avatar.svg'}}" mode="aspectFill" lazy-load="true" binderror="onAvatarError" />
     </view>
     <view class="user-info">
       <text class="nickname">{{userInfo.nickName || '未登录'}}</text>

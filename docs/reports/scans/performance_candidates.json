@@ -1,0 +1,13 @@
+{
+  "status": "partial",
+  "summary": "性能候选页面（首轮）",
+  "items": [
+    { "page": "pages/transaction-list/transaction-list", "reason": "长列表 + 多筛选交互 + 高频 setData" },
+    { "page": "pages/reports/reports-simple", "reason": "文件体量大、多跳转与统计逻辑" },
+    { "page": "pages/record/record", "reason": "表单复杂、校验与预填多" },
+    { "page": "pages/assets/assets", "reason": "资产卡片、月切换、跳转较多" },
+    { "page": "pages/index/index", "reason": "首页入口多、快捷操作/跳转" },
+    { "page": "pages/template-manage/template-manage", "reason": "列表态/空态/引导切换" },
+    { "page": "pages/theme-settings/theme-settings", "reason": "主题预览/恢复频繁状态变更" }
+  ]
+}

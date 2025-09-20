@@ -733,9 +733,13 @@ class OperationLogService {
    */
   getUserAgent() {
     try {
-      const deviceInfo = wx.getDeviceInfo ? wx.getDeviceInfo() : wx.getSystemInfoSync();
-      const appInfo = wx.getAppBaseInfo ? wx.getAppBaseInfo() : wx.getSystemInfoSync();
-      return `${deviceInfo.platform} ${deviceInfo.system} WeChat/${appInfo.version}`;
+      // 优先使用新 API，并保留回退
+      const deviceInfo = (wx.getDeviceInfo && wx.getDeviceInfo()) || (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {});
+      const appInfo = (wx.getAppBaseInfo && wx.getAppBaseInfo()) || (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {});
+      const platform = deviceInfo.platform || 'unknown';
+      const system = deviceInfo.system || (deviceInfo.systemInfo || 'unknown');
+      const wechatVer = appInfo.version || (appInfo.SDKVersion || 'unknown');
+      return `${platform} ${system} WeChat/${wechatVer}`;
     } catch (error) {
       return 'Unknown';
     }

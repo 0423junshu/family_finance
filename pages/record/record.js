@@ -1,6 +1,10 @@
 // pages/record/record.js
 const transactionService = require('../../services/transaction-simple')
 const validator = require('../../utils/validator')
+const { withLoading } = require('../../utils/uiUtil')
+
+const { resolveCategory, resolveAccount, resolveTags } = require('../../utils/idResolver')
+const privacyScope = require('../../services/privacyScope')
 
 Page({
   data: {
@@ -55,6 +59,38 @@ Page({
   },
 
   onLoad(options) {
+    // 初始化本页面的金额可见性（独立持久化），并与现有 hideAmount 映射
+    try {
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route);
+      const visible = privacyScope.getEffectiveVisible(route || 'pages/record/record');
+      this.setData({ hideAmount: !visible });
+    } catch (_) {}
+    try {
+      wx.setStorageSync('lastRecordPage', 'record');
+      console.log('[record] onLoad: standard version running', options);
+    } catch (_) {}
+    // 合并模板参数的本地兜底（templatePayload），防止 query 传参丢失
+    try {
+      const payload = wx.getStorageSync('templatePayload') || {}
+      if (payload && Object.keys(payload).length) {
+        options = { ...payload, ...options }
+        wx.removeStorageSync('templatePayload')
+      }
+    } catch (_) {}
+
+    // B1: routing params encode/validate - validate mode/id
+    try {
+      const mode = options?.mode
+      const id = options?.id
+      // 仅当明确传入 mode 且非法时才提示；未传入则使用默认 'create' 不提示
+      if (mode !== undefined && mode !== 'create' && mode !== 'edit') {
+        wx.showToast({ title: '无效模式，已回退为创建', icon: 'none' })
+        options.mode = 'create'
+      } else if (mode === 'edit' && !id) {
+        wx.showToast({ title: '缺少记录ID，已回退为创建', icon: 'none' })
+        options.mode = 'create'
+      }
+    } catch (_) {}
     this.initPage(options)
   },
 
@@ -113,11 +149,20 @@ Page({
     
     // 如果有模板参数，填充表单数据
     if (amount) {
-      // 确保金额格式正确
-      const amountValue = parseFloat(amount)
-      if (!isNaN(amountValue)) {
-        updateData['formData.amount'] = amountValue.toFixed(2)
-        console.log('设置模板金额:', amountValue.toFixed(2))
+      // 统一解析金额：接受“元字符串”或“分”（字符串/数字），内部转分再回显为元字符串
+      try {
+        const { parseAmount, formatAmount } = require('../../utils/formatter')
+        // 若传入的 amount 已是“分”的整数或数字字符串，也能被 parseAmount 兼容解析（因 parseAmount默认按元解析）
+        // 因此先尝试识别：若为纯数字且大于等于10000（>=100元），仍按元解析是合理的；为避免二义性，优先支持“元字符串”传参
+        const cents = parseAmount(String(amount)) // 分（整数）
+        updateData['formData.amount'] = formatAmount(cents) // 转换为元字符串用于展示
+        console.log('设置模板金额(分):', cents, '显示(元):', updateData['formData.amount'])
+      } catch (e) {
+        console.warn('模板金额解析失败，回退直接显示:', amount, e)
+        const amountValue = parseFloat(amount)
+        if (!isNaN(amountValue)) {
+          updateData['formData.amount'] = amountValue.toFixed(2)
+        }
       }
     }
     if (categoryId) {
@@ -204,20 +249,17 @@ Page({
     console.log('更新显示数据，当前表单数据:', this.data.formData)
     console.log('可用分类:', this.data.categories)
     console.log('可用账户:', this.data.accounts)
-    
-    const selectedCategory = this.data.categories.find(cat => 
-      cat._id === this.data.formData.categoryId || cat.id === this.data.formData.categoryId
-    )
-    const selectedAccount = this.data.accounts.find(acc => 
-      acc._id === this.data.formData.accountId || acc.id === this.data.formData.accountId
-    )
-    const selectedTargetAccount = this.data.accounts.find(acc => 
-      acc._id === this.data.formData.targetAccountId || acc.id === this.data.formData.targetAccountId
-    )
-    // 确保formData.tags存在，避免TypeError: Cannot read property 'includes' of undefined
-    const selectedTags = this.data.tags.filter(tag => 
-      Array.isArray(this.data.formData.tags) && this.data.formData.tags.includes(tag._id)
-    )
+
+    // 允许模板传入 id 或 name（或别名）
+    const catInput = this.data.formData.categoryId || this.data.formData.categoryName;
+    const accInput = this.data.formData.accountId || this.data.formData.accountName;
+    const tgtAccInput = this.data.formData.targetAccountId || this.data.formData.targetAccountName;
+    const tagInput = this.data.formData.tags || this.data.formData.tagIds || this.data.formData.tagNames;
+
+    const selectedCategory = resolveCategory(this.data.categories, catInput);
+    const selectedAccount = resolveAccount(this.data.accounts, accInput);
+    const selectedTargetAccount = resolveAccount(this.data.accounts, tgtAccInput);
+    const selectedTags = Array.isArray(this.data.tags) ? resolveTags(this.data.tags, tagInput) : [];
     
     // 处理账户余额显示
     const processedAccounts = this.data.accounts.map(account => ({
@@ -230,33 +272,42 @@ Page({
       accounts: processedAccounts
     }
     
-    if (selectedCategory !== undefined) {
+    if (selectedCategory) {
+      if (selectedCategory.type && selectedCategory.type !== this.data.formData.type) {
+        this.setData({ 'formData.type': selectedCategory.type })
+      }
+      // 将实际 id 回填，后续流程使用标准 id
+      if (selectedCategory._id || selectedCategory.id) {
+        this.setData({ 'formData.categoryId': selectedCategory._id || selectedCategory.id })
+      }
       updateData.selectedCategory = selectedCategory
       console.log('更新显示分类:', selectedCategory?.name)
     } else {
       updateData.selectedCategory = null
-      console.log('未找到匹配的分类，categoryId:', this.data.formData.categoryId)
+      console.log('未找到匹配的分类，输入:', catInput)
     }
     
-    if (selectedAccount !== undefined) {
+    if (selectedAccount) {
+      if (selectedAccount._id || selectedAccount.id) {
+        this.setData({ 'formData.accountId': selectedAccount._id || selectedAccount.id })
+      }
       updateData.selectedAccount = selectedAccount
       console.log('更新显示账户:', selectedAccount?.name)
     } else {
       updateData.selectedAccount = null
-      console.log('未找到匹配的账户，accountId:', this.data.formData.accountId)
+      console.log('未找到匹配的账户，输入:', accInput)
     }
     
-    if (selectedTargetAccount !== undefined) {
+    if (selectedTargetAccount) {
+      if (selectedTargetAccount._id || selectedTargetAccount.id) {
+        this.setData({ 'formData.targetAccountId': selectedTargetAccount._id || selectedTargetAccount.id })
+      }
       updateData.selectedTargetAccount = selectedTargetAccount
     } else {
       updateData.selectedTargetAccount = null
     }
     
-    if (selectedTags !== undefined) {
-      updateData.selectedTags = selectedTags
-    } else {
-      updateData.selectedTags = []
-    }
+    updateData.selectedTags = selectedTags || []
     
     this.setData(updateData)
   },
@@ -303,17 +354,9 @@ Page({
   // 加载账户
   async loadAccounts() {
     try {
-      // 从本地存储获取账户数据，移除默认的农业银行
-      const accounts = wx.getStorageSync('accounts') || [
-        { _id: '1', id: '1', name: '现金', type: 'cash', balance: 100000, icon: '💰' },
-        { _id: '2', id: '2', name: '招商银行', type: 'bank', balance: 500000, icon: '🏦' },
-        { _id: '3', id: '3', name: '支付宝', type: 'wallet', balance: 50000, icon: '📱' }
-      ]
-      
+      const { getAvailableAccounts } = require('../../services/accountProvider')
+      const accounts = getAvailableAccounts()
       this.setData({ accounts })
-      
-      // 不设置默认账户，让用户主动选择
-      // 这样可以避免默认选择农业银行的问题
     } catch (error) {
       console.error('加载账户失败:', error)
     }
@@ -696,26 +739,15 @@ Page({
   // 上传图片
   async uploadImage(tempFilePath) {
     try {
-      wx.showLoading({ title: '上传中...' })
-      
-      // 模拟上传，实际应该使用云存储
-      const images = [...this.data.formData.images, tempFilePath]
-      this.setData({
-        'formData.images': images
-      })
-      
-      wx.hideLoading()
-      wx.showToast({
-        title: '上传成功',
-        icon: 'success'
-      })
+      await withLoading(async () => {
+        // 模拟上传，实际应该使用云存储
+        const images = [...this.data.formData.images, tempFilePath]
+        this.setData({ 'formData.images': images })
+      }, '上传中...')
+      wx.showToast({ title: '上传成功', icon: 'success' })
     } catch (error) {
       console.error('上传图片失败:', error)
-      wx.hideLoading()
-      wx.showToast({
-        title: '上传失败',
-        icon: 'error'
-      })
+      wx.showToast({ title: '上传失败', icon: 'error' })
     }
   },
 
@@ -890,5 +922,16 @@ Page({
   },
 
   // 阻止冒泡空函数（用于选择器/对话框容器 catchtap）
-  noop() {}
+  noop() {},
+
+  // 切换本页金额可见性（eye-toggle 回调）
+  onEyeChange(e) {
+    const visible = !!(e && e.detail && e.detail.value);
+    try {
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route);
+      privacyScope.setPageVisible(route || 'pages/record/record', visible);
+    } catch (_) {}
+    // 映射到现有 hideAmount，用于全页展示绑定
+    this.setData({ hideAmount: !visible });
+  }
 })

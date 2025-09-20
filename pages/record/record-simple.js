@@ -8,6 +8,12 @@ const transactionService = require('../../services/transaction-simple')
 const validator = require('../../utils/validator')
 
 Page({
+  onLoad(options) {
+    try {
+      wx.setStorageSync('lastRecordPage', 'record-simple');
+      console.log('[record-simple] onLoad: simple version running', options);
+    } catch (_) {}
+  },
   data: {
     mode: 'create', // create, edit
     loading: true,
@@ -125,9 +131,11 @@ Page({
 
   // 准备表单数据（编辑模式）
   prepareFormData(transaction) {
+    const { formatAmount } = require('../../utils/formatter')
     const formData = {
       type: transaction.type,
-      amount: transaction.amount.toString(),
+      // 内部按分，展示为元字符串
+      amount: formatAmount(transaction.amount),
       categoryId: transaction.categoryId || '',
       accountId: transaction.accountId || '',
       targetAccountId: transaction.targetAccountId || '',
@@ -152,9 +160,11 @@ Page({
       this.setData({ submitting: true })
       
       const formData = this.data.formData
+      const { parseAmount } = require('../../utils/formatter')
       const transactionData = {
         type: formData.type,
-        amount: parseFloat(formData.amount),
+        // 统一为分（整数）
+        amount: parseAmount(formData.amount),
         categoryId: formData.categoryId,
         accountId: formData.accountId,
         targetAccountId: formData.targetAccountId,
