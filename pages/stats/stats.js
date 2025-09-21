@@ -1,4 +1,6 @@
+/* eslint-disable */
 // pages/stats/stats.js
+const privacyScope = require('../../services/privacyScope')
 Page({
   data: {
     pageMoneyVisible: true,
@@ -19,13 +21,10 @@ Page({
   },
 
   onLoad() {
-    const app = getApp()
-    const route = this.route
-    const g = app.globalData || {}
-    const v = (g.pageVisibility && Object.prototype.hasOwnProperty.call(g.pageVisibility, route))
-      ? g.pageVisibility[route]
-      : !g.hideAmount
-    this.setData({ pageMoneyVisible: v })
+    try {
+      const v = privacyScope.getEffectiveVisible('stats')
+      this.setData({ pageMoneyVisible: v })
+    } catch (_) {}
     this.loadStatsData()
   },
 
@@ -39,14 +38,10 @@ Page({
     this.setData({ currentTab: index })
   },
 
-  // 切换显示/隐藏
+  // 切换显示/隐藏（页面级覆盖持久化）
   onEyeChange(e) {
-    const v = e.detail.value
-    const app = getApp()
-    const route = this.route
-    if (app.globalData && app.globalData.pageVisibility) {
-      app.globalData.pageVisibility[route] = v
-    }
+    const v = !!(e && e.detail && e.detail.value)
+    privacyScope.setPageVisible('stats', v)
     this.setData({ pageMoneyVisible: v })
   },
 

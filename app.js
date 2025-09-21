@@ -14,9 +14,10 @@ App({
     // 初始化主题系统
     themeService.init()
     // 初始化会话级页面可见性缓存（不持久化）
-    if (!this.globalData.pageVisibility) {
-      this.globalData.pageVisibility = Object.create(null)
-    }
+    // 取消旧版会话级页面显隐缓存的初始化，统一使用 services/privacyScope
+    // if (!this.globalData.pageVisibility) {
+    //   this.globalData.pageVisibility = Object.create(null)
+    // }
     
     // 初始化数据一致性服务
     dataConsistencyService.init()

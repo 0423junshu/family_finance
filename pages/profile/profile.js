@@ -2,6 +2,8 @@
 const app = getApp();
 const familyService = require('../../services/family.js');
 const collaborationHelper = require('../../utils/collaborationHelper.js');
+const privacy = require('../../services/privacy.js');
+const privacyScope = require('../../services/privacyScope.js');
 
 Page({
   data: {
@@ -36,6 +38,12 @@ Page({
         desc: '自定义记账模板'
       },
       {
+        id: 'privacy',
+        title: '隐私管理',
+        icon: '🔒',
+        desc: '金额/收益率默认显示与覆盖清理'
+      },
+      {
         id: 'cycle',
         title: '记账周期',
         icon: '📅',
@@ -66,13 +74,22 @@ Page({
         desc: '个性化主题'
       }
     ],
-    version: '1.0.0'
+    version: '1.0.0',
+    // 默认金额/收益率可见性（来自全局 privacy）
+    moneyVisible: false
   },
 
   onLoad() {
     console.log('[DEBUG] Profile页面加载');
     this.loadUserInfo();
     this.initCollaboration();
+    // 初始化默认显隐（订阅全局）
+    try {
+      this.setData({ moneyVisible: !!privacy.getMoneyVisible() });
+      this._unsubPrivacy = privacy.subscribe((v) => {
+        this.setData({ moneyVisible: !!v });
+      });
+    } catch (_) {}
   },
 
   onShow() {
@@ -109,6 +126,11 @@ Page({
       case 'template':
         wx.navigateTo({
           url: '/pages/template-manage/template-manage'
+        })
+        break
+      case 'privacy':
+        wx.navigateTo({
+          url: '/pages/privacy-settings/privacy-settings'
         })
         break
       case 'cycle':
@@ -420,5 +442,32 @@ Page({
         }
       }
     });
+  },
+
+  // ================ 隐私管理交互 ================
+  // 兼容点击头部区域触发（辅助），以 eye-toggle 的 change 为准
+  onToggleDefaultVisible() {
+    try {
+      privacy.toggleMoneyVisible();
+    } catch (_) {}
+  },
+  // eye-toggle 回调：更新全局默认（storage 持久化并广播）
+  onDefaultVisibleChange(e) {
+    const next = !!(e && e.detail && e.detail.value);
+    try {
+      privacy.setMoneyVisible(next);
+      wx.showToast({ title: next ? '已设为默认显示' : '已设为默认隐藏', icon: 'none' });
+    } catch (_) {}
+  },
+  // 已移除：清除覆盖功能不再提供（保持占位以防外部引用）
+  onClearOverrides() {
+    wx.showToast({ title: '该功能已移除', icon: 'none' });
+  },
+
+  onUnload() {
+    if (this._unsubPrivacy) {
+      try { this._unsubPrivacy(); } catch (e) {}
+      this._unsubPrivacy = null;
+    }
   }
 })

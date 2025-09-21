@@ -3,7 +3,8 @@
         "navigation-bar": "../../components/navigation-bar/navigation-bar",
         "sync-status": "../../components/sync-status/sync-status",
         "t-button": "tdesign-miniprogram/button/button",
-        "t-card": "tdesign-miniprogram/card/card"
+        "t-card": "tdesign-miniprogram/card/card",
+        "eye-toggle": "/components/common/eye-toggle/eye-toggle"
     },
     "enablePullDownRefresh": true,
     "backgroundTextStyle": "light"

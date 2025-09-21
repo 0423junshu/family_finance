@@ -36,6 +36,7 @@
             <text class="sync-text {{syncStatus}}" wx:elif="{{syncStatus === 'error'}}">同步失败</text>
           </view>
           <!-- 受控模式：由本页 state 决定，不再跟随全局 -->
+          <eye-toggle visible="{{!hideAmount}}" bind:change="onEyeChange" />
 
         </view>
       </view>

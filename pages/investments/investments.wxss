@@ -89,37 +89,41 @@
 /* 总览卡片 */
 .overview-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  margin: 32rpx;
+  margin: 24rpx;
   border-radius: 20rpx;
-  padding: 40rpx 32rpx;
+  padding: 28rpx 24rpx;
   display: grid; /* 三列网格，稳定顶对齐 */
   grid-template-columns: repeat(3, 1fr);
   column-gap: 24rpx;
   align-items: stretch; /* 拉伸以实现三列等高 */
+  grid-auto-rows: min-content; /* 保证各行高度由内容决定，避免垂直错位 */
+  row-gap: 0; /* 行间距归零，由列内 margin 控制 */
 }
 
 .overview-item {
   display: flex;
   flex-direction: column;
   align-items: flex-start; /* 顶部对齐，列内元素起点一致 */
-  gap: 6rpx; /* 列内间距更稳定 */
+  gap: 0; /* 由 label 的 margin-bottom 控制垂直间距，确保三列基线一致 */
   flex: 1; /* 三列均分，避免挤压导致换行 */
   height: 100%; /* 等高拉伸 */
 }
 
 .overview-label {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.8);
-  height: 28rpx;
-  line-height: 28rpx;
-  margin-bottom: 8rpx; /* 收窄间距以拉齐“值”行 */
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 26rpx;
+  display: block;
+  white-space: nowrap; /* 防止中文标签换行导致间距不一致 */
+  margin-bottom: 6rpx; /* 收紧标签→数值间距，去除“空一行”观感 */
 }
 
 .overview-value {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
   color: #FFFFFF;
-  line-height: 40rpx; /* 统一行高 */
+  line-height: 32rpx; /* 收紧行高，消除空行感 */
+  display: block; /* 块级化，确保与标签形成稳定垂直间距，避免 inline 基线差异 */
   white-space: nowrap; /* 禁止换行，避免纵向偏移 */
 }
 
@@ -164,23 +168,23 @@
 .investment-item {
   background: #FFFFFF;
   border-radius: 16rpx;
-  padding: 32rpx;
-  margin-bottom: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 12rpx;
   display: flex;
   align-items: center;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .investment-icon {
-  width: 80rpx;
-  height: 80rpx;
+  width: 64rpx;
+  height: 64rpx;
   background: #F2F2F7;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32rpx;
-  margin-right: 24rpx;
+  font-size: 28rpx;
+  margin-right: 20rpx;
 }
 
 .investment-info {
@@ -190,14 +194,14 @@
 }
 
 .investment-name {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #1C1C1E;
   font-weight: 500;
-  margin-bottom: 8rpx;
+  margin-bottom: 4rpx;
 }
 
 .investment-amount {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #8E8E93;
 }
 
@@ -208,13 +212,17 @@
 }
 
 .return-amount {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
+  display: block;
+  line-height: 28rpx;
   margin-bottom: 4rpx;
 }
 
 .return-rate {
-  font-size: 22rpx;
+  font-size: 20rpx;
+  display: block;
+  line-height: 24rpx;
 }
 
 .return-amount.positive,

@@ -1,0 +1,24 @@
+<!-- pages/privacy-settings/privacy-settings.wxml -->
+<view class="safe-area-wrapper safe-area-white">
+  <navigation-bar title="隐私管理" showBack="{{true}}" class="transparent-navbar" />
+</view>
+
+<view class="page-container">
+  <view class="card">
+    <view class="card-header">
+      <view class="card-icon"><text class="icon-text">🔒</text></view>
+      <view class="card-content">
+        <text class="card-title">默认显隐</text>
+        <text class="card-subtitle">控制金额与收益率的默认显示/隐藏</text>
+      </view>
+      <view class="card-action">
+        <eye-toggle visible="{{moneyVisible}}" bind:change="onDefaultVisibleChange" />
+      </view>
+    </view>
+    <view class="card-body">
+      <text class="card-desc">说明：默认显隐将在下次进入小程序时应用于所有页面；页面内小眼睛仅影响当次会话，重启后按默认展示。</text>
+    </view>
+  </view>
+
+
+</view>

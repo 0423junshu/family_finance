@@ -1,6 +1,8 @@
+/* eslint-disable */
 // pages/transaction-detail/transaction-detail.js
 const transactionService = require('../../services/transaction-simple')
 const { formatDate, formatAmount } = require('../../utils/formatter')
+const privacyScope = require('../../services/privacyScope')
 
 Page({
   data: {
@@ -13,13 +15,10 @@ Page({
   },
 
   onLoad(options) {
-    const app = getApp()
-    const route = this.route
-    const g = app.globalData || {}
-    const v = (g.pageVisibility && Object.prototype.hasOwnProperty.call(g.pageVisibility, route))
-      ? g.pageVisibility[route]
-      : !g.hideAmount
-    this.setData({ pageMoneyVisible: v })
+    try {
+      const v = privacyScope.getEffectiveVisible('transaction-detail')
+      this.setData({ pageMoneyVisible: v })
+    } catch (_) {}
 
     const { id } = options
     if (id) {
@@ -64,14 +63,10 @@ Page({
     }
   },
 
-  // 切换显示/隐藏
+  // 切换显示/隐藏（页面级覆盖持久化）
   onEyeChange(e) {
-    const v = e.detail.value
-    const app = getApp()
-    const route = this.route
-    if (app.globalData && app.globalData.pageVisibility) {
-      app.globalData.pageVisibility[route] = v
-    }
+    const v = !!(e && e.detail && e.detail.value)
+    privacyScope.setPageVisible('transaction-detail', v)
     this.setData({ pageMoneyVisible: v })
   },
 

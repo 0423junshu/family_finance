@@ -1,4 +1,6 @@
+/* eslint-disable */
 // pages/investments/investments.js
+const privacyScope = require('../../services/privacyScope')
 Page({
   data: {
     // 会话级金额可见性（默认隐藏）
@@ -49,29 +51,28 @@ Page({
   },
 
   onLoad() {
-    // 会话级可见性初始化
+    // 会话级可见性初始化（接入 privacyScope，使用真实路由，避免路由别名导致的覆盖读取失效）
     try {
-      const app = getApp() || {};
-      const route = this.route;
-      const vmap = (app.globalData && app.globalData.pageVisibility) || {};
-      const v = (vmap && Object.prototype.hasOwnProperty.call(vmap, route)) ? !!vmap[route] : false;
-      this.setData({ pageMoneyVisible: v });
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route) || 'pages/investments/investments';
+      const v = privacyScope.getEffectiveVisible(route);
+      this.setData({ pageMoneyVisible: !!v });
     } catch (_) {}
     this.initData()
     this.migrateInvestmentIcons() // 迁移投资图标到统一版本
     this.loadInvestments()
   },
 
-  // 小眼睛点击：切换会话级显示/隐藏
+  // 小眼睛点击：切换页面级显示/隐藏并持久化
   onEyeToggle() {
     const v = !this.data.pageMoneyVisible;
     this.setData({ pageMoneyVisible: v });
     try {
-      const app = getApp() || {};
-      app.globalData = app.globalData || {};
-      app.globalData.pageVisibility = app.globalData.pageVisibility || {};
-      app.globalData.pageVisibility[this.route] = v;
-    } catch (_) {}
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route) || 'pages/investments/investments';
+      privacyScope.setPageVisible(route, v);
+    } catch (_) {
+      // 兜底：仍写入简写键
+      privacyScope.setPageVisible('investments', v);
+    }
   },
   
   // 初始化默认日期为当月
@@ -84,6 +85,14 @@ Page({
   },
 
   onShow() {
+    // 进入页面时再次按真实路由读取“有效显隐”，确保清除覆盖后能回到全局默认
+    try {
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route) || 'pages/investments/investments';
+      const v = privacyScope.getEffectiveVisible(route);
+      if (typeof v === 'boolean' && v !== this.data.pageMoneyVisible) {
+        this.setData({ pageMoneyVisible: v });
+      }
+    } catch (_) {}
     this.loadInvestments(this.data.currentYear, this.data.currentMonth)
   },
 

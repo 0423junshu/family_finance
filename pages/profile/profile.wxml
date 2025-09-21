@@ -4,6 +4,7 @@
 </view>
 
 <view class="page-container">
+
   <!-- 用户信息卡片 -->
   <view class="user-card">
     <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.svg'}}" mode="aspectFill" lazy-load="true" binderror="onAvatarError" />

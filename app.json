@@ -32,7 +32,8 @@
     "pages/init-db-simple/init-db-simple",
     "pages/init-core-db/init-core-db",
     "pages/complete-db-init/complete-db-init",
-    "pages/manual-db-guide/manual-db-guide"
+    "pages/manual-db-guide/manual-db-guide",
+    "pages/privacy-settings/privacy-settings"
   ],
   "window": {
     "navigationBarTextStyle": "black",

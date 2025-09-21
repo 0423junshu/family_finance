@@ -1,9 +1,11 @@
+/* eslint-disable */
 // pages/transfer/transfer.js
 const { getAccounts } = require('../../services/account')
 const { createTransaction } = require('../../services/transaction-simple')
 const { formatAmount } = require('../../utils/formatter')
 const { showLoading, hideLoading, showToast } = require('../../utils/uiUtil')
 const { resolveAccount } = require('../../utils/idResolver')
+const privacyScope = require('../../services/privacyScope')
 
 Page({
   data: {
@@ -34,13 +36,11 @@ Page({
   },
 
   onLoad(options) {
-    // 会话态初始化可见性（不持久化）
-    const app = getApp()
-    const route = this.route
-    const g = app.globalData || {}
-    if (!g.pageVisibility) g.pageVisibility = Object.create(null)
-    const v = Object.prototype.hasOwnProperty.call(g.pageVisibility, route) ? g.pageVisibility[route] : !g.hideAmount
-    this.setData({ pageMoneyVisible: v })
+    // 初始化页面级可见性（privacyScope 持久化）
+    try {
+      const v = privacyScope.getEffectiveVisible('transfer')
+      this.setData({ pageMoneyVisible: v })
+    } catch (_) {}
 
     // 记录外部传参（支持 id 或 name）
     this.pendingOptions = options || {}
@@ -359,14 +359,10 @@ Page({
     }
   },
 
-  // 显示/隐藏切换
+  // 显示/隐藏切换（页面级覆盖持久化）
   onEyeChange(e) {
-    const v = e.detail.value
-    const app = getApp()
-    const route = this.route
-    if (app.globalData && app.globalData.pageVisibility) {
-      app.globalData.pageVisibility[route] = v
-    }
+    const v = !!(e && e.detail && e.detail.value)
+    privacyScope.setPageVisible('transfer', v)
     this.setData({ pageMoneyVisible: v })
   },
 

@@ -292,10 +292,9 @@ Page({
   onLoad() {
     // 会话级可见性初始化
     try {
-      const app = getApp() || {};
-      const route = this.route;
-      const vmap = (app.globalData && app.globalData.pageVisibility) || {};
-      const v = (vmap && Object.prototype.hasOwnProperty.call(vmap, route)) ? !!vmap[route] : false;
+      const privacyScope = require('../../services/privacyScope');
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route) || 'pages/reports/reports-simple';
+      const v = !!privacyScope.getEffectiveVisible(route);
       this.setDataSafe({ 
         pageMoneyVisible: v,
         globalMoneyVisible: null,
@@ -340,10 +339,9 @@ Page({
     // 一次性同步：避免竞态
     this.setData({ globalMoneyVisible: next, pageMoneyVisible: next });
     try {
-      const app = getApp() || {};
-      app.globalData = app.globalData || {};
-      app.globalData.pageVisibility = app.globalData.pageVisibility || {};
-      app.globalData.pageVisibility[this.route] = next;
+      const privacyScope = require('../../services/privacyScope');
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route) || 'pages/reports/reports-simple';
+      privacyScope.setPageVisible(route, next);
     } catch (_) {}
   },
 
@@ -365,10 +363,9 @@ Page({
     patch['pageMoneyVisible'] = nextEffective;
     this.setData(patch);
     try {
-      const app = getApp() || {};
-      app.globalData = app.globalData || {};
-      app.globalData.pageVisibility = app.globalData.pageVisibility || {};
-      app.globalData.pageVisibility[this.route] = nextEffective;
+      const privacyScope = require('../../services/privacyScope');
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route) || 'pages/reports/reports-simple';
+      privacyScope.setPageVisible(route, nextEffective);
     } catch (_) {}
   },
 
@@ -379,12 +376,11 @@ Page({
     const tv = this.data.tabVisible && this.data.tabVisible[idx];
     const effective = (g === null || g === undefined) ? !!tv : !!g;
     this.setDataSafe({ pageMoneyVisible: effective });
-    // 会话兜底存储有效状态（仅用于页面返回后恢复）
+    // 会话级覆盖同步到 privacyScope（用于返回后恢复）
     try {
-      const app = getApp() || {};
-      app.globalData = app.globalData || {};
-      app.globalData.pageVisibility = app.globalData.pageVisibility || {};
-      app.globalData.pageVisibility[this.route] = effective;
+      const privacyScope = require('../../services/privacyScope');
+      const route = this.route || (getCurrentPages().slice(-1)[0] && getCurrentPages().slice(-1)[0].route) || 'pages/reports/reports-simple';
+      privacyScope.setPageVisible(route, effective);
     } catch (_) {}
   },
 

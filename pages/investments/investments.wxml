@@ -15,15 +15,11 @@
     </view>
     <view class="overview-item">
       <text class="overview-label">总收益</text>
-      <text class="overview-value {{totalReturn >= 0 ? 'positive' : 'negative'}}">
-        {{ pageMoneyVisible ? ((totalReturn >= 0 ? '+' : '') + totalReturnDisplay) : '***' }}
-      </text>
+      <text class="overview-value {{totalReturn >= 0 ? 'positive' : 'negative'}}">{{ pageMoneyVisible ? ((totalReturn >= 0 ? '+' : '') + totalReturnDisplay) : '***' }}</text>
     </view>
     <view class="overview-item">
       <text class="overview-label">收益率</text>
-      <text class="overview-value {{returnRate >= 0 ? 'positive' : 'negative'}}">
-        {{ pageMoneyVisible ? ((returnRate >= 0 ? '+' : '') + returnRateDisplay + '%') : '***' }}
-      </text>
+      <text class="overview-value {{returnRate >= 0 ? 'positive' : 'negative'}}">{{ pageMoneyVisible ? ((returnRate >= 0 ? '+' : '') + returnRateDisplay + '%') : '***' }}</text>
     </view>
   </view>
 
@@ -55,12 +51,8 @@
         <text class="investment-amount">{{ pageMoneyVisible ? item.amountDisplay : '***' }}</text>
       </view>
       <view class="investment-return">
-        <text class="return-amount {{item.return >= 0 ? 'positive' : 'negative'}}">
-          {{ pageMoneyVisible ? ((item.return >= 0 ? '+' : '') + item.returnDisplay) : '***' }}
-        </text>
-        <text class="return-rate {{item.returnRate >= 0 ? 'positive' : 'negative'}}">
-          {{ pageMoneyVisible ? ((item.returnRate >= 0 ? '+' : '') + item.returnRateDisplay + '%') : '***' }}
-        </text>
+        <text class="return-amount {{item.return >= 0 ? 'positive' : 'negative'}}">{{ pageMoneyVisible ? ((item.return >= 0 ? '+' : '') + item.returnDisplay) : '***' }}</text>
+        <text class="return-rate {{item.returnRate >= 0 ? 'positive' : 'negative'}}">{{ pageMoneyVisible ? ((item.returnRate >= 0 ? '+' : '') + item.returnRateDisplay + '%') : '***' }}</text>
       </view>
     </view>
   </view>

@@ -42,14 +42,12 @@ Component({
 
   data: {
     statusBarHeight: 0,
-    navBarHeight: 44,
-    hideAmount: false
+    navBarHeight: 44
   },
 
   lifetimes: {
     attached() {
       this.initNavBar()
-      this.initHideAmountStatus()
       if (this.properties.title) {
         this.setData({
           titleText: this.properties.title
@@ -88,13 +86,8 @@ Component({
       }
     },
 
-    // 初始化隐藏金额状态
-    initHideAmountStatus() {
-      const app = getApp()
-      this.setData({
-        hideAmount: app && app.globalData ? (app.globalData.hideAmount || false) : false
-      })
-    },
+    // 初始化隐藏金额状态（方案A不再在组件内维护，交由页面控制）
+    initHideAmountStatus() {},
 
     // 返回按钮点击（加入防抖锁避免重复触发）
     onBackTap() {
@@ -122,18 +115,11 @@ Component({
       this.triggerEvent('home')
     },
 
-    // 隐藏金额按钮点击
+    // 隐藏金额按钮点击（方案A：仅派发事件，由页面处理 privacyScope）
     onHideAmountTap() {
-      const app = getApp()
-      if (app && typeof app.toggleHideAmount === 'function') {
-        app.toggleHideAmount()
-        this.setData({
-          hideAmount: app.globalData.hideAmount
-        })
-        this.triggerEvent('hideAmountChange', {
-          hideAmount: app.globalData.hideAmount
-        })
-      }
+      this.triggerEvent('toggleHide')
+      // 兼容旧监听名
+      this.triggerEvent('hideAmountChange')
     },
 
     // 右侧按钮点击

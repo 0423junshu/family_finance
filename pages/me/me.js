@@ -4,6 +4,8 @@ const familyService = require('../../services/family.js');
 const collaborationHelper = require('../../utils/collaborationHelper.js');
 const eventBus = require('../../utils/eventBus.js');
 const dataManager = require('../../services/dataManager.js');
+const privacy = require('../../services/privacy.js');
+const privacyScope = require('../../services/privacyScope.js');
 
 Page({
   /**
@@ -13,7 +15,9 @@ Page({
     userInfo: {},
     collaborationEnabled: true, // 默认启用协作功能
     isInFamily: false,
-    familyInfo: null
+    familyInfo: null,
+    // 隐私管理：默认金额/收益率可见性（来自全局 privacy）
+    moneyVisible: false
   },
 
   /**
@@ -23,6 +27,13 @@ Page({
     console.log('[DEBUG] 页面加载');
     this.loadUserInfo();
     this.initCollaboration();
+
+    // 初始化默认显隐（订阅全局）
+    this.setData({ moneyVisible: privacy.getMoneyVisible() });
+    this._unsubPrivacy = privacy.subscribe((v) => {
+      // 仅更新该字段，避免不必要的 setData
+      this.setData({ moneyVisible: !!v });
+    });
     
     // 注册数据管理器刷新回调
     dataManager.registerRefreshCallback('me', (data) => {
@@ -289,6 +300,12 @@ Page({
     // 注销数据管理器刷新回调
     dataManager.unregisterRefreshCallback('me');
     console.log('[ME] onUnload - 已注销数据管理器回调');
+
+    // 注销隐私订阅
+    if (this._unsubPrivacy) {
+      try { this._unsubPrivacy(); } catch (e) {}
+      this._unsubPrivacy = null;
+    }
   },
 
   // 头像加载失败回退
@@ -297,6 +314,21 @@ Page({
     if (cur.avatarUrl !== '/images/default-avatar.svg') {
       this.setData({ 'userInfo.avatarUrl': '/images/default-avatar.svg' });
     }
-  }
+  },
 
+  // ================ 隐私管理交互 ================
+  // 兼容点击头部箭头区域触发（辅助），本质以 eye-toggle 的 change 为准
+  onToggleDefaultVisible() {
+    privacy.toggleMoneyVisible();
+  },
+  // eye-toggle 回调：更新全局默认（storage 持久化并广播）
+  onDefaultVisibleChange(e) {
+    const next = !!(e && e.detail && e.detail.value);
+    privacy.setMoneyVisible(next);
+    wx.showToast({ title: next ? '已设为默认显示' : '已设为默认隐藏', icon: 'none' });
+  },
+  // 已移除：清除覆盖功能不再提供（保持占位以防外部引用）
+  onClearOverrides() {
+    wx.showToast({ title: '该功能已移除', icon: 'none' });
+  }
 })
